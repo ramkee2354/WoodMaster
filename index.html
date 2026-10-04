@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WoodMaster</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;--line:#e4e7ec;--primary:#1769aa;--success:#16845b;--danger:#c62828}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text)}
+header{height:64px;background:#123b5d;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 22px}
+.brand{font-size:21px;font-weight:700}.user{font-size:13px;opacity:.9}
+.layout{display:flex;min-height:calc(100vh - 64px)}nav{width:220px;background:#fff;border-right:1px solid var(--line);padding:14px}
+nav button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:12px 13px;border-radius:8px;margin:3px 0;color:#344054;cursor:pointer;font-size:14px}
+nav button.active,nav button:hover{background:#eaf3fb;color:#125a8d;font-weight:600}
+main{flex:1;padding:24px;max-width:1400px;margin:auto;width:100%}
+h1{font-size:25px;margin:0 0 6px}h2{font-size:19px;margin:0 0 16px}.sub{color:var(--muted);font-size:13px;margin-bottom:22px}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:0 1px 2px #00000008}
+.metric{font-size:27px;font-weight:700;margin-top:8px}.label{font-size:12px;color:var(--muted)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}.btn{border:0;border-radius:8px;padding:10px 15px;cursor:pointer;font-weight:600}.primary{background:var(--primary);color:#fff}.secondary{background:#eef2f6;color:#344054}.danger{background:#fdecec;color:var(--danger)}
+.form{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px}.formgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.field label{display:block;font-size:12px;font-weight:600;margin-bottom:6px;color:#475467}.field input,.field select{width:100%;padding:10px;border:1px solid #d0d5dd;border-radius:7px;background:#fff;font-size:14px}.field input:focus,.field select:focus{outline:2px solid #d7eafb;border-color:#1769aa}
+.readonly{background:#f2f4f7!important}.full{grid-column:1/-1}.section{margin-top:22px}
+table{width:100%;border-collapse:collapse;background:#fff}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px}th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;font-size:13px;white-space:nowrap}th{background:#f8fafc;color:#475467;font-weight:700}
+.badge{display:inline-block;padding:4px 8px;border-radius:99px;background:#eef4f8;color:#355b73;font-size:11px}.empty{padding:35px;text-align:center;color:var(--muted)}
+.notice{padding:12px 14px;border-radius:8px;background:#eef7ff;border:1px solid #cfe7fb;color:#174a70;font-size:13px}.error{background:#fff1f0;border-color:#ffd0cc;color:#9d211b}
+.login{min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#edf5fb,#f8fafc)}.loginbox{width:min(420px,92vw);background:#fff;border:1px solid var(--line);border-radius:14px;padding:28px;box-shadow:0 12px 35px #00000012}.loginbox h1{margin-bottom:20px}
+@media(max-width:900px){nav{width:180px}.grid{grid-template-columns:repeat(2,1fr)}.formgrid{grid-template-columns:repeat(2,1fr)}}@media(max-width:650px){.layout{display:block}nav{width:100%;display:flex;overflow:auto;border-right:0;border-bottom:1px solid var(--line)}nav button{min-width:110px}main{padding:15px}.grid,.formgrid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const SUPABASE_URL='https://betjenxaqebqhqvjotyd.supabase.co';
+const SUPABASE_KEY='sb_publishable_KVBkusGZfcoipZwCkHhJJg_O_u69I2p';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const state={session:null,page:'dashboard',pos:[],vehicles:[],loads:[]};
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const num=v=>Number(v||0);
+function fmt(v,d=3){return num(v).toLocaleString('en-IN',{minimumFractionDigits:d,maximumFractionDigits:d})}
+function today(){return new Date().toISOString().slice(0,10)}
+function money(v){return num(v).toLocaleString('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:2})}
+function shell(body){
+ return `<header><div class="brand">🌲 WoodMaster</div><div class="user">${esc(state.session?.user?.email||'')}</div></header>
+ <div class="layout"><nav>
+ <button class="${state.page==='dashboard'?'active':''}" onclick="go('dashboard')">🏠 Dashboard</button>
+ <button class="${state.page==='loads'?'active':''}" onclick="go('loads')">🚚 Loads</button>
+ <button class="${state.page==='newload'?'active':''}" onclick="go('newload')">＋ New Load</button>
+ <button class="${state.page==='masters'?'active':''}" onclick="go('masters')">⚙ Masters</button>
+ <button onclick="logout()">↪ Sign out</button>
+ </nav><main>${body}</main></div>`;
+}
+async function loadMasters(){
+ const [p,v]=await Promise.all([
+  sb.from('po_master').select('id,po_number,po_date,po_qty,wood_rate,handling_other_rate,amc_rate,species_id,species_master(species_name,hsn_code)').eq('is_active',true).order('po_number'),
+  sb.from('vehicle_master').select('id,vehicle_number,current_tare').eq('is_active',true).order('vehicle_number')
+ ]);
+ if(p.error) throw p.error;if(v.error) throw v.error;state.pos=p.data||[];state.vehicles=v.data||[];
+}
+async function dashboard(){
+ const {data,error}=await sb.from('loads').select('id,load_number,load_date,network_net,status,vehicle_master(vehicle_number),po_master(po_number)').order('created_at',{ascending:false}).limit(10);
+ if(error) return `<h1>Dashboard</h1><div class="notice error">${esc(error.message)}</div>`;
+ state.loads=data||[];
+ const total=state.loads.length, mt=state.loads.reduce((a,x)=>a+num(x.network_net),0), ready=state.loads.filter(x=>x.status==='Ready for Material Invoice').length, billed=state.loads.filter(x=>x.status==='Billed').length;
+ return `<h1>Dashboard</h1><div class="sub">WoodMaster cloud operations</div>
+ <div class="actions"><button class="btn primary" onclick="go('newload')">＋ New Load</button><button class="btn secondary" onclick="go('loads')">View Loads</button></div>
+ <div class="grid"><div class="card"><div class="label">Recent Loads</div><div class="metric">${total}</div></div><div class="card"><div class="label">Recent Network Net Weight</div><div class="metric">${fmt(mt)} MT</div></div><div class="card"><div class="label">Invoice Ready</div><div class="metric">${ready}</div></div><div class="card"><div class="label">Billed Loads</div><div class="metric">${billed}</div></div></div>
+ <div class="section card"><h2>Recent Loads</h2>${loadTable(state.loads)}</div>`;
+}
+function loadTable(rows){
+ if(!rows.length)return '<div class="empty">No loads yet.</div>';
+ return `<div class="tablewrap"><table><thead><tr><th>Load</th><th>Date</th><th>Vehicle</th><th>PO</th><th>Net MT</th><th>Status</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${esc(x.load_number)}</td><td>${esc(x.load_date)}</td><td>${esc(x.vehicle_master?.vehicle_number||'')}</td><td>${esc(x.po_master?.po_number||'')}</td><td>${fmt(x.network_net)}</td><td><span class="badge">${esc(x.status)}</span></td></tr>`).join('')}</tbody></table></div>`;
+}
+async function loadsPage(){
+ const {data,error}=await sb.from('loads').select('id,load_number,load_date,network_gross,network_tare,network_net,eway_bill_no,freight_rate,advance,status,vehicle_master(vehicle_number),po_master(po_number,species_master(species_name))').order('load_number',{ascending:false});
+ if(error)return `<h1>Loads</h1><div class="notice error">${esc(error.message)}</div>`;
+ return `<h1>Loads</h1><div class="sub">All created loads</div>${loadTable(data||[])}`;
+}
+function newLoad(){
+ const poOptions=state.pos.map(p=>`<option value="${p.id}">${esc(p.po_number)} — ${esc(p.species_master?.species_name||'')}</option>`).join('');
+ const vehOptions=state.vehicles.map(v=>`<option value="${v.id}" data-tare="${v.current_tare??''}">${esc(v.vehicle_number)}</option>`).join('');
+ return `<h1>New Load</h1><div class="sub">Network weighbridge slip has been received. Start the process here.</div>
+ <div class="notice">No Network Receipt Number is required. The network weighment is created automatically with this Load.</div>
+ <form class="form section" onsubmit="createLoad(event)"><div class="formgrid">
+ <div class="field"><label>Date</label><input id="loadDate" type="date" value="${today()}" required></div>
+ <div class="field"><label>Vehicle Number</label><select id="vehicle" onchange="vehicleChanged()" required><option value="">Select vehicle</option>${vehOptions}</select></div>
+ <div class="field"><label>Gross Weight (MT)</label><input id="gross" type="number" step="0.001" min="0" oninput="calcNet()" required></div>
+ <div class="field"><label>Tare Weight (MT)</label><input id="tare" type="number" step="0.001" min="0" oninput="calcNet()" required></div>
+ <div class="field"><label>Net Weight (MT)</label><input id="net" class="readonly" readonly></div>
+ <div class="field"><label>PO</label><select id="po" onchange="poChanged()" required><option value="">Select PO</option>${poOptions}</select></div>
+ <div class="field"><label>Species</label><input id="species" class="readonly" readonly></div>
+ <div class="field"><label>Wood Rate / MT</label><input id="woodRate" class="readonly" readonly></div>
+ <div class="field"><label>Handling & Other Charges / MT</label><input id="handling" class="readonly" readonly></div>
+ <div class="field"><label>AMC Rate / MT</label><input id="amc" class="readonly" readonly></div>
+ <div class="field"><label>E-way Bill Number</label><input id="eway" placeholder="Enter after generating on GST portal" required></div>
+ <div class="field"><label>Freight Rate / MT</label><input id="freight" type="number" step="0.01" min="0" required></div>
+ <div class="field"><label>Advance</label><input id="advance" type="number" step="0.01" min="0" value="0" required></div>
+ <div class="field"><label>Advance Given By</label><input id="advanceBy" placeholder="Name"></div>
+ </div>
+ <div class="section card"><h2>E-way Bill Values</h2><div class="grid"><div><div class="label">Value 1 — Wood</div><strong id="v1">₹0.00</strong></div><div><div class="label">Value 2 — Handling incl. GST</div><strong id="v2">₹0.00</strong></div><div><div class="label">Value 3 — Total</div><strong id="v3">₹0.00</strong></div></div></div>
+ <div class="actions"><button class="btn primary" type="submit">Create Load</button><button class="btn secondary" type="button" onclick="go('dashboard')">Cancel</button></div></form>`;
+}
+function vehicleChanged(){const o=$('vehicle').selectedOptions[0];if(o&&o.dataset.tare)$('tare').value=o.dataset.tare;calcNet()}
+function poChanged(){const p=state.pos.find(x=>x.id===$('po').value);if(!p)return;$('species').value=p.species_master?.species_name||'';$('woodRate').value=p.wood_rate;$('handling').value=p.handling_other_rate;$('amc').value=p.amc_rate;calcEway()}
+function calcNet(){const n=num($('gross')?.value)-num($('tare')?.value);if($('net'))$('net').value=n>=0?n.toFixed(3):'';calcEway()}
+function calcEway(){if(!$('v1'))return;const n=num($('gross')?.value)-num($('tare')?.value),p=state.pos.find(x=>x.id===$('po')?.value);const wood=n*num(p?.wood_rate),handlingBase=n*num(p?.handling_other_rate),v2=handlingBase*1.18,v3=wood*1.18+v2;$('v1').textContent=money(wood);$('v2').textContent=money(v2);$('v3').textContent=money(v3)}
+async function createLoad(e){
+ e.preventDefault();
+ const vehicleId=$('vehicle').value,poId=$('po').value,g=num($('gross').value),t=num($('tare').value),n=g-t;
+ if(n<0)return alert('Tare weight cannot exceed gross weight.');
+ const p=state.pos.find(x=>x.id===poId);
+ if(!p)return alert('Select a PO.');
+ const {data:nw,error:nwe}=await sb.from('network_weighments').insert({weighment_date:$('loadDate').value,vehicle_id:vehicleId,gross_weight:g,tare_weight:t,po_id:poId,eway_bill_no:$('eway').value.trim(),freight_rate:num($('freight').value),advance:num($('advance').value),advance_given_by:$('advanceBy').value.trim(),receipt_received:true,verified:true,created_by:state.session.user.id}).select().single();
+ if(nwe)return alert(nwe.message);
+ const {data:load,error:le}=await sb.from('loads').insert({network_weighment_id:nw.id,po_id:poId,vehicle_id:vehicleId,load_date:$('loadDate').value,species_id:p.species_id,network_gross:g,network_tare:t,network_net:n,eway_bill_no:$('eway').value.trim(),freight_rate:num($('freight').value),advance:num($('advance').value),status:'Load Created',created_by:state.session.user.id}).select().single();
+ if(le){await sb.from('network_weighments').delete().eq('id',nw.id);return alert(le.message)}
+ alert(`Load ${load.load_number} created successfully.`);
+ go('loads');
+}
+async function masters(){
+ await loadMasters();
+ return `<h1>Masters</h1><div class="sub">Current read-only master data. Editing will be added after the core workflow is stable.</div>
+ <div class="grid"><div class="card"><h2>PO Master</h2><div class="metric">${state.pos.length}</div><div class="label">Active POs</div></div><div class="card"><h2>Vehicle Master</h2><div class="metric">${state.vehicles.length}</div><div class="label">Active vehicles</div></div></div>
+ <div class="section card"><h2>POs</h2>${state.pos.length?`<div class="tablewrap"><table><thead><tr><th>PO</th><th>Species</th><th>Qty MT</th><th>Wood Rate</th><th>Handling</th><th>AMC</th></tr></thead><tbody>${state.pos.map(p=>`<tr><td>${esc(p.po_number)}</td><td>${esc(p.species_master?.species_name||'')}</td><td>${fmt(p.po_qty)}</td><td>${money(p.wood_rate)}</td><td>${money(p.handling_other_rate)}</td><td>${money(p.amc_rate)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No active POs.</div>'}</div>`;
+}
+async function render(){
+ const app=$('app');
+ if(!state.session){app.innerHTML=`<div class="login"><div class="loginbox"><h1>🌲 WoodMaster</h1><div class="sub">Cloud operations system</div><div class="field"><label>Email</label><input id="email" type="email" placeholder="Email"></div><div class="field" style="margin-top:12px"><label>Password</label><input id="password" type="password" placeholder="Password"></div><div class="actions"><button class="btn primary" onclick="login()">Sign in</button><button class="btn secondary" onclick="signup()">Create account</button></div><div id="authmsg"></div></div></div>`;return}
+ try{
+  let body=state.page==='dashboard'?await dashboard():state.page==='loads'?await loadsPage():state.page==='newload'?(await loadMasters(),newLoad()):await masters();
+  app.innerHTML=shell(body);
+ }catch(err){app.innerHTML=shell(`<h1>Error</h1><div class="notice error">${esc(err.message||err)}</div>`)}
+}
+async function login(){const {error}=await sb.auth.signInWithPassword({email:$('email').value,password:$('password').value});if(error)$('authmsg').innerHTML=`<div class="notice error">${esc(error.message)}</div>`}
+async function signup(){const {error}=await sb.auth.signUp({email:$('email').value,password:$('password').value});$('authmsg').innerHTML=`<div class="notice ${error?'error':''}">${esc(error?error.message:'Account created. Check your email if confirmation is enabled.')}</div>`}
+async function logout(){await sb.auth.signOut()}
+async function go(p){state.page=p;await render()}
+sb.auth.onAuthStateChange((_e,s)=>{state.session=s;render()});
+sb.auth.getSession().then(({data})=>{state.session=data.session;render()});
+</script>
+</body>
+</html>
