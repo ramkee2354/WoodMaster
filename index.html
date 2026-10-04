@@ -72,7 +72,7 @@ async function backfillCustomerCodes(){
 }
 
 async function refreshMasters(){
- const [cu,po,sp,vh]=await Promise.all([
+ const [cu,po,vh]=await Promise.all([
   sb.from("customer_master").select("id,customer_name,customer_code,address,gstin,pan,is_active").eq("is_active",true).order("customer_name"),
   sb.from("po_master").select("id,po_number,po_date,valid_from,valid_to,po_qty,wood_rate,handling_other_rate,amc_rate,species_name,species_id,area_name,customer_id,contractor_id,hsn_code,is_active,customer_master(customer_name,gstin)").eq("is_active",true).order("po_number"),
   sb.from("vehicle_master").select("id,vehicle_number,current_tare,is_active").eq("is_active",true).order("vehicle_number")
@@ -89,7 +89,7 @@ async function refreshMasters(){
 async function refreshLoads(){
  if(!activeContractor()){state.loads=[];return;}
  const {data,error}=await sb.from("loads")
-  .select("id,load_number,load_date,vehicle_id,po_id,species_id,network_gross,network_tare,network_net,eway_bill_no,freight_rate,advance,status,vehicle_master(vehicle_number),po_master(po_number,contractor_id,area_name,species_name,customer_id,customer_master(customer_name,gstin)),species_name")
+  .select("id,load_number,load_date,vehicle_id,po_id,species_id,network_gross,network_tare,network_net,eway_bill_no,freight_rate,advance,status,vehicle_master(vehicle_number),po_master(po_number,contractor_id,area_name,species_name),species_name")
   .order("load_date",{ascending:false}).limit(100);
  if(error)throw error;
  state.loads=(data||[]).filter(x=>{
@@ -303,7 +303,7 @@ async function newLoad(){
  await refreshMasters();
  const c=activeContractor();
  const autoDC=await nextDCNumber();
- const poOptions=state.pos.map(p=>`<option value="${p.id}" data-rate="${p.wood_rate}" data-handling="${p.handling_other_rate}" data-amc="${p.amc_rate}" data-species="${p.species_name||""}" data-hsn="${p.hsn_code||""}" data-gstin="${p.customer_master?.gstin||""}">${esc(poDisplayLabel(p))}</option>`).join("");
+ const poOptions=state.pos.map(p=>`<option value="${p.id}" data-rate="${p.wood_rate}" data-handling="${p.handling_other_rate}" data-amc="${p.amc_rate}" data-species="${p.species_name||""}" data-hsn="${p.hsn_code||""}" data-gstin="${p.customer_master?.gstin||""}">${esc(poDisplayLabel(p))} — ${esc(p.customer_master?.customer_name||"")}</option>`).join("");
  const vehicleList=state.vehicles.map(v=>`<option value="${esc(v.vehicle_number)}" data-tare="${v.current_tare??""}"></option>`).join("");
  return `${contractorContext()}<div class="topbar"><div><h1>New Load</h1><div class="sub">Network weighbridge slip has already been received. Start the process here.</div></div></div>
  <div class="notice">No Network Receipt Number is required. The network weighment is created automatically with this Load.</div>
@@ -317,9 +317,9 @@ async function newLoad(){
    <div class="field"><label>PO *</label><select id="loadPO" required onchange="poChanged()"><option value="">Select PO</option>${poOptions}</select></div>
    <div class="field"><label>DC Number</label><input id="dcNumber" class="readonly" readonly value="${esc(autoDC)}"><div class="small" style="margin-top:6px">Automatically generated. Do not enter manually.</div></div>
    <div class="field"><label>Material</label><input id="loadSpecies" class="readonly" readonly></div>
-   <div class="field"><label>Customer GSTIN</label><input id="loadGstin" class="readonly" readonly></div>
-    <div class="field"><label>Material HSN Code</label><input id="loadHsn" class="readonly" readonly></div>
-    <div class="field"><label>Wood Rate / MT</label><input id="loadWoodRate" class="readonly" readonly></div>
+   <div class="field"><label>Customer GSTIN</label><input id="loadCustomerGstin" class="readonly" readonly></div>
+   <div class="field"><label>Material HSN Code</label><input id="loadHsn" class="readonly" readonly></div>
+   <div class="field"><label>Wood Rate / MT</label><input id="loadWoodRate" class="readonly" readonly></div>
    <div class="field"><label>Handling & Other Charges / MT</label><input id="loadHandling" class="readonly" readonly></div>
    <div class="field"><label>AMC Rate / MT</label><input id="loadAmc" class="readonly" readonly></div>
    <div class="field"><label>E-way Bill Number *</label><input id="eway" placeholder="Enter after generating on GST portal" required></div>
@@ -346,8 +346,6 @@ function poChanged(){
  const s=$("loadPO"), o=s.options[s.selectedIndex];
  if(!o||!o.value)return;
  $("loadSpecies").value=o.dataset.species||"";
-  $("loadGstin").value=o.dataset.gstin||"";
-  $("loadHsn").value=o.dataset.hsn||"";
  $("loadWoodRate").value=o.dataset.rate||"";
  $("loadHandling").value=o.dataset.handling||"";
  $("loadAmc").value=o.dataset.amc||"";
@@ -442,7 +440,7 @@ async function masters(){
    <div class="field"><label>PO Valid From</label><input id="mValidFrom" type="date"></div>
    <div class="field"><label>PO Valid To</label><input id="mValidTo" type="date"></div>
    <div class="field"><label>PO Quantity (MT)</label><input id="mPoQty" type="number" step="0.001" min="0"></div>
-   <div class="field"><label>Material / Species *</label><input id="mSpecies" required placeholder="Enter species name"></div>
+   <div class="field"><label>Species *</label><input id="mSpecies" required placeholder="Enter species name"></div>
    <div class="field"><label>Wood Rate / MT *</label><input id="mWoodRate" type="number" step="0.01" min="0" required></div>
    <div class="field"><label>Handling & Other Charges / MT</label><input id="mHandling" type="number" step="0.01" min="0" value="0"></div>
    <div class="field"><label>AMC Rate / MT</label><input id="mAmc" type="number" step="0.01" min="0" value="0"></div>
@@ -453,7 +451,7 @@ async function masters(){
  </div>
 
  <div class="section card"><h2>POs for ${esc(c?.contractor_name||"")}</h2>
- ${state.pos.length?`<div class="tablewrap"><table><thead><tr><th>PO</th><th>Customer</th><th>Area</th><th>Date</th><th>Material</th><th>Qty MT</th><th>Wood Rate</th><th>Handling</th><th>AMC</th><th>Actions</th></tr></thead><tbody>${state.pos.map(x=>`<tr><td>${esc(x.po_number)}</td><td>${esc(x.customer_master?.customer_name||"")}</td><td>${esc(x.area_name||"")}</td><td>${esc(x.po_date||"")}</td><td>${esc(x.species_name||"")}</td><td>${fmt(x.po_qty)}</td><td>${money(x.wood_rate)}</td><td>${money(x.handling_other_rate)}</td><td>${money(x.amc_rate)}</td><td><div class="rowactions"><button class="btn secondary mini" onclick="editPO('${x.id}')">Edit</button><button class="btn danger mini" onclick="deactivatePO('${x.id}')">Deactivate</button></div></td></tr>`).join("")}</tbody></table></div>`:'<div class="empty">No POs for this contractor yet.</div>'}
+ ${state.pos.length?`<div class="tablewrap"><table><thead><tr><th>PO</th><th>Customer</th><th>Area</th><th>Date</th><th>Species</th><th>Qty MT</th><th>Wood Rate</th><th>Handling</th><th>AMC</th><th>Actions</th></tr></thead><tbody>${state.pos.map(x=>`<tr><td>${esc(x.po_number)}</td><td>${esc(x.customer_master?.customer_name||"")}</td><td>${esc(x.area_name||"")}</td><td>${esc(x.po_date||"")}</td><td>${esc(x.species_name||"")}</td><td>${fmt(x.po_qty)}</td><td>${money(x.wood_rate)}</td><td>${money(x.handling_other_rate)}</td><td>${money(x.amc_rate)}</td><td><div class="rowactions"><button class="btn secondary mini" onclick="editPO('${x.id}')">Edit</button><button class="btn danger mini" onclick="deactivatePO('${x.id}')">Deactivate</button></div></td></tr>`).join("")}</tbody></table></div>`:'<div class="empty">No POs for this contractor yet.</div>'}
  </div>
 
  <div class="section card"><h2>Vehicle Master</h2><div class="notice">Vehicle registration is automatic. Enter a new vehicle directly in New Load; existing vehicles will appear as suggestions. The latest confirmed tare is retained.</div>
@@ -505,7 +503,7 @@ function editPO(id){
   <div class="field"><label>Valid From</label><input id="epFrom" type="date" value="${esc(x.valid_from||"")}"></div>
   <div class="field"><label>Valid To</label><input id="epTo" type="date" value="${esc(x.valid_to||"")}"></div>
   <div class="field"><label>PO Quantity (MT)</label><input id="epQty" type="number" step="0.001" value="${x.po_qty??""}"></div>
-  <div class="field"><label>Material *</label><input id="epSpecies" value="${esc(x.species_name||"")}" required></div>
+  <div class="field"><label>Species *</label><input id="epSpecies" value="${esc(x.species_name||"")}" required></div>
   <div class="field"><label>Wood Rate / MT *</label><input id="epWood" type="number" step="0.01" value="${x.wood_rate??0}" required></div>
   <div class="field"><label>Handling & Other / MT</label><input id="epHandling" type="number" step="0.01" value="${x.handling_other_rate??0}"></div>
   <div class="field"><label>AMC Rate / MT</label><input id="epAmc" type="number" step="0.01" value="${x.amc_rate??0}"></div>
