@@ -303,7 +303,7 @@ async function newLoad(){
  await refreshMasters();
  const c=activeContractor();
  const autoDC=await nextDCNumber();
- const poOptions=state.pos.map(p=>`<option value="${p.id}" data-rate="${p.wood_rate}" data-handling="${p.handling_other_rate}" data-amc="${p.amc_rate}" data-species="${p.species_name||""}" data-hsn="${p.hsn_code||""}" data-gstin="${p.customer_master?.gstin||""}">${esc(poDisplayLabel(p))} — ${esc(p.customer_master?.customer_name||"")}</option>`).join("");
+ const poOptions=state.pos.map(p=>`<option value="${p.id}" data-rate="${p.wood_rate}" data-handling="${p.handling_other_rate}" data-amc="${p.amc_rate}" data-species="${p.species_name||""}" data-hsn="${p.hsn_code||""}" data-gstin="${p.customer_master?.gstin||""}">${esc(poDisplayLabel(p))}</option>`).join("");
  const vehicleList=state.vehicles.map(v=>`<option value="${esc(v.vehicle_number)}" data-tare="${v.current_tare??""}"></option>`).join("");
  return `${contractorContext()}<div class="topbar"><div><h1>New Load</h1><div class="sub">Network weighbridge slip has already been received. Start the process here.</div></div></div>
  <div class="notice">No Network Receipt Number is required. The network weighment is created automatically with this Load.</div>
@@ -322,14 +322,18 @@ async function newLoad(){
    <div class="field"><label>Wood Rate / MT</label><input id="loadWoodRate" class="readonly" readonly></div>
    <div class="field"><label>Handling & Other Charges / MT</label><input id="loadHandling" class="readonly" readonly></div>
    <div class="field"><label>AMC Rate / MT</label><input id="loadAmc" class="readonly" readonly></div>
-   <div class="field"><label>E-way Bill Number *</label><input id="eway" placeholder="Enter after generating on GST portal" required></div>
    <div class="field"><label>Freight Rate / MT</label><input id="freight" type="number" step="0.01" min="0"></div>
    <div class="field"><label>Advance</label><input id="advance" type="number" step="0.01" min="0" value="0"></div>
-   <div class="field"><label>Advance Given By</label><input id="advanceBy" placeholder="Name"></div>
+   <div class="field"><label>Advance Given By</label><select id="advanceByChoice" onchange="advanceByChanged()"><option value="Ramkee">Ramkee</option><option value="Venkat">Venkat</option><option value="Others">Others</option></select><input id="advanceByOther" style="display:none;margin-top:8px" placeholder="Enter name"></div>
   </div>
-  <div class="section card"><h2>E-way Bill Values</h2><div class="grid" style="grid-template-columns:repeat(3,1fr)">
+  <div class="section card"><h2>E-way Bill Details <span class="small">(Used for E-way Bill generation)</span></h2><div class="formgrid">
+   <div class="field"><label>Customer GSTIN</label><input id="loadCustomerGstin" class="readonly" readonly></div>
+   <div class="field"><label>Material HSN Code</label><input id="loadHsn" class="readonly" readonly></div>
+   <div class="field"><label>E-way Bill Number *</label><input id="eway" placeholder="Enter after generating on GST portal" required></div>
+  </div>
+  <div class="grid" style="grid-template-columns:repeat(3,1fr)">
    <div><div class="label">Value 1 — Wood</div><div id="ewayV1" class="metric">${money(0)}</div></div>
-   <div><div class="label">Value 2 — Handling incl. GST</div><div id="ewayV2" class="metric">${money(0)}</div></div>
+   <div><div class="label">Value 2 — Handling incl. GST (18%)</div><div id="ewayV2" class="metric">${money(0)}</div></div>
    <div><div class="label">Value 3 — Total</div><div id="ewayV3" class="metric">${money(0)}</div></div>
   </div></div>
   <div class="actions"><button class="btn primary">Create Load</button><button type="button" class="btn secondary" onclick="go('dashboard')">Cancel</button></div>
@@ -340,6 +344,14 @@ function vehicleSuggestionChanged(){
  const input=$("vehicleNumber"), opts=[...document.querySelectorAll("#vehicleSuggestions option")];
  const hit=opts.find(o=>o.value.toUpperCase()===input.value.trim().toUpperCase());
  if(hit && hit.dataset.tare!=="" && hit.dataset.tare!=null && !$("tareWeight").value)$("tareWeight").value=hit.dataset.tare;
+}
+
+function advanceByChanged(){
+ const choice=$("advanceByChoice").value;
+ const other=$("advanceByOther");
+ if(!other)return;
+ other.style.display=choice==="Others"?"block":"none";
+ if(choice!=="Others") other.value="";
 }
 
 function poChanged(){
@@ -384,7 +396,7 @@ async function createLoad(e){
   const {error}=await sb.from("vehicle_master").update({current_tare:t}).eq("id",vehicle.id);
   if(error)return alert(error.message);
  }
- const nwRow={weighment_date:$("loadDate").value,vehicle_id:vehicle.id,gross_weight:g,tare_weight:t,po_id:poId,eway_bill_no:$("eway").value.trim(),freight_rate:num($("freight").value),advance:num($("advance").value),advance_given_by:$("advanceBy").value.trim()||null,receipt_received:true,verified:true,created_by:state.session.user.id};
+ const nwRow={weighment_date:$("loadDate").value,vehicle_id:vehicle.id,gross_weight:g,tare_weight:t,po_id:poId,eway_bill_no:$("eway").value.trim(),freight_rate:num($("freight").value),advance:num($("advance").value),advance_given_by:(($("advanceByChoice").value==="Others")?$("advanceByOther").value.trim():$("advanceByChoice").value)||null,receipt_received:true,verified:true,created_by:state.session.user.id};
  const {data:nw,error:nwe}=await sb.from("network_weighments").insert(nwRow).select().single();
  if(nwe)return alert(nwe.message);
  const loadRow={network_weighment_id:nw.id,po_id:poId,vehicle_id:vehicle.id,load_date:$("loadDate").value,species_id:null,species_name:p.species_name,network_gross:g,network_tare:t,network_net:n,eway_bill_no:$("eway").value.trim(),freight_rate:num($("freight").value),advance:num($("advance").value),dc_number:$("dcNumber").value.trim(),status:"Load Created",created_by:state.session.user.id};
