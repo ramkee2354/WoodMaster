@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>WoodMaster</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="module">import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs"; window.pdfjsLib=pdfjsLib;</script>
 <style>
 :root{--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;--line:#e4e7ec;--primary:#1769aa;--primary2:#0f5d93;--success:#16845b;--danger:#c62828;--warn:#b26a00}
 *{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -131,12 +132,16 @@ function registrationPage(first=false){
  return `
  <div class="topbar"><div><h1>${first?"Create Your First Contractor":"Register New Contractor"}</h1><div class="sub">${first?"After creating the contractor, its tile will immediately appear here.":"Enter the contractor's details once. After saving, the contractor will immediately appear in the contractor selection screen."}</div></div>${!first?`<button class="btn secondary" onclick="changeContractor()">← Back</button>`:""}</div>
  <form class="form" onsubmit="createContractor(event)">
+  <div class="notice">Upload the contractor's <b>GST Registration Certificate (PDF)</b>. WoodMaster will extract the legal name, trade name, GSTIN, PAN, constitution and registered address. Verify/edit the fields before saving. The uploaded file is processed in the browser and is not stored.</div>
+  <div class="field full" style="margin-bottom:14px"><label>GST Certificate</label><input id="gstCertificate" type="file" accept="application/pdf,.pdf" onchange="extractGSTCertificate(event)"><div id="gstExtractStatus" class="small" style="margin-top:6px">PDF recommended for automatic extraction.</div></div>
   <div class="formgrid">
-   <div class="field"><label>Contractor Name *</label><input id="regName" required></div>
+   <div class="field"><label>Trade / Contractor Name *</label><input id="regName" required></div>
+   <div class="field"><label>Legal Name</label><input id="regLegalName"></div>
    <div class="field"><label>Contractor Code</label><input id="regCode"></div>
    <div class="field"><label>GSTIN</label><input id="regGstin"></div>
    <div class="field"><label>PAN</label><input id="regPan"></div>
-   <div class="field full"><label>Registered / Office Address</label><input id="regAddress"></div>
+   <div class="field"><label>Constitution</label><input id="regConstitution"></div>
+   <div class="field full"><label>Registered / Principal Place of Business Address</label><input id="regAddress"></div>
   </div>
   <div class="actions"><button class="btn primary">Create Contractor</button>${!first?`<button type="button" class="btn secondary" onclick="changeContractor()">Cancel</button>`:""}</div>
  </form>`;
@@ -150,22 +155,37 @@ async function selectContractor(id){
  await render();
 }
 
+async function extractGSTCertificate(e){
+ const file=e.target.files?.[0]; if(!file)return;
+ const status=$("gstExtractStatus"); status.textContent="Reading GST certificate…";
+ try{
+  const buf=await file.arrayBuffer();
+  const pdf=await window.pdfjsLib.getDocument({data:buf}).promise;
+  let text="";
+  for(let i=1;i<=pdf.numPages;i++){
+   const page=await pdf.getPage(i); const content=await page.getTextContent();
+   text+=content.items.map(x=>x.str).join(" ")+"\n";
+  }
+  const clean=text.replace(/\s+/g," ").trim();
+  const gst=(clean.match(/\b[0-9]{2}[A-Z0-9]{13}\b/)||[])[0]||"";
+  const legal=(clean.match(/Legal Name\s+(.+?)(?=Trade Name|Additional trade|Constitution of Business)/i)||[])[1]?.trim()||"";
+  const trade=(clean.match(/Trade Name,? if any\s+(.+?)(?=Additional trade|Constitution of Business)/i)||[])[1]?.trim()||"";
+  const constitution=(clean.match(/Constitution of Business\s+(.+?)(?=Address of Principal|6\.)/i)||[])[1]?.trim()||"";
+  let address=""; const ai=clean.search(/Address of Principal Place of Business/i);
+  if(ai>=0){ const tail=clean.slice(ai).split(/6\.\s*Date of Liability/i)[0]; address=tail.replace(/Address of Principal Place of Business/i,"").replace(/Building No\.\/Flat No\.:?/ig," ").replace(/Name Of Premises\/Building:?/ig," ").replace(/Road\/Street:?/ig," ").replace(/Nearby Landmark:?/ig," ").replace(/Locality\/Sub Locality:?/ig," ").replace(/City\/Town\/Village:?/ig," ").replace(/District:?/ig," ").replace(/State:?/ig," ").replace(/PIN Code:?/ig," ").replace(/\s{2,}/g," ").trim(); }
+  const pan=gst?gst.slice(2,12):"";
+  if(trade) $("regName").value=trade; else if(legal) $("regName").value=legal;
+  if(legal) $("regLegalName").value=legal; if(gst) $("regGstin").value=gst;
+  if(pan) $("regPan").value=pan; if(constitution) $("regConstitution").value=constitution; if(address) $("regAddress").value=address;
+  status.textContent=`Extracted from ${file.name}. Please verify the fields before saving.`;
+ }catch(err){ console.error(err); status.textContent="Could not extract this PDF automatically. Please enter the details manually."; }
+}
+
 async function createContractor(e){
  e.preventDefault();
- const row={
-  contractor_name:$("regName").value.trim(),
-  contractor_code:$("regCode").value.trim()||null,
-  gstin:$("regGstin").value.trim()||null,
-  pan:$("regPan").value.trim()||null,
-  address:$("regAddress").value.trim()||null,
-  is_active:true
- };
+ const row={contractor_name:$("regName").value.trim(),contractor_code:$("regCode").value.trim()||null,gstin:$("regGstin").value.trim()||null,pan:$("regPan").value.trim()||null,address:$("regAddress").value.trim()||null,is_active:true};
  const {data,error}=await sb.from("contractor_master").insert(row).select().single();
- if(error){alert(error.message);return;}
- await refreshContractors();
- state.selectedContractor=data;
- state.page="dashboard";
- await render();
+ if(error){alert(error.message);return;} await refreshContractors(); state.selectedContractor=data; state.page="dashboard"; await render();
 }
 
 async function dashboard(){
