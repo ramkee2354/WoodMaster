@@ -326,6 +326,7 @@ async function newLoad(){
     <div class="field"><label>Net Weight (MT)</label><input id="netWeight" class="readonly" readonly></div>
     <div class="field"><label>PO *</label><select id="loadPO" required onchange="poChanged()"><option value="">Select PO</option>${poOptions}</select></div>
     <div class="field"><label>Material</label><input id="loadSpecies" class="readonly" readonly></div>
+    <div class="field"><label>E-way Bill Number *</label><input id="eway" placeholder="Enter after generating on GST portal" required></div>
     <div class="field"><label>Wood Rate / MT</label><input id="loadWoodRate" class="readonly" readonly></div>
     <div class="field"><label>Handling & Other Charges / MT</label><input id="loadHandling" class="readonly" readonly></div>
     <div class="field"><label>AMC Rate / MT</label><input id="loadAmc" class="readonly" readonly></div>
@@ -340,7 +341,6 @@ async function newLoad(){
     <div class="field"><label>Material</label><input id="ewayMaterial" class="readonly" readonly></div>
     <div class="field"><label>Material HSN Code</label><input id="loadHsn" class="readonly" readonly></div>
    </div>
-   <div class="field" style="margin-top:14px"><label>E-way Bill Number *</label><input id="eway" placeholder="Enter after generating on GST portal" required></div>
    <div class="grid eway-values" style="grid-template-columns:repeat(3,1fr)">
     <div><div class="label">Value 1 — Wood</div><div id="ewayV1" class="metric">${money(0)}</div></div>
     <div><div class="label">Value 2 — Handling incl. GST (18%)</div><div id="ewayV2" class="metric">${money(0)}</div></div>
