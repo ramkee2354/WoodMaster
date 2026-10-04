@@ -1,3 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WoodMaster</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="module">import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs"; pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs"; window.pdfjsLib=pdfjsLib;</script>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;--line:#e4e7ec;--primary:#1769aa;--primary2:#0f5d93;--success:#16845b;--danger:#c62828;--warn:#b26a00}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select{font:inherit}header{height:64px;background:#123b5d;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:5}.brand{font-size:21px;font-weight:700}.user{font-size:13px;opacity:.9}
+.layout{display:flex;min-height:calc(100vh - 64px)}nav{width:225px;background:#fff;border-right:1px solid var(--line);padding:14px;flex:none}nav button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:12px 13px;border-radius:8px;margin:3px 0;color:#344054;cursor:pointer;font-size:14px}nav button:hover,nav button.active{background:#eaf3fb;color:#125a8d;font-weight:600}
+main{flex:1;padding:25px;max-width:1500px;margin:auto;width:100%}h1{font-size:25px;margin:0 0 6px}h2{font-size:19px;margin:0 0 14px}.sub{color:var(--muted);font-size:13px;margin-bottom:22px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:0 1px 2px #00000008}.metric{font-size:27px;font-weight:700;margin-top:7px}.label{font-size:12px;color:var(--muted)}.section{margin-top:18px}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff}table{width:100%;border-collapse:collapse;min-width:650px}th,td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:left;font-size:13px}th{color:#475467;background:#fafafa}.empty{text-align:center;padding:28px;color:var(--muted)}
+.form{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px}.formgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.field label{display:block;font-size:12px;font-weight:600;color:#475467;margin-bottom:6px}.field input,.field select{width:100%;padding:10px 11px;border:1px solid #d0d5dd;border-radius:8px;background:#fff;outline:none}.field input:focus,.field select:focus{border-color:var(--primary);box-shadow:0 0 0 3px #1769aa18}.field.full{grid-column:1/-1}.readonly{background:#f2f4f7!important}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.btn{border:0;border-radius:8px;padding:10px 15px;cursor:pointer;font-weight:600}.primary{background:var(--primary);color:#fff}.primary:hover{background:var(--primary2)}.secondary{background:#eef2f6;color:#344054}.danger{background:#fff0f0;color:var(--danger)}.notice{padding:12px 14px;border-radius:8px;background:#eef7ff;border:1px solid #cfe7fb;color:#17527c;font-size:13px;margin-bottom:15px}.notice.error{background:#fff1f1;border-color:#f3c3c3;color:#9d1c1c}.notice.success{background:#effaf5;border-color:#bde8d1;color:#11633f}.small{font-size:12px;color:var(--muted)}.badge{display:inline-block;padding:4px 8px;border-radius:99px;background:#eef4f8;font-size:11px;color:#355b73}.contractor-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.contractor-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;cursor:pointer;transition:.15s}.contractor-card:hover{transform:translateY(-2px);box-shadow:0 7px 22px #00000010;border-color:#9fc9e6}.contractor-icon{font-size:30px}.contractor-name{font-size:18px;font-weight:700;margin-top:10px}.contractor-meta{font-size:12px;color:var(--muted);margin-top:5px}.contractor-action{margin-top:16px;color:var(--primary);font-weight:600;font-size:13px}.register-card{border:2px dashed #a8bfd0;background:#fbfdff}.quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.quick button{text-align:left;background:#fff;border:1px solid var(--line);border-radius:10px;padding:15px;cursor:pointer}.quick button:hover{border-color:#9fc9e6;background:#fafdff}.quick b{display:block;margin-bottom:4px}.login{min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#edf5fb,#f7fafc);padding:20px}.loginbox{width:min(440px,100%);background:#fff;border:1px solid var(--line);border-radius:15px;padding:28px;box-shadow:0 10px 30px #00000010}.loginbox h1{text-align:center;margin-bottom:4px}.loginbox .sub{text-align:center;margin-bottom:22px}.topbar{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;flex-wrap:wrap}.context{background:#eaf3fb;border:1px solid #c9e1f3;border-radius:9px;padding:10px 13px;margin-bottom:18px;color:#15527c;font-size:13px}.back{cursor:pointer;color:var(--primary);font-weight:600;margin-bottom:12px;display:inline-block}.danger-text{color:var(--danger)}@media(max-width:1000px){.grid{grid-template-columns:repeat(2,1fr)}.quick{grid-template-columns:repeat(2,1fr)}.contractor-grid{grid-template-columns:repeat(2,1fr)}.formgrid{grid-template-columns:repeat(2,1fr)}}@media(max-width:700px){header{height:58px;padding:0 14px}.layout{display:block}nav{width:100%;display:flex;overflow:auto;border-right:0;border-bottom:1px solid var(--line);padding:7px}nav button{white-space:nowrap;width:auto}.grid,.quick,.contractor-grid,.formgrid{grid-template-columns:1fr}main{padding:16px}.field.full{grid-column:auto}.user{display:none}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const SUPABASE_URL="https://betjenxaqebqhqvjotyd.supabase.co";
+const SUPABASE_KEY="sb_publishable_KVBkusGZfcoipZwCkHhJJg_O_u69I2p";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+const state={
+ session:null,
+ page:"contractors",
+ selectedContractor:null,
+ contractors:[],
+ customers:[],
+ pos:[],
+ species:[],
+ vehicles:[],
+ loads:[],
+ stats:{},
+ loading:false
+};
+
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+const num=v=>Number(v||0);
+const fmt=v=>Number(v||0).toLocaleString("en-IN",{minimumFractionDigits:3,maximumFractionDigits:3});
+const money=v=>"₹"+Number(v||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});
+const today=()=>new Date().toISOString().slice(0,10);
+
+function activeContractor(){
+ return state.selectedContractor;
+}
+
+async function refreshContractors(){
+ const {data,error}=await sb.from("contractor_master")
+  .select("id,contractor_name,contractor_code,gstin,pan,address,default_customer_id,is_active")
+  .eq("is_active",true).order("contractor_name");
+ if(error) throw error;
+ state.contractors=data||[];
+}
+
+async function refreshMasters(){
+ const [cu,po,sp,vh]=await Promise.all([
+  sb.from("customer_master").select("id,customer_name,customer_code,address,gstin,pan,is_active").eq("is_active",true).order("customer_name"),
+  sb.from("po_master").select("id,po_number,po_date,valid_from,valid_to,po_qty,wood_rate,handling_other_rate,amc_rate,species_id,customer_id,contractor_id,hsn_code,is_active,species_master(species_name,hsn_code),customer_master(customer_name)").eq("is_active",true).order("po_number"),
+  sb.from("species_master").select("id,species_name,hsn_code").eq("is_active",true).order("species_name"),
+  sb.from("vehicle_master").select("id,vehicle_number,current_tare,is_active").eq("is_active",true).order("vehicle_number")
+ ]);
+ if(cu.error)throw cu.error;if(po.error)throw po.error;if(sp.error)throw sp.error;if(vh.error)throw vh.error;
+ state.customers=cu.data||[];
+ state.pos=(po.data||[]).filter(x=>!activeContractor()||x.contractor_id===activeContractor().id);
+ state.species=sp.data||[];
+ state.vehicles=vh.data||[];
+}
+
+async function refreshLoads(){
+ if(!activeContractor()){state.loads=[];return;}
+ const {data,error}=await sb.from("loads")
+  .select("id,load_number,load_date,vehicle_id,po_id,species_id,network_gross,network_tare,network_net,eway_bill_no,freight_rate,advance,status,vehicle_master(vehicle_number),po_master(po_number,contractor_id),species_master(species_name)")
+  .order("load_date",{ascending:false}).limit(100);
+ if(error)throw error;
+ state.loads=(data||[]).filter(x=>{
+   const poContractor=x.po_master?.contractor_id;
+   // Migrated AppSheet records may not have contractor_id yet; keep them visible
+   // until the migration mapping is completed. New WoodMaster records are filtered.
+   return !poContractor || poContractor===activeContractor().id;
+ });
+}
+
+function shell(body){
+ const c=activeContractor();
+ return `
+ <header><div class="brand">🌲 WoodMaster</div><div class="user">${esc(state.session?.user?.email||"")}${c?` &nbsp;|&nbsp; ${esc(c.contractor_name)}`:""}</div></header>
+ <div class="layout">
+  <nav>
+   <button class="${state.page==="dashboard"?"active":""}" onclick="go('dashboard')">🏠 Dashboard</button>
+   <button class="${state.page==="loads"?"active":""}" onclick="go('loads')">🚚 Loads</button>
+   <button class="${state.page==="newload"?"active":""}" onclick="go('newload')">＋ New Load</button>
+   <button class="${state.page==="masters"?"active":""}" onclick="go('masters')">⚙ Masters</button>
+   <button onclick="changeContractor()">⇄ Contractors</button>
+   <button onclick="logout()">↪ Sign out</button>
+  </nav>
+  <main>${body}</main>
+ </div>`;
+}
 
 function contractorContext(){
  const c=activeContractor();
@@ -148,132 +249,4 @@ function recentLoadsTable(){
 async function loadsPage(){
  await refreshLoads();
  return `${contractorContext()}<div class="topbar"><div><h1>Loads</h1><div class="sub">Loads belonging to ${esc(activeContractor()?.contractor_name||"the selected contractor")}.</div></div><button class="btn primary" onclick="go('newload')">＋ New Load</button></div>
- <div class="card">${state.loads.length?`<div class="tablewrap"><table><thead><tr><th>Load</th><th>Date</th><th>Vehicle</th><th>PO</th><th>Net MT</th><th>E-way</th><th>Freight</th><th>Status</th></tr></thead><tbody>${state.loads.map(x=>`<tr><td>${esc(x.load_number)}</td><td>${esc(x.load_date)}</td><td>${esc(x.vehicle_master?.vehicle_number||"")}</td><td>${esc(x.po_master?.po_number||"")}</td><td>${fmt(x.network_net)}</td><td>${esc(x.eway_bill_no||"")}</td><td>${money(x.freight_rate)}</td><td><span class="badge">${esc(x.status||"")}</span></td></tr>`).join("")}</tbody></table></div>`:'<div class="empty">No loads for this contractor.</div>'}</div>`;
-}
-
-async function newLoad(){
- await refreshMasters();
- const c=activeContractor();
- const poOptions=state.pos.map(p=>`<option value="${p.id}" data-rate="${p.wood_rate}" data-handling="${p.handling_other_rate}" data-amc="${p.amc_rate}" data-species="${p.species_master?.species_name||""}" data-speciesid="${p.species_id}" data-hsn="${p.hsn_code||p.species_master?.hsn_code||""}">${esc(p.po_number)} — ${esc(p.customer_master?.customer_name||"")}</option>`).join("");
- const vehicleList=state.vehicles.map(v=>`<option value="${esc(v.vehicle_number)}" data-tare="${v.current_tare??""}"></option>`).join("");
- return `${contractorContext()}<div class="topbar"><div><h1>New Load</h1><div class="sub">Network weighbridge slip has already been received. Start the process here.</div></div></div>
- <div class="notice">No Network Receipt Number is required. The network weighment is created automatically with this Load.</div>
- <form class="form" onsubmit="createLoad(event)">
-  <div class="formgrid">
-   <div class="field"><label>Date *</label><input id="loadDate" type="date" value="${today()}" required></div>
-   <div class="field"><label>Vehicle Number *</label><input id="vehicleNumber" list="vehicleSuggestions" placeholder="Enter vehicle number" required oninput="vehicleSuggestionChanged()"><datalist id="vehicleSuggestions">${vehicleList}</datalist></div>
-   <div class="field"><label>Gross Weight (MT) *</label><input id="grossWeight" type="number" step="0.001" min="0" required oninput="calcLoad()"></div>
-   <div class="field"><label>Tare Weight (MT) *</label><input id="tareWeight" type="number" step="0.001" min="0" required oninput="calcLoad()"></div>
-   <div class="field"><label>Net Weight (MT)</label><input id="netWeight" class="readonly" readonly></div>
-   <div class="field"><label>PO *</label><select id="loadPO" required onchange="poChanged()"><option value="">Select PO</option>${poOptions}</select></div>
-   <div class="field"><label>Species</label><input id="loadSpecies" class="readonly" readonly></div>
-   <div class="field"><label>Wood Rate / MT</label><input id="loadWoodRate" class="readonly" readonly></div>
-   <div class="field"><label>Handling & Other Charges / MT</label><input id="loadHandling" class="readonly" readonly></div>
-   <div class="field"><label>AMC Rate / MT</label><input id="loadAmc" class="readonly" readonly></div>
-   <div class="field"><label>E-way Bill Number *</label><input id="eway" placeholder="Enter after generating on GST portal" required></div>
-   <div class="field"><label>Freight Rate / MT</label><input id="freight" type="number" step="0.01" min="0"></div>
-   <div class="field"><label>Advance</label><input id="advance" type="number" step="0.01" min="0" value="0"></div>
-   <div class="field"><label>Advance Given By</label><input id="advanceBy" placeholder="Name"></div>
-  </div>
-  <div class="section card"><h2>E-way Bill Values</h2><div class="grid" style="grid-template-columns:repeat(3,1fr)">
-   <div><div class="label">Value 1 — Wood</div><div id="ewayV1" class="metric">${money(0)}</div></div>
-   <div><div class="label">Value 2 — Handling incl. GST</div><div id="ewayV2" class="metric">${money(0)}</div></div>
-   <div><div class="label">Value 3 — Total</div><div id="ewayV3" class="metric">${money(0)}</div></div>
-  </div></div>
-  <div class="actions"><button class="btn primary">Create Load</button><button type="button" class="btn secondary" onclick="go('dashboard')">Cancel</button></div>
- </form>`;
-}
-
-function vehicleSuggestionChanged(){
- const input=$("vehicleNumber"), opts=[...document.querySelectorAll("#vehicleSuggestions option")];
- const hit=opts.find(o=>o.value.toUpperCase()===input.value.trim().toUpperCase());
- if(hit && hit.dataset.tare!=="" && hit.dataset.tare!=null && !$("tareWeight").value)$("tareWeight").value=hit.dataset.tare;
-}
-
-function poChanged(){
- const s=$("loadPO"), o=s.options[s.selectedIndex];
- if(!o||!o.value)return;
- $("loadSpecies").value=o.dataset.species||"";
- $("loadWoodRate").value=o.dataset.rate||"";
- $("loadHandling").value=o.dataset.handling||"";
- $("loadAmc").value=o.dataset.amc||"";
- calcLoad();
-}
-
-function calcLoad(){
- const g=num($("grossWeight")?.value),t=num($("tareWeight")?.value),n=Math.max(0,g-t);
- if($("netWeight"))$("netWeight").value=n.toFixed(3);
- const wood=n*num($("loadWoodRate")?.value);
- const handlingBase=n*num($("loadHandling")?.value);
- const v1=wood;
- const v2=handlingBase*1.18;
- const v3=v1*1.18+v2;
- if($("ewayV1"))$("ewayV1").textContent=money(v1);
- if($("ewayV2"))$("ewayV2").textContent=money(v2);
- if($("ewayV3"))$("ewayV3").textContent=money(v3);
-}
-
-async function createLoad(e){
- e.preventDefault();
- const c=activeContractor();
- const poId=$("loadPO").value;
- if(!c||!poId)return alert("Select a contractor and PO first.");
- const p=state.pos.find(x=>x.id===poId);
- if(!p)return alert("Selected PO could not be found.");
- const vehicleNo=$("vehicleNumber").value.trim().toUpperCase();
- const g=num($("grossWeight").value),t=num($("tareWeight").value),n=Math.max(0,g-t);
- if(!vehicleNo||g<=0||t<0||n<=0)return alert("Enter valid gross and tare weights.");
- let vehicle=state.vehicles.find(v=>v.vehicle_number.toUpperCase()===vehicleNo);
- if(!vehicle){
-  const {data,error}=await sb.from("vehicle_master").insert({vehicle_number:vehicleNo,current_tare:t,is_active:true}).select("id,vehicle_number,current_tare").single();
-  if(error)return alert(error.message);
-  vehicle=data;
- }else if(t>0 && Number(vehicle.current_tare||0)!==t){
-  const {error}=await sb.from("vehicle_master").update({current_tare:t}).eq("id",vehicle.id);
-  if(error)return alert(error.message);
- }
- const nwRow={weighment_date:$("loadDate").value,vehicle_id:vehicle.id,gross_weight:g,tare_weight:t,po_id:poId,eway_bill_no:$("eway").value.trim(),freight_rate:num($("freight").value),advance:num($("advance").value),advance_given_by:$("advanceBy").value.trim()||null,receipt_received:true,verified:true,created_by:state.session.user.id};
- const {data:nw,error:nwe}=await sb.from("network_weighments").insert(nwRow).select().single();
- if(nwe)return alert(nwe.message);
- const loadRow={network_weighment_id:nw.id,po_id:poId,vehicle_id:vehicle.id,load_date:$("loadDate").value,species_id:p.species_id,network_gross:g,network_tare:t,network_net:n,eway_bill_no:$("eway").value.trim(),freight_rate:num($("freight").value),advance:num($("advance").value),status:"Load Created",created_by:state.session.user.id};
- const {data:load,error:le}=await sb.from("loads").insert(loadRow).select().single();
- if(le){await sb.from("network_weighments").delete().eq("id",nw.id);return alert(le.message);}
- alert("Load "+load.load_number+" created successfully.");
- state.page="loads";await render();
-}
-
-async function masters(){
- await refreshMasters();
- const c=activeContractor();
- const customerOptions=state.customers.map(x=>`<option value="${x.id}">${esc(x.customer_name)}</option>`).join("");
- const speciesOptions=state.species.map(x=>`<option value="${x.id}">${esc(x.species_name)}${x.hsn_code?" — HSN "+esc(x.hsn_code):""}</option>`).join("");
- return `${contractorContext()}
- <div class="topbar"><div><h1>Masters</h1><div class="sub">Setup for the selected contractor. Contractor registration itself is handled outside Masters.</div></div></div>
- <div class="grid">
-  <div class="card"><div class="label">Active Customers</div><div class="metric">${state.customers.length}</div></div>
-  <div class="card"><div class="label">POs for this Contractor</div><div class="metric">${state.pos.length}</div></div>
-  <div class="card"><div class="label">Known Vehicles</div><div class="metric">${state.vehicles.length}</div></div>
-  <div class="card"><div class="label">Active Species</div><div class="metric">${state.species.length}</div></div>
- </div>
-
- <div class="section card"><h2>Customer Master</h2>
- <form class="form" style="padding:0;border:0;box-shadow:none" onsubmit="addCustomer(event)">
-  <div class="formgrid">
-   <div class="field"><label>Customer Name *</label><input id="cuName" required></div>
-   <div class="field"><label>Customer Code</label><input id="cuCode"></div>
-   <div class="field"><label>GSTIN</label><input id="cuGstin"></div>
-   <div class="field"><label>PAN</label><input id="cuPan"></div>
-   <div class="field full"><label>Address</label><input id="cuAddress"></div>
-  </div>
-  <div class="actions"><button class="btn primary">Add Customer</button></div>
- </form>
- <div class="section">${state.customers.length?`<div class="tablewrap"><table><thead><tr><th>Customer</th><th>Code</th><th>GSTIN</th><th>Address</th></tr></thead><tbody>${state.customers.map(x=>`<tr><td>${esc(x.customer_name)}</td><td>${esc(x.customer_code||"")}</td><td>${esc(x.gstin||"")}</td><td>${esc(x.address||"")}</td></tr>`).join("")}</tbody></table></div>`:'<div class="empty">No customers yet.</div>'}</div>
- </div>
-
- <div class="section card"><h2>Default Customer</h2>
- <div class="notice">This default applies only to <b>${esc(c?.contractor_name||"the selected contractor")}</b>. It will be preselected whenever a new PO is created for this contractor.</div>
- <div class="formgrid">
-  <div class="field"><label>Contractor</label><input class="readonly" readonly value="${esc(c?.contractor_name||"")}"></div>
-  <div class="field"><label>Default Customer</label><select id="defaultCustomer"><option value="">No default customer</option>${customerOptions}</select></div>
- </div>
- <div class="actions"><button class="btn prim
+ <div class="card">${state.loads.length?`<div class="tablewrap"><table><thead><tr><th>Load</th><th>Date</th><th>Vehicle</th><th>PO</th><th>Net MT</th><th>E-way</th><th>Freight</th><th>Status</th></tr></thead><tbody>${state.loads.map(x=>`<tr><td>${esc(x.load_number)}</td><td>${esc(x.load_date)}</td><td>${esc(x.vehicle_master?.vehicle_number||"")}</td><td>${esc(x.po_master?.po_number||"")}</td><td>${fmt(x.network_ne
