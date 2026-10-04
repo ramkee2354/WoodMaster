@@ -34,7 +34,7 @@ table{width:100%;border-collapse:collapse;background:#fff}.tablewrap{overflow:au
 const SUPABASE_URL='https://betjenxaqebqhqvjotyd.supabase.co';
 const SUPABASE_KEY='sb_publishable_KVBkusGZfcoipZwCkHhJJg_O_u69I2p';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-const state={session:null,page:'dashboard',pos:[],vehicles:[],loads:[]};
+const state={session:null,page:'dashboard',pos:[],vehicles:[],species:[],loads:[]};
 
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
@@ -53,11 +53,12 @@ function shell(body){
  </nav><main>${body}</main></div>`;
 }
 async function loadMasters(){
- const [p,v]=await Promise.all([
+ const [p,v,sp]=await Promise.all([
   sb.from('po_master').select('id,po_number,po_date,po_qty,wood_rate,handling_other_rate,amc_rate,species_id,species_master(species_name,hsn_code)').eq('is_active',true).order('po_number'),
-  sb.from('vehicle_master').select('id,vehicle_number,current_tare').eq('is_active',true).order('vehicle_number')
+  sb.from('vehicle_master').select('id,vehicle_number,current_tare').eq('is_active',true).order('vehicle_number'),
+  sb.from('species_master').select('id,species_name,hsn_code').eq('is_active',true).order('species_name')
  ]);
- if(p.error) throw p.error;if(v.error) throw v.error;state.pos=p.data||[];state.vehicles=v.data||[];
+ if(p.error) throw p.error;if(v.error) throw v.error;if(sp.error) throw sp.error;state.pos=p.data||[];state.vehicles=v.data||[];state.species=sp.data||[];
 }
 async function dashboard(){
  const {data,error}=await sb.from('loads').select('id,load_number,load_date,network_net,status,vehicle_master(vehicle_number),po_master(po_number)').order('created_at',{ascending:false}).limit(10);
@@ -80,12 +81,12 @@ async function loadsPage(){
 }
 function newLoad(){
  const poOptions=state.pos.map(p=>`<option value="${p.id}">${esc(p.po_number)} — ${esc(p.species_master?.species_name||'')}</option>`).join('');
- const vehOptions=state.vehicles.map(v=>`<option value="${v.id}" data-tare="${v.current_tare??''}">${esc(v.vehicle_number)}</option>`).join('');
+ 
  return `<h1>New Load</h1><div class="sub">Network weighbridge slip has been received. Start the process here.</div>
  <div class="notice">No Network Receipt Number is required. The network weighment is created automatically with this Load.</div>
  <form class="form section" onsubmit="createLoad(event)"><div class="formgrid">
  <div class="field"><label>Date</label><input id="loadDate" type="date" value="${today()}" required></div>
- <div class="field"><label>Vehicle Number</label><select id="vehicle" onchange="vehicleChanged()" required><option value="">Select vehicle</option>${vehOptions}</select></div>
+ <div class="field"><label>Vehicle Number</label><input id="vehicle" list="vehicleSuggestions" placeholder="Enter vehicle number" autocomplete="off" oninput="vehicleChanged()" required><datalist id="vehicleSuggestions">${state.vehicles.map(v=>`<option value="${esc(v.vehicle_number)}">${v.current_tare!=null?`Tare ${esc(v.current_tare)} MT`:''}</option>`).join('')}</datalist><div class="label" style="margin-top:5px">Existing vehicles appear as suggestions. New vehicles are saved automatically.</div></div>
  <div class="field"><label>Gross Weight (MT)</label><input id="gross" type="number" step="0.001" min="0" oninput="calcNet()" required></div>
  <div class="field"><label>Tare Weight (MT)</label><input id="tare" type="number" step="0.001" min="0" oninput="calcNet()" required></div>
  <div class="field"><label>Net Weight (MT)</label><input id="net" class="readonly" readonly></div>
@@ -102,16 +103,26 @@ function newLoad(){
  <div class="section card"><h2>E-way Bill Values</h2><div class="grid"><div><div class="label">Value 1 — Wood</div><strong id="v1">₹0.00</strong></div><div><div class="label">Value 2 — Handling incl. GST</div><strong id="v2">₹0.00</strong></div><div><div class="label">Value 3 — Total</div><strong id="v3">₹0.00</strong></div></div></div>
  <div class="actions"><button class="btn primary" type="submit">Create Load</button><button class="btn secondary" type="button" onclick="go('dashboard')">Cancel</button></div></form>`;
 }
-function vehicleChanged(){const o=$('vehicle').selectedOptions[0];if(o&&o.dataset.tare)$('tare').value=o.dataset.tare;calcNet()}
+function vehicleChanged(){const typed=($('vehicle')?.value||'').trim().toUpperCase();const v=state.vehicles.find(x=String(x.vehicle_number).toUpperCase()===typed);if(v&&v.current_tare!=null)$('tare').value=v.current_tare;calcNet()}
 function poChanged(){const p=state.pos.find(x=>x.id===$('po').value);if(!p)return;$('species').value=p.species_master?.species_name||'';$('woodRate').value=p.wood_rate;$('handling').value=p.handling_other_rate;$('amc').value=p.amc_rate;calcEway()}
 function calcNet(){const n=num($('gross')?.value)-num($('tare')?.value);if($('net'))$('net').value=n>=0?n.toFixed(3):'';calcEway()}
 function calcEway(){if(!$('v1'))return;const n=num($('gross')?.value)-num($('tare')?.value),p=state.pos.find(x=>x.id===$('po')?.value);const wood=n*num(p?.wood_rate),handlingBase=n*num(p?.handling_other_rate),v2=handlingBase*1.18,v3=wood*1.18+v2;$('v1').textContent=money(wood);$('v2').textContent=money(v2);$('v3').textContent=money(v3)}
 async function createLoad(e){
  e.preventDefault();
- const vehicleId=$('vehicle').value,poId=$('po').value,g=num($('gross').value),t=num($('tare').value),n=g-t;
+ let vehicleNumber=$('vehicle').value.trim().toUpperCase(),poId=$('po').value,g=num($('gross').value),t=num($('tare').value),n=g-t;
+ if(!vehicleNumber)return alert('Enter vehicle number.');
  if(n<0)return alert('Tare weight cannot exceed gross weight.');
  const p=state.pos.find(x=>x.id===poId);
  if(!p)return alert('Select a PO.');
+ let vehicle=state.vehicles.find(x=>String(x.vehicle_number).toUpperCase()===vehicleNumber);
+ if(!vehicle){
+   const {data:nv,error:nve}=await sb.from('vehicle_master').insert({vehicle_number:vehicleNumber,current_tare:t,is_active:true}).select('id,vehicle_number,current_tare').single();
+   if(nve)return alert('Vehicle could not be saved automatically: '+nve.message);
+   vehicle=nv; state.vehicles.push(vehicle);
+ } else if(t>0 && Number(vehicle.current_tare||0)!==t){
+   await sb.from('vehicle_master').update({current_tare:t}).eq('id',vehicle.id);
+ }
+ const vehicleId=vehicle.id;
  const {data:nw,error:nwe}=await sb.from('network_weighments').insert({weighment_date:$('loadDate').value,vehicle_id:vehicleId,gross_weight:g,tare_weight:t,po_id:poId,eway_bill_no:$('eway').value.trim(),freight_rate:num($('freight').value),advance:num($('advance').value),advance_given_by:$('advanceBy').value.trim(),receipt_received:true,verified:true,created_by:state.session.user.id}).select().single();
  if(nwe)return alert(nwe.message);
  const {data:load,error:le}=await sb.from('loads').insert({network_weighment_id:nw.id,po_id:poId,vehicle_id:vehicleId,load_date:$('loadDate').value,species_id:p.species_id,network_gross:g,network_tare:t,network_net:n,eway_bill_no:$('eway').value.trim(),freight_rate:num($('freight').value),advance:num($('advance').value),status:'Load Created',created_by:state.session.user.id}).select().single();
@@ -121,9 +132,22 @@ async function createLoad(e){
 }
 async function masters(){
  await loadMasters();
- return `<h1>Masters</h1><div class="sub">Current read-only master data. Editing will be added after the core workflow is stable.</div>
- <div class="grid"><div class="card"><h2>PO Master</h2><div class="metric">${state.pos.length}</div><div class="label">Active POs</div></div><div class="card"><h2>Vehicle Master</h2><div class="metric">${state.vehicles.length}</div><div class="label">Active vehicles</div></div></div>
- <div class="section card"><h2>POs</h2>${state.pos.length?`<div class="tablewrap"><table><thead><tr><th>PO</th><th>Species</th><th>Qty MT</th><th>Wood Rate</th><th>Handling</th><th>AMC</th></tr></thead><tbody>${state.pos.map(p=>`<tr><td>${esc(p.po_number)}</td><td>${esc(p.species_master?.species_name||'')}</td><td>${fmt(p.po_qty)}</td><td>${money(p.wood_rate)}</td><td>${money(p.handling_other_rate)}</td><td>${money(p.amc_rate)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No active POs.</div>'}</div>`;
+ const speciesOptions=state.species.map(x=>`<option value="${x.id}">${esc(x.species_name)}${x.hsn_code?` — HSN ${esc(x.hsn_code)}`:''}</option>`).join('');
+ return `<h1>Masters</h1><div class="sub">POs are maintained here. Vehicles are learned automatically from New Load entries; existing vehicles are shown for reference.</div>
+ <div class="grid"><div class="card"><h2>PO Master</h2><div class="metric">${state.pos.length}</div><div class="label">Active POs</div></div><div class="card"><h2>Vehicle Master</h2><div class="metric">${state.vehicles.length}</div><div class="label">Known vehicles</div></div><div class="card"><h2>Species</h2><div class="metric">${state.species.length}</div><div class="label">Active species</div></div></div>
+ <div class="section card"><h2>Add PO</h2><form class="form" style="padding:0;border:0;box-shadow:none" onsubmit="addPO(event)"><div class="formgrid">
+ <div class="field"><label>PO Number</label><input id="mPoNumber" required></div><div class="field"><label>PO Date</label><input id="mPoDate" type="date" value="${today()}"></div><div class="field"><label>PO Quantity (MT)</label><input id="mPoQty" type="number" step="0.001" min="0"></div>
+ <div class="field"><label>Species</label><select id="mSpecies" required><option value="">Select species</option>${speciesOptions}</select></div><div class="field"><label>Wood Rate / MT</label><input id="mWoodRate" type="number" step="0.01" min="0" required></div><div class="field"><label>Handling & Other Charges / MT</label><input id="mHandling" type="number" step="0.01" min="0" value="0"></div><div class="field"><label>AMC Rate / MT</label><input id="mAmc" type="number" step="0.01" min="0" value="0"></div></div>
+ <div class="actions"><button class="btn primary" type="submit">Add PO</button></div></form></div>
+ <div class="section card"><h2>POs</h2>${state.pos.length?`<div class="tablewrap"><table><thead><tr><th>PO</th><th>Species</th><th>Qty MT</th><th>Wood Rate</th><th>Handling</th><th>AMC</th></tr></thead><tbody>${state.pos.map(p=>`<tr><td>${esc(p.po_number)}</td><td>${esc(p.species_master?.species_name||'')}</td><td>${fmt(p.po_qty)}</td><td>${money(p.wood_rate)}</td><td>${money(p.handling_other_rate)}</td><td>${money(p.amc_rate)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No active POs.</div>'}</div>
+ <div class="section card"><h2>Known Vehicles</h2>${state.vehicles.length?`<div class="tablewrap"><table><thead><tr><th>Vehicle</th><th>Current Tare MT</th></tr></thead><tbody>${state.vehicles.map(v=>`<tr><td>${esc(v.vehicle_number)}</td><td>${v.current_tare==null?'':fmt(v.current_tare)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No vehicles yet. Enter one directly in New Load.</div>'}</div>`;
+}
+async function addPO(e){
+ e.preventDefault();
+ const po={po_number:$('mPoNumber').value.trim(),po_date:$('mPoDate').value||null,po_qty:num($('mPoQty').value),species_id:$('mSpecies').value,wood_rate:num($('mWoodRate').value),handling_other_rate:num($('mHandling').value),amc_rate:num($('mAmc').value),is_active:true};
+ const {error}=await sb.from('po_master').insert(po);
+ if(error)return alert(error.message);
+ alert('PO added successfully.'); await render();
 }
 async function render(){
  const app=$('app');
