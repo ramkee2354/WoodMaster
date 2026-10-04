@@ -6,244 +6,461 @@
 <title>WoodMaster</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;--line:#e4e7ec;--primary:#1769aa;--success:#16845b;--danger:#c62828}
+:root{--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;--line:#e4e7ec;--primary:#1769aa;--primary2:#0f5d93;--success:#16845b;--danger:#c62828;--warn:#b26a00}
 *{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text)}
-header{height:64px;background:#123b5d;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 22px}
-.brand{font-size:21px;font-weight:700}.user{font-size:13px;opacity:.9}
-.layout{display:flex;min-height:calc(100vh - 64px)}nav{width:220px;background:#fff;border-right:1px solid var(--line);padding:14px}
-nav button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:12px 13px;border-radius:8px;margin:3px 0;color:#344054;cursor:pointer;font-size:14px}
-nav button.active,nav button:hover{background:#eaf3fb;color:#125a8d;font-weight:600}
-main{flex:1;padding:24px;max-width:1400px;margin:auto;width:100%}
-h1{font-size:25px;margin:0 0 6px}h2{font-size:19px;margin:0 0 16px}.sub{color:var(--muted);font-size:13px;margin-bottom:22px}
-.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:0 1px 2px #00000008}
-.metric{font-size:27px;font-weight:700;margin-top:8px}.label{font-size:12px;color:var(--muted)}
-.actions{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}.btn{border:0;border-radius:8px;padding:10px 15px;cursor:pointer;font-weight:600}.primary{background:var(--primary);color:#fff}.secondary{background:#eef2f6;color:#344054}.danger{background:#fdecec;color:var(--danger)}
-.form{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px}.formgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
-.field label{display:block;font-size:12px;font-weight:600;margin-bottom:6px;color:#475467}.field input,.field select{width:100%;padding:10px;border:1px solid #d0d5dd;border-radius:7px;background:#fff;font-size:14px}.field input:focus,.field select:focus{outline:2px solid #d7eafb;border-color:#1769aa}
-.readonly{background:#f2f4f7!important}.full{grid-column:1/-1}.section{margin-top:22px}
-table{width:100%;border-collapse:collapse;background:#fff}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px}th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;font-size:13px;white-space:nowrap}th{background:#f8fafc;color:#475467;font-weight:700}
-.badge{display:inline-block;padding:4px 8px;border-radius:99px;background:#eef4f8;color:#355b73;font-size:11px}.empty{padding:35px;text-align:center;color:var(--muted)}
-.notice{padding:12px 14px;border-radius:8px;background:#eef7ff;border:1px solid #cfe7fb;color:#174a70;font-size:13px}.error{background:#fff1f0;border-color:#ffd0cc;color:#9d211b}
-.contextbar{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:18px}.contextbar button{border:0;background:#eef2f6;padding:8px 12px;border-radius:7px;cursor:pointer}
-.contractor-grid{display:flex;gap:16px;overflow-x:auto;padding:5px 2px 18px;scroll-snap-type:x mandatory}.contractor-card{min-width:260px;max-width:330px;flex:1 0 260px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;cursor:pointer;scroll-snap-align:start;box-shadow:0 3px 10px #00000008;transition:.15s}.contractor-card:hover{transform:translateY(-2px);border-color:#9ac7e5}.contractor-icon{font-size:32px}.contractor-name{font-size:18px;font-weight:700;margin-top:10px}.contractor-meta{font-size:12px;color:var(--muted);margin-top:7px}
-.small-note{font-size:12px;color:var(--muted);margin-top:5px}.star{color:#d69200}
-.login{min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#edf5fb,#f8fafc)}.loginbox{width:min(420px,92vw);background:#fff;border:1px solid var(--line);border-radius:14px;padding:28px;box-shadow:0 12px 35px #00000012}.loginbox h1{margin-bottom:20px}
-@media(max-width:900px){nav{width:180px}.grid{grid-template-columns:repeat(2,1fr)}.formgrid{grid-template-columns:repeat(2,1fr)}}@media(max-width:650px){.layout{display:block}nav{width:100%;display:flex;overflow:auto;border-right:0;border-bottom:1px solid var(--line)}nav button{min-width:110px}main{padding:15px}.grid,.formgrid{grid-template-columns:1fr}.contextbar{align-items:flex-start;flex-direction:column}}
+button,input,select{font:inherit}header{height:64px;background:#123b5d;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:5}.brand{font-size:21px;font-weight:700}.user{font-size:13px;opacity:.9}
+.layout{display:flex;min-height:calc(100vh - 64px)}nav{width:225px;background:#fff;border-right:1px solid var(--line);padding:14px;flex:none}nav button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:12px 13px;border-radius:8px;margin:3px 0;color:#344054;cursor:pointer;font-size:14px}nav button:hover,nav button.active{background:#eaf3fb;color:#125a8d;font-weight:600}
+main{flex:1;padding:25px;max-width:1500px;margin:auto;width:100%}h1{font-size:25px;margin:0 0 6px}h2{font-size:19px;margin:0 0 14px}.sub{color:var(--muted);font-size:13px;margin-bottom:22px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:0 1px 2px #00000008}.metric{font-size:27px;font-weight:700;margin-top:7px}.label{font-size:12px;color:var(--muted)}.section{margin-top:18px}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff}table{width:100%;border-collapse:collapse;min-width:650px}th,td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:left;font-size:13px}th{color:#475467;background:#fafafa}.empty{text-align:center;padding:28px;color:var(--muted)}
+.form{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px}.formgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.field label{display:block;font-size:12px;font-weight:600;color:#475467;margin-bottom:6px}.field input,.field select{width:100%;padding:10px 11px;border:1px solid #d0d5dd;border-radius:8px;background:#fff;outline:none}.field input:focus,.field select:focus{border-color:var(--primary);box-shadow:0 0 0 3px #1769aa18}.field.full{grid-column:1/-1}.readonly{background:#f2f4f7!important}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.btn{border:0;border-radius:8px;padding:10px 15px;cursor:pointer;font-weight:600}.primary{background:var(--primary);color:#fff}.primary:hover{background:var(--primary2)}.secondary{background:#eef2f6;color:#344054}.danger{background:#fff0f0;color:var(--danger)}.notice{padding:12px 14px;border-radius:8px;background:#eef7ff;border:1px solid #cfe7fb;color:#17527c;font-size:13px;margin-bottom:15px}.notice.error{background:#fff1f1;border-color:#f3c3c3;color:#9d1c1c}.notice.success{background:#effaf5;border-color:#bde8d1;color:#11633f}.small{font-size:12px;color:var(--muted)}.badge{display:inline-block;padding:4px 8px;border-radius:99px;background:#eef4f8;font-size:11px;color:#355b73}.contractor-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.contractor-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;cursor:pointer;transition:.15s}.contractor-card:hover{transform:translateY(-2px);box-shadow:0 7px 22px #00000010;border-color:#9fc9e6}.contractor-icon{font-size:30px}.contractor-name{font-size:18px;font-weight:700;margin-top:10px}.contractor-meta{font-size:12px;color:var(--muted);margin-top:5px}.contractor-action{margin-top:16px;color:var(--primary);font-weight:600;font-size:13px}.register-card{border:2px dashed #a8bfd0;background:#fbfdff}.quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.quick button{text-align:left;background:#fff;border:1px solid var(--line);border-radius:10px;padding:15px;cursor:pointer}.quick button:hover{border-color:#9fc9e6;background:#fafdff}.quick b{display:block;margin-bottom:4px}.login{min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#edf5fb,#f7fafc);padding:20px}.loginbox{width:min(440px,100%);background:#fff;border:1px solid var(--line);border-radius:15px;padding:28px;box-shadow:0 10px 30px #00000010}.loginbox h1{text-align:center;margin-bottom:4px}.loginbox .sub{text-align:center;margin-bottom:22px}.topbar{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;flex-wrap:wrap}.context{background:#eaf3fb;border:1px solid #c9e1f3;border-radius:9px;padding:10px 13px;margin-bottom:18px;color:#15527c;font-size:13px}.back{cursor:pointer;color:var(--primary);font-weight:600;margin-bottom:12px;display:inline-block}.danger-text{color:var(--danger)}@media(max-width:1000px){.grid{grid-template-columns:repeat(2,1fr)}.quick{grid-template-columns:repeat(2,1fr)}.contractor-grid{grid-template-columns:repeat(2,1fr)}.formgrid{grid-template-columns:repeat(2,1fr)}}@media(max-width:700px){header{height:58px;padding:0 14px}.layout{display:block}nav{width:100%;display:flex;overflow:auto;border-right:0;border-bottom:1px solid var(--line);padding:7px}nav button{white-space:nowrap;width:auto}.grid,.quick,.contractor-grid,.formgrid{grid-template-columns:1fr}main{padding:16px}.field.full{grid-column:auto}.user{display:none}}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script>
-const SUPABASE_URL='https://betjenxaqebqhqvjotyd.supabase.co';
-const SUPABASE_KEY='sb_publishable_KVBkusGZfcoipZwCkHhJJg_O_u69I2p';
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const SUPABASE_URL="https://betjenxaqebqhqvjotyd.supabase.co";
+const SUPABASE_KEY="sb_publishable_KVBkusGZfcoipZwCkHhJJg_O_u69I2p";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-const state={session:null,page:'contractors',contractors:[],customers:[],selectedContractor:null,pos:[],vehicles:[],species:[],loads:[]};
+const state={
+ session:null,
+ page:"contractors",
+ selectedContractor:null,
+ contractors:[],
+ customers:[],
+ pos:[],
+ species:[],
+ vehicles:[],
+ loads:[],
+ stats:{},
+ loading:false
+};
+
 const $=id=>document.getElementById(id);
-const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 const num=v=>Number(v||0);
-function fmt(v,d=3){return num(v).toLocaleString('en-IN',{minimumFractionDigits:d,maximumFractionDigits:d})}
-function today(){return new Date().toISOString().slice(0,10)}
-function money(v){return num(v).toLocaleString('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:2)}
+const fmt=v=>Number(v||0).toLocaleString("en-IN",{minimumFractionDigits:3,maximumFractionDigits:3});
+const money=v=>"₹"+Number(v||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});
+const today=()=>new Date().toISOString().slice(0,10);
+
+function activeContractor(){
+ return state.selectedContractor;
+}
+
+async function refreshContractors(){
+ const {data,error}=await sb.from("contractor_master")
+  .select("id,contractor_name,contractor_code,gstin,pan,address,default_customer_id,is_active")
+  .eq("is_active",true).order("contractor_name");
+ if(error) throw error;
+ state.contractors=data||[];
+}
+
+async function refreshMasters(){
+ const [cu,po,sp,vh]=await Promise.all([
+  sb.from("customer_master").select("id,customer_name,customer_code,address,gstin,pan,is_active").eq("is_active",true).order("customer_name"),
+  sb.from("po_master").select("id,po_number,po_date,valid_from,valid_to,po_qty,wood_rate,handling_other_rate,amc_rate,species_id,customer_id,contractor_id,hsn_code,is_active,species_master(species_name,hsn_code),customer_master(customer_name)").eq("is_active",true).order("po_number"),
+  sb.from("species_master").select("id,species_name,hsn_code").eq("is_active",true).order("species_name"),
+  sb.from("vehicle_master").select("id,vehicle_number,current_tare,is_active").eq("is_active",true).order("vehicle_number")
+ ]);
+ if(cu.error)throw cu.error;if(po.error)throw po.error;if(sp.error)throw sp.error;if(vh.error)throw vh.error;
+ state.customers=cu.data||[];
+ state.pos=(po.data||[]).filter(x=>!activeContractor()||x.contractor_id===activeContractor().id);
+ state.species=sp.data||[];
+ state.vehicles=vh.data||[];
+}
+
+async function refreshLoads(){
+ if(!activeContractor()){state.loads=[];return;}
+ const {data,error}=await sb.from("loads")
+  .select("id,load_number,load_date,vehicle_id,po_id,species_id,network_gross,network_tare,network_net,eway_bill_no,freight_rate,advance,status,vehicle_master(vehicle_number),po_master(po_number),species_master(species_name)")
+  .eq("is_active",true)
+  .order("load_date",{ascending:false}).limit(100);
+ if(error)throw error;
+ state.loads=(data||[]).filter(x=>{
+   const poContractor=x.po_master?.contractor_id;
+   return !poContractor || poContractor===activeContractor().id;
+ });
+}
 
 function shell(body){
-return `<header><div class="brand">🌲 WoodMaster</div><div class="user">${esc(state.session?.user?.email||'')}</div></header>
-<div class="layout"><nav>
-<button class="${state.page==='dashboard'?'active':''}" onclick="go('dashboard')">🏠 Dashboard</button>
-<button class="${state.page==='contractors'?'active':''}" onclick="go('contractors')">👥 Contractors</button>
-<button class="${state.page==='loads'?'active':''}" onclick="go('loads')">🚚 Loads</button>
-<button class="${state.page==='newload'?'active':''}" onclick="go('newload')">＋ New Load</button>
-<button class="${state.page==='masters'?'active':''}" onclick="go('masters')">⚙ Masters</button>
-<button onclick="logout()">↪ Sign out</button>
-</nav><main>${body}</main></div>`;
+ const c=activeContractor();
+ return `
+ <header><div class="brand">🌲 WoodMaster</div><div class="user">${esc(state.session?.user?.email||"")}${c?` &nbsp;|&nbsp; ${esc(c.contractor_name)}`:""}</div></header>
+ <div class="layout">
+  <nav>
+   <button class="${state.page==="dashboard"?"active":""}" onclick="go('dashboard')">🏠 Dashboard</button>
+   <button class="${state.page==="loads"?"active":""}" onclick="go('loads')">🚚 Loads</button>
+   <button class="${state.page==="newload"?"active":""}" onclick="go('newload')">＋ New Load</button>
+   <button class="${state.page==="masters"?"active":""}" onclick="go('masters')">⚙ Masters</button>
+   <button onclick="changeContractor()">⇄ Contractors</button>
+   <button onclick="logout()">↪ Sign out</button>
+  </nav>
+  <main>${body}</main>
+ </div>`;
 }
 
-async function loadContractors(){
-const {data,error}=await sb.from('contractor_master').select('id,contractor_name,contractor_code,gstin,pan,address,is_active,default_customer_id').eq('is_active',true).order('contractor_name');
-if(error)throw error;state.contractors=data||[];
-}
-async function loadMasters(){
-const [p,v,sp,cus]=await Promise.all([
-sb.from('po_master').select('id,po_number,po_date,po_qty,wood_rate,handling_other_rate,amc_rate,species_id,customer_id,contractor_id,species_master(species_name,hsn_code),customer_master(customer_name),contractor_master(contractor_name)').eq('is_active',true).order('po_number'),
-sb.from('vehicle_master').select('id,vehicle_number,current_tare').eq('is_active',true).order('vehicle_number'),
-sb.from('species_master').select('id,species_name,hsn_code').eq('is_active',true).order('species_name'),
-sb.from('customer_master').select('id,customer_name,customer_code,gstin,pan,address,is_active').eq('is_active',true).order('customer_name')
-]);
-if(p.error)throw p.error;if(v.error)throw v.error;if(sp.error)throw sp.error;if(cus.error)throw cus.error;
-state.pos=(p.data||[]).filter(x=>!state.selectedContractor||x.contractor_id===state.selectedContractor.id);
-state.vehicles=v.data||[];state.species=sp.data||[];state.customers=cus.data||[];
+function contractorContext(){
+ const c=activeContractor();
+ return c?`<div class="context"><b>Active Contractor:</b> ${esc(c.contractor_name)}${c.contractor_code?` &nbsp;•&nbsp; ${esc(c.contractor_code)}`:""}</div>`:"";
 }
 
-async function contractorLanding(){
-await loadContractors();
-const cards=state.contractors.map(c=>`<div class="contractor-card" onclick="selectContractor('${c.id}')">
-<div class="contractor-icon">🏢</div><div class="contractor-name">${esc(c.contractor_name)}</div>
-<div class="contractor-meta">${esc(c.contractor_code||'')}${c.gstin?' • '+esc(c.gstin):''}</div>
-<div class="small-note">${c.default_customer_id?'★ Default customer configured':'No default customer configured'}</div>
-</div>`).join('');
-return `<h1>Select Contractor</h1><div class="sub">After login, select the contractor whose dashboard and records you want to open.</div>
-<div class="contractor-grid">${cards||`<div class="card"><h2>No contractors yet</h2><div class="sub">Create the first contractor in Masters.</div><button class="btn primary" onclick="go('masters')">Open Masters</button></div>`}</div>`;
+async function contractorSelection(){
+ await refreshContractors();
+ if(!state.contractors.length) return registrationPage(true);
+ const cards=state.contractors.map(c=>`
+ <div class="contractor-card" onclick="selectContractor('${c.id}')">
+  <div class="contractor-icon">🏢</div>
+  <div class="contractor-name">${esc(c.contractor_name)}</div>
+  <div class="contractor-meta">${esc(c.contractor_code||"")}${c.gstin?` • ${esc(c.gstin)}`:""}</div>
+  <div class="contractor-meta">${c.default_customer_id?"★ Default customer configured":"Default customer not configured"}</div>
+  <div class="contractor-action">Open Contractor Dashboard →</div>
+ </div>`).join("");
+ return `
+ <div class="topbar"><div><h1>Select Contractor</h1><div class="sub">Choose the contractor whose business records you want to work with.</div></div></div>
+ <div class="contractor-grid">
+  ${cards}
+  <div class="contractor-card register-card" onclick="showRegistration()">
+   <div class="contractor-icon">＋</div>
+   <div class="contractor-name">Register New Contractor</div>
+   <div class="contractor-meta">Add another contractor for future operations.</div>
+   <div class="contractor-action">Register Contractor →</div>
+  </div>
+ </div>`;
 }
-async function selectContractor(id){state.selectedContractor=state.contractors.find(c=>c.id===id)||null;state.page='dashboard';await render();}
-function contractorContext(){return state.selectedContractor?`<div class="contextbar"><div><strong>Contractor:</strong> ${esc(state.selectedContractor.contractor_name)}${state.selectedContractor.contractor_code?' — '+esc(state.selectedContractor.contractor_code):''}</div><button onclick="go('contractors')">Change Contractor</button></div>`:'';}
+
+function registrationPage(first=false){
+ return `
+ <div class="topbar"><div><h1>${first?"Create Your First Contractor":"Register New Contractor"}</h1><div class="sub">${first?"After creating the contractor, its tile will immediately appear here.":"Enter the contractor's details once. After saving, the contractor will immediately appear in the contractor selection screen."}</div></div>${!first?`<button class="btn secondary" onclick="changeContractor()">← Back</button>`:""}</div>
+ <form class="form" onsubmit="createContractor(event)">
+  <div class="formgrid">
+   <div class="field"><label>Contractor Name *</label><input id="regName" required></div>
+   <div class="field"><label>Contractor Code</label><input id="regCode"></div>
+   <div class="field"><label>GSTIN</label><input id="regGstin"></div>
+   <div class="field"><label>PAN</label><input id="regPan"></div>
+   <div class="field full"><label>Registered / Office Address</label><input id="regAddress"></div>
+  </div>
+  <div class="actions"><button class="btn primary">Create Contractor</button>${!first?`<button type="button" class="btn secondary" onclick="changeContractor()">Cancel</button>`:""}</div>
+ </form>`;
+}
+
+async function selectContractor(id){
+ const c=state.contractors.find(x=>x.id===id);
+ if(!c)return;
+ state.selectedContractor=c;
+ state.page="dashboard";
+ await render();
+}
+
+async function createContractor(e){
+ e.preventDefault();
+ const row={
+  contractor_name:$("regName").value.trim(),
+  contractor_code:$("regCode").value.trim()||null,
+  gstin:$("regGstin").value.trim()||null,
+  pan:$("regPan").value.trim()||null,
+  address:$("regAddress").value.trim()||null,
+  is_active:true
+ };
+ const {data,error}=await sb.from("contractor_master").insert(row).select().single();
+ if(error){alert(error.message);return;}
+ await refreshContractors();
+ state.selectedContractor=data;
+ state.page="dashboard";
+ await render();
+}
 
 async function dashboard(){
-const {data,error}=await sb.from('loads').select('id,load_number,load_date,network_net,status,vehicle_master(vehicle_number),po_master(po_number,contractor_id,customer_master(customer_name))').order('created_at',{ascending:false}).limit(100);
-if(error)return `<h1>Dashboard</h1><div class="notice error">${esc(error.message)}</div>`;
-state.loads=(data||[]).filter(x=>!state.selectedContractor||x.po_master?.contractor_id===state.selectedContractor.id).slice(0,10);
-const total=state.loads.length,mt=state.loads.reduce((a,x)=>a+num(x.network_net),0),ready=state.loads.filter(x=>x.status==='Ready for Material Invoice').length,billed=state.loads.filter(x=>x.status==='Billed').length;
-return `${contractorContext()}<h1>${esc(state.selectedContractor?.contractor_name||'Dashboard')}</h1><div class="sub">Contractor-specific operations dashboard</div>
-<div class="actions"><button class="btn primary" onclick="go('newload')">＋ New Load</button><button class="btn secondary" onclick="go('loads')">View Loads</button><button class="btn secondary" onclick="go('masters')">PO / Customer / Vehicle Masters</button></div>
-<div class="grid"><div class="card"><div class="label">Recent Loads</div><div class="metric">${total}</div></div><div class="card"><div class="label">Recent Network Net Weight</div><div class="metric">${fmt(mt)} MT</div></div><div class="card"><div class="label">Invoice Ready</div><div class="metric">${ready}</div></div><div class="card"><div class="label">Billed Loads</div><div class="metric">${billed}</div></div></div>
-<div class="section card"><h2>Recent Loads</h2>${loadTable(state.loads)}</div>`;
-}
-function loadTable(rows){
-if(!rows.length)return '<div class="empty">No loads yet.</div>';
-return `<div class="tablewrap"><table><thead><tr><th>Load</th><th>Date</th><th>Vehicle</th><th>PO</th><th>Customer</th><th>Net MT</th><th>Status</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${esc(x.load_number)}</td><td>${esc(x.load_date)}</td><td>${esc(x.vehicle_master?.vehicle_number||'')}</td><td>${esc(x.po_master?.po_number||'')}</td><td>${esc(x.po_master?.customer_master?.customer_name||'')}</td><td>${fmt(x.network_net)}</td><td><span class="badge">${esc(x.status)}</span></td></tr>`).join('')}</tbody></table></div>`;
-}
-async function loadsPage(){
-const {data,error}=await sb.from('loads').select('id,load_number,load_date,network_gross,network_tare,network_net,eway_bill_no,freight_rate,advance,status,vehicle_master(vehicle_number),po_master(po_number,contractor_id,species_master(species_name),customer_master(customer_name))').order('load_number',{ascending:false});
-if(error)return `<h1>Loads</h1><div class="notice error">${esc(error.message)}</div>`;
-const rows=(data||[]).filter(x=>!state.selectedContractor||x.po_master?.contractor_id===state.selectedContractor.id);
-return `${contractorContext()}<h1>Loads</h1><div class="sub">Loads for the selected contractor</div>${loadTable(rows)}`;
+ const c=activeContractor();
+ if(!c)return contractorSelection();
+ await refreshLoads();
+ const totalLoads=state.loads.length;
+ const mt=state.loads.reduce((a,x)=>a+num(x.network_net),0);
+ const pending=state.loads.filter(x=>!["Billed"].includes(x.status||"")).length;
+ await refreshMasters();
+ const poCount=state.pos.length;
+ return `
+ ${contractorContext()}
+ <div class="topbar"><div><h1>${esc(c.contractor_name)}</h1><div class="sub">Contractor dashboard — all operational records below belong to the selected contractor.</div></div><button class="btn secondary" onclick="changeContractor()">⇄ Change Contractor</button></div>
+ <div class="grid">
+  <div class="card"><div class="label">Loads</div><div class="metric">${totalLoads}</div></div>
+  <div class="card"><div class="label">Network Net MT</div><div class="metric">${fmt(mt)}</div></div>
+  <div class="card"><div class="label">Open / Pending Loads</div><div class="metric">${pending}</div></div>
+  <div class="card"><div class="label">Active POs</div><div class="metric">${poCount}</div></div>
+ </div>
+ <div class="section"><h2>Quick Actions</h2>
+  <div class="quick">
+   <button onclick="go('newload')"><b>＋ New Load</b><span class="small">Start from the network weighbridge slip.</span></button>
+   <button onclick="go('loads')"><b>🚚 Loads</b><span class="small">View and track this contractor's loads.</span></button>
+   <button onclick="go('masters')"><b>⚙ Masters</b><span class="small">Customers, default customer and POs.</span></button>
+   <button onclick="go('newload')"><b>⚖ ITC Weighment</b><span class="small">Operational workflow will be expanded here.</span></button>
+  </div>
+ </div>
+ <div class="section card"><h2>Recent Loads</h2>${recentLoadsTable()}</div>`;
 }
 
-function newLoad(){
-const poOptions=state.pos.map(p=>`<option value="${p.id}">${esc(p.po_number)} — ${esc(p.customer_master?.customer_name||'')} — ${esc(p.species_master?.species_name||'')}</option>`).join('');
-return `${contractorContext()}<h1>New Load</h1><div class="sub">Network weighbridge slip has been received. Start the process here.</div>
-<div class="notice">No Network Receipt Number is required. The network weighment is created automatically with this Load.</div>
-<form class="form section" onsubmit="createLoad(event)"><div class="formgrid">
-<div class="field"><label>Date</label><input id="loadDate" type="date" value="${today()}" required></div>
-<div class="field"><label>Vehicle Number</label><input id="vehicle" list="vehicleSuggestions" placeholder="Enter vehicle number" autocomplete="off" oninput="vehicleChanged()" required><datalist id="vehicleSuggestions">${state.vehicles.map(v=>`<option value="${esc(v.vehicle_number)}">${v.current_tare!=null?'Tare '+esc(v.current_tare)+' MT':''}</option>`).join('')}</datalist><div class="small-note">Existing vehicles appear as suggestions. New vehicles are saved automatically.</div></div>
-<div class="field"><label>Gross Weight (MT)</label><input id="gross" type="number" step="0.001" min="0" oninput="calcNet()" required></div>
-<div class="field"><label>Tare Weight (MT)</label><input id="tare" type="number" step="0.001" min="0" oninput="calcNet()" required></div>
-<div class="field"><label>Net Weight (MT)</label><input id="net" class="readonly" readonly></div>
-<div class="field"><label>PO</label><select id="po" onchange="poChanged()" required><option value="">Select PO</option>${poOptions}</select></div>
-<div class="field"><label>Customer</label><input id="customer" class="readonly" readonly placeholder="From selected PO"></div>
-<div class="field"><label>Species</label><input id="species" class="readonly" readonly></div>
-<div class="field"><label>Wood Rate / MT</label><input id="woodRate" class="readonly" readonly></div>
-<div class="field"><label>Handling & Other Charges / MT</label><input id="handling" class="readonly" readonly></div>
-<div class="field"><label>AMC Rate / MT</label><input id="amc" class="readonly" readonly></div>
-<div class="field"><label>E-way Bill Number</label><input id="eway" placeholder="Enter after generating on GST portal" required></div>
-<div class="field"><label>Freight Rate / MT</label><input id="freight" type="number" step="0.01" min="0" required></div>
-<div class="field"><label>Advance</label><input id="advance" type="number" step="0.01" min="0" value="0" required></div>
-<div class="field"><label>Advance Given By</label><input id="advanceBy" placeholder="Name"></div>
-</div>
-<div class="section card"><h2>E-way Bill Values</h2><div class="grid"><div><div class="label">Value 1 — Wood</div><strong id="v1">₹0.00</strong></div><div><div class="label">Value 2 — Handling incl. GST</div><strong id="v2">₹0.00</strong></div><div><div class="label">Value 3 — Total</div><strong id="v3">₹0.00</strong></div></div></div>
-<div class="actions"><button class="btn primary" type="submit">Create Load</button><button class="btn secondary" type="button" onclick="go('dashboard')">Cancel</button></div></form>`;
+function recentLoadsTable(){
+ const rows=state.loads.slice(0,10);
+ if(!rows.length)return '<div class="empty">No loads created yet.</div>';
+ return `<div class="tablewrap"><table><thead><tr><th>Load</th><th>Date</th><th>Vehicle</th><th>PO</th><th>Net MT</th><th>Status</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${esc(x.load_number)}</td><td>${esc(x.load_date)}</td><td>${esc(x.vehicle_master?.vehicle_number||"")}</td><td>${esc(x.po_master?.po_number||"")}</td><td>${fmt(x.network_net)}</td><td><span class="badge">${esc(x.status||"")}</span></td></tr>`).join("")}</tbody></table></div>`;
 }
-function vehicleChanged(){const typed=($('vehicle')?.value||'').trim().toUpperCase();const v=state.vehicles.find(x=>String(x.vehicle_number).toUpperCase()===typed);if(v&&v.current_tare!=null)$('tare').value=v.current_tare;calcNet();}
-function poChanged(){const p=state.pos.find(x=>x.id===$('po').value);if(!p)return;$('customer').value=p.customer_master?.customer_name||'';$('species').value=p.species_master?.species_name||'';$('woodRate').value=p.wood_rate;$('handling').value=p.handling_other_rate;$('amc').value=p.amc_rate;calcEway();}
-function calcNet(){const n=num($('gross')?.value)-num($('tare')?.value);if($('net'))$('net').value=n>=0?n.toFixed(3):'';calcEway();}
-function calcEway(){if(!$('v1'))return;const n=num($('gross')?.value)-num($('tare')?.value),p=state.pos.find(x=>x.id===$('po')?.value);const wood=n*num(p?.wood_rate),handlingBase=n*num(p?.handling_other_rate),v2=handlingBase*1.18,v3=wood*1.18+v2;$('v1').textContent=money(wood);$('v2').textContent=money(v2);$('v3').textContent=money(v3);}
+
+async function loadsPage(){
+ await refreshLoads();
+ return `${contractorContext()}<div class="topbar"><div><h1>Loads</h1><div class="sub">Loads belonging to ${esc(activeContractor()?.contractor_name||"the selected contractor")}.</div></div><button class="btn primary" onclick="go('newload')">＋ New Load</button></div>
+ <div class="card">${state.loads.length?`<div class="tablewrap"><table><thead><tr><th>Load</th><th>Date</th><th>Vehicle</th><th>PO</th><th>Net MT</th><th>E-way</th><th>Freight</th><th>Status</th></tr></thead><tbody>${state.loads.map(x=>`<tr><td>${esc(x.load_number)}</td><td>${esc(x.load_date)}</td><td>${esc(x.vehicle_master?.vehicle_number||"")}</td><td>${esc(x.po_master?.po_number||"")}</td><td>${fmt(x.network_net)}</td><td>${esc(x.eway_bill_no||"")}</td><td>${money(x.freight_rate)}</td><td><span class="badge">${esc(x.status||"")}</span></td></tr>`).join("")}</tbody></table></div>`:'<div class="empty">No loads for this contractor.</div>'}</div>`;
+}
+
+async function newLoad(){
+ await refreshMasters();
+ const c=activeContractor();
+ const poOptions=state.pos.map(p=>`<option value="${p.id}" data-rate="${p.wood_rate}" data-handling="${p.handling_other_rate}" data-amc="${p.amc_rate}" data-species="${p.species_master?.species_name||""}" data-speciesid="${p.species_id}" data-hsn="${p.hsn_code||p.species_master?.hsn_code||""}">${esc(p.po_number)} — ${esc(p.customer_master?.customer_name||"")}</option>`).join("");
+ const vehicleList=state.vehicles.map(v=>`<option value="${esc(v.vehicle_number)}" data-tare="${v.current_tare??""}"></option>`).join("");
+ return `${contractorContext()}<div class="topbar"><div><h1>New Load</h1><div class="sub">Network weighbridge slip has already been received. Start the process here.</div></div></div>
+ <div class="notice">No Network Receipt Number is required. The network weighment is created automatically with this Load.</div>
+ <form class="form" onsubmit="createLoad(event)">
+  <div class="formgrid">
+   <div class="field"><label>Date *</label><input id="loadDate" type="date" value="${today()}" required></div>
+   <div class="field"><label>Vehicle Number *</label><input id="vehicleNumber" list="vehicleSuggestions" placeholder="Enter vehicle number" required oninput="vehicleSuggestionChanged()"><datalist id="vehicleSuggestions">${vehicleList}</datalist></div>
+   <div class="field"><label>Gross Weight (MT) *</label><input id="grossWeight" type="number" step="0.001" min="0" required oninput="calcLoad()"></div>
+   <div class="field"><label>Tare Weight (MT) *</label><input id="tareWeight" type="number" step="0.001" min="0" required oninput="calcLoad()"></div>
+   <div class="field"><label>Net Weight (MT)</label><input id="netWeight" class="readonly" readonly></div>
+   <div class="field"><label>PO *</label><select id="loadPO" required onchange="poChanged()"><option value="">Select PO</option>${poOptions}</select></div>
+   <div class="field"><label>Species</label><input id="loadSpecies" class="readonly" readonly></div>
+   <div class="field"><label>Wood Rate / MT</label><input id="loadWoodRate" class="readonly" readonly></div>
+   <div class="field"><label>Handling & Other Charges / MT</label><input id="loadHandling" class="readonly" readonly></div>
+   <div class="field"><label>AMC Rate / MT</label><input id="loadAmc" class="readonly" readonly></div>
+   <div class="field"><label>E-way Bill Number *</label><input id="eway" placeholder="Enter after generating on GST portal" required></div>
+   <div class="field"><label>Freight Rate / MT</label><input id="freight" type="number" step="0.01" min="0"></div>
+   <div class="field"><label>Advance</label><input id="advance" type="number" step="0.01" min="0" value="0"></div>
+   <div class="field"><label>Advance Given By</label><input id="advanceBy" placeholder="Name"></div>
+  </div>
+  <div class="section card"><h2>E-way Bill Values</h2><div class="grid" style="grid-template-columns:repeat(3,1fr)">
+   <div><div class="label">Value 1 — Wood</div><div id="ewayV1" class="metric">${money(0)}</div></div>
+   <div><div class="label">Value 2 — Handling incl. GST</div><div id="ewayV2" class="metric">${money(0)}</div></div>
+   <div><div class="label">Value 3 — Total</div><div id="ewayV3" class="metric">${money(0)}</div></div>
+  </div></div>
+  <div class="actions"><button class="btn primary">Create Load</button><button type="button" class="btn secondary" onclick="go('dashboard')">Cancel</button></div>
+ </form>`;
+}
+
+function vehicleSuggestionChanged(){
+ const input=$("vehicleNumber"), opts=[...document.querySelectorAll("#vehicleSuggestions option")];
+ const hit=opts.find(o=>o.value.toUpperCase()===input.value.trim().toUpperCase());
+ if(hit && hit.dataset.tare!=="" && hit.dataset.tare!=null && !$("tareWeight").value)$("tareWeight").value=hit.dataset.tare;
+}
+
+function poChanged(){
+ const s=$("loadPO"), o=s.options[s.selectedIndex];
+ if(!o||!o.value)return;
+ $("loadSpecies").value=o.dataset.species||"";
+ $("loadWoodRate").value=o.dataset.rate||"";
+ $("loadHandling").value=o.dataset.handling||"";
+ $("loadAmc").value=o.dataset.amc||"";
+ calcLoad();
+}
+
+function calcLoad(){
+ const g=num($("grossWeight")?.value),t=num($("tareWeight")?.value),n=Math.max(0,g-t);
+ if($("netWeight"))$("netWeight").value=n.toFixed(3);
+ const wood=n*num($("loadWoodRate")?.value);
+ const handlingBase=n*num($("loadHandling")?.value);
+ const v1=wood;
+ const v2=handlingBase*1.18;
+ const v3=v1*1.18+v2;
+ if($("ewayV1"))$("ewayV1").textContent=money(v1);
+ if($("ewayV2"))$("ewayV2").textContent=money(v2);
+ if($("ewayV3"))$("ewayV3").textContent=money(v3);
+}
+
 async function createLoad(e){
-e.preventDefault();
-let vehicleNumber=$('vehicle').value.trim().toUpperCase(),poId=$('po').value,g=num($('gross').value),t=num($('tare').value),n=g-t;
-if(!state.selectedContractor)return alert('Select a contractor first.');
-if(!vehicleNumber)return alert('Enter vehicle number.');
-if(n<0)return alert('Tare weight cannot exceed gross weight.');
-const p=state.pos.find(x=>x.id===poId);
-if(!p)return alert('Select a PO.');
-if(p.contractor_id!==state.selectedContractor.id)return alert('Selected PO does not belong to the active contractor.');
-let vehicle=state.vehicles.find(x=>String(x.vehicle_number).toUpperCase()===vehicleNumber);
-if(!vehicle){
-const {data:nv,error:nve}=await sb.from('vehicle_master').insert({vehicle_number:vehicleNumber,current_tare:t,is_active:true}).select('id,vehicle_number,current_tare').single();
-if(nve)return alert('Vehicle could not be saved automatically: '+nve.message);vehicle=nv;state.vehicles.push(vehicle);
-}else if(t>0&&Number(vehicle.current_tare||0)!==t){await sb.from('vehicle_master').update({current_tare:t}).eq('id',vehicle.id);}
-const {data:nw,error:nwe}=await sb.from('network_weighments').insert({weighment_date:$('loadDate').value,vehicle_id:vehicle.id,gross_weight:g,tare_weight:t,po_id:poId,eway_bill_no:$('eway').value.trim(),freight_rate:num($('freight').value),advance:num($('advance').value),advance_given_by:$('advanceBy').value.trim(),receipt_received:true,verified:true,created_by:state.session.user.id}).select().single();
-if(nwe)return alert(nwe.message);
-const {data:load,error:le}=await sb.from('loads').insert({network_weighment_id:nw.id,po_id:poId,vehicle_id:vehicle.id,load_date:$('loadDate').value,species_id:p.species_id,network_gross:g,network_tare:t,network_net:n,eway_bill_no:$('eway').value.trim(),freight_rate:num($('freight').value),advance:num($('advance').value),status:'Load Created',created_by:state.session.user.id}).select().single();
-if(le){await sb.from('network_weighments').delete().eq('id',nw.id);return alert(le.message)}
-alert(`Load ${load.load_number} created successfully.`);go('loads');
+ e.preventDefault();
+ const c=activeContractor();
+ const poId=$("loadPO").value;
+ if(!c||!poId)return alert("Select a contractor and PO first.");
+ const p=state.pos.find(x=>x.id===poId);
+ if(!p)return alert("Selected PO could not be found.");
+ const vehicleNo=$("vehicleNumber").value.trim().toUpperCase();
+ const g=num($("grossWeight").value),t=num($("tareWeight").value),n=Math.max(0,g-t);
+ if(!vehicleNo||g<=0||t<0||n<=0)return alert("Enter valid gross and tare weights.");
+ let vehicle=state.vehicles.find(v=>v.vehicle_number.toUpperCase()===vehicleNo);
+ if(!vehicle){
+  const {data,error}=await sb.from("vehicle_master").insert({vehicle_number:vehicleNo,current_tare:t,is_active:true}).select("id,vehicle_number,current_tare").single();
+  if(error)return alert(error.message);
+  vehicle=data;
+ }else if(t>0 && Number(vehicle.current_tare||0)!==t){
+  const {error}=await sb.from("vehicle_master").update({current_tare:t}).eq("id",vehicle.id);
+  if(error)return alert(error.message);
+ }
+ const nwRow={weighment_date:$("loadDate").value,vehicle_id:vehicle.id,gross_weight:g,tare_weight:t,po_id:poId,eway_bill_no:$("eway").value.trim(),freight_rate:num($("freight").value),advance:num($("advance").value),advance_given_by:$("advanceBy").value.trim()||null,receipt_received:true,verified:true,created_by:state.session.user.id};
+ const {data:nw,error:nwe}=await sb.from("network_weighments").insert(nwRow).select().single();
+ if(nwe)return alert(nwe.message);
+ const loadRow={network_weighment_id:nw.id,po_id:poId,vehicle_id:vehicle.id,load_date:$("loadDate").value,species_id:p.species_id,network_gross:g,network_tare:t,network_net:n,eway_bill_no:$("eway").value.trim(),freight_rate:num($("freight").value),advance:num($("advance").value),status:"Load Created",created_by:state.session.user.id};
+ const {data:load,error:le}=await sb.from("loads").insert(loadRow).select().single();
+ if(le){await sb.from("network_weighments").delete().eq("id",nw.id);return alert(le.message);}
+ alert("Load "+load.load_number+" created successfully.");
+ state.page="loads";await render();
 }
 
 async function masters(){
-await loadMasters();await loadContractors();
-const selected=state.selectedContractor;
-const defaultCustomer=selected?.default_customer_id||'';
-const speciesOptions=state.species.map(x=>`<option value="${x.id}">${esc(x.species_name)}${x.hsn_code?' — HSN '+esc(x.hsn_code):''}</option>`).join('');
-const customerOptions=state.customers.map(c=>`<option value="${c.id}">${esc(c.customer_name)}</option>`).join('');
-const contractorOptions=state.contractors.map(c=>`<option value="${c.id}" ${selected?.id===c.id?'selected':''}>${esc(c.contractor_name)}</option>`).join('');
-return `${contractorContext()}<h1>Masters</h1><div class="sub">Contractor is the primary workspace. PO entry starts from the selected contractor; customer is then selected for that PO.</div>
-<div class="grid"><div class="card"><div class="label">Active Contractors</div><div class="metric">${state.contractors.length}</div></div><div class="card"><div class="label">Active Customers</div><div class="metric">${state.customers.length}</div></div><div class="card"><div class="label">POs for selected contractor</div><div class="metric">${state.pos.length}</div></div><div class="card"><div class="label">Known Vehicles</div><div class="metric">${state.vehicles.length}</div></div></div>
+ await refreshMasters();
+ const c=activeContractor();
+ const customerOptions=state.customers.map(x=>`<option value="${x.id}">${esc(x.customer_name)}</option>`).join("");
+ const speciesOptions=state.species.map(x=>`<option value="${x.id}">${esc(x.species_name)}${x.hsn_code?" — HSN "+esc(x.hsn_code):""}</option>`).join("");
+ return `${contractorContext()}
+ <div class="topbar"><div><h1>Masters</h1><div class="sub">Setup for the selected contractor. Contractor registration itself is handled outside Masters.</div></div></div>
+ <div class="grid">
+  <div class="card"><div class="label">Active Customers</div><div class="metric">${state.customers.length}</div></div>
+  <div class="card"><div class="label">POs for this Contractor</div><div class="metric">${state.pos.length}</div></div>
+  <div class="card"><div class="label">Known Vehicles</div><div class="metric">${state.vehicles.length}</div></div>
+  <div class="card"><div class="label">Active Species</div><div class="metric">${state.species.length}</div></div>
+ </div>
 
-<div class="section card"><h2>Add Contractor</h2><form class="form" style="padding:0;border:0;box-shadow:none" onsubmit="addContractor(event)"><div class="formgrid">
-<div class="field"><label>Contractor Name</label><input id="cName" required></div><div class="field"><label>Contractor Code</label><input id="cCode"></div><div class="field"><label>GSTIN</label><input id="cGstin"></div><div class="field"><label>PAN</label><input id="cPan"></div><div class="field full"><label>Address</label><input id="cAddress"></div></div><div class="actions"><button class="btn primary">Add Contractor</button></div></form></div>
+ <div class="section card"><h2>Customer Master</h2>
+ <form class="form" style="padding:0;border:0;box-shadow:none" onsubmit="addCustomer(event)">
+  <div class="formgrid">
+   <div class="field"><label>Customer Name *</label><input id="cuName" required></div>
+   <div class="field"><label>Customer Code</label><input id="cuCode"></div>
+   <div class="field"><label>GSTIN</label><input id="cuGstin"></div>
+   <div class="field"><label>PAN</label><input id="cuPan"></div>
+   <div class="field full"><label>Address</label><input id="cuAddress"></div>
+  </div>
+  <div class="actions"><button class="btn primary">Add Customer</button></div>
+ </form>
+ <div class="section">${state.customers.length?`<div class="tablewrap"><table><thead><tr><th>Customer</th><th>Code</th><th>GSTIN</th><th>Address</th></tr></thead><tbody>${state.customers.map(x=>`<tr><td>${esc(x.customer_name)}</td><td>${esc(x.customer_code||"")}</td><td>${esc(x.gstin||"")}</td><td>${esc(x.address||"")}</td></tr>`).join("")}</tbody></table></div>`:'<div class="empty">No customers yet.</div>'}</div>
+ </div>
 
-<div class="section card"><h2>Add Customer</h2><form class="form" style="padding:0;border:0;box-shadow:none" onsubmit="addCustomer(event)"><div class="formgrid">
-<div class="field"><label>Customer Name</label><input id="cuName" required></div><div class="field"><label>Customer Code</label><input id="cuCode"></div><div class="field"><label>GSTIN</label><input id="cuGstin"></div><div class="field"><label>PAN</label><input id="cuPan"></div><div class="field full"><label>Address</label><input id="cuAddress"></div></div><div class="actions"><button class="btn primary">Add Customer</button></div></form>
-<div class="small-note">After adding a customer, use “Set Default Customer” below for the selected contractor.</div></div>
+ <div class="section card"><h2>Default Customer</h2>
+ <div class="notice">This default applies only to <b>${esc(c?.contractor_name||"the selected contractor")}</b>. It will be preselected whenever a new PO is created for this contractor.</div>
+ <div class="formgrid">
+  <div class="field"><label>Contractor</label><input class="readonly" readonly value="${esc(c?.contractor_name||"")}"></div>
+  <div class="field"><label>Default Customer</label><select id="defaultCustomer"><option value="">No default customer</option>${customerOptions}</select></div>
+ </div>
+ <div class="actions"><button class="btn primary" onclick="setDefaultCustomer()">Save Default Customer</button></div>
+ </div>
 
-<div class="section card"><h2>Set Default Customer for Selected Contractor</h2>
-${selected?`<div class="formgrid"><div class="field"><label>Contractor</label><input class="readonly" readonly value="${esc(selected.contractor_name)}"></div><div class="field"><label>Default Customer</label><select id="defaultCustomer"><option value="">No default customer</option>${customerOptions}</select></div></div>
-<div class="actions"><button class="btn primary" onclick="setDefaultCustomer(event)">Save Default Customer</button></div>
-<script>setTimeout(()=>{const e=document.getElementById('defaultCustomer');if(e)e.value=${JSON.stringify(defaultCustomer)},0)</script>`
-:`<div class="notice">Select a contractor first to set its default customer.</div>`}
-</div>
+ <div class="section card"><h2>PO Master</h2>
+ <div class="notice">Contractor is already fixed to <b>${esc(c?.contractor_name||"")}</b>. Select the customer who issued this particular PO. The regular/default customer will be preselected.</div>
+ <form class="form" style="padding:0;border:0;box-shadow:none" onsubmit="addPO(event)">
+  <div class="formgrid">
+   <div class="field"><label>Customer *</label><select id="mCustomer" required><option value="">Select customer</option>${customerOptions}</select></div>
+   <div class="field"><label>PO Number *</label><input id="mPoNumber" required></div>
+   <div class="field"><label>PO Date *</label><input id="mPoDate" type="date" value="${today()}" required></div>
+   <div class="field"><label>PO Valid From</label><input id="mValidFrom" type="date"></div>
+   <div class="field"><label>PO Valid To</label><input id="mValidTo" type="date"></div>
+   <div class="field"><label>PO Quantity (MT)</label><input id="mPoQty" type="number" step="0.001" min="0"></div>
+   <div class="field"><label>Species *</label><select id="mSpecies" required><option value="">Select species</option>${speciesOptions}</select></div>
+   <div class="field"><label>Wood Rate / MT *</label><input id="mWoodRate" type="number" step="0.01" min="0" required></div>
+   <div class="field"><label>Handling & Other Charges / MT</label><input id="mHandling" type="number" step="0.01" min="0" value="0"></div>
+   <div class="field"><label>AMC Rate / MT</label><input id="mAmc" type="number" step="0.01" min="0" value="0"></div>
+   <div class="field"><label>HSN</label><input id="mHsn" placeholder="Optional"></div>
+  </div>
+  <div class="actions"><button class="btn primary">Add PO</button></div>
+ </form>
+ </div>
 
-<div class="section card"><h2>Add PO for Selected Contractor</h2>
-${selected?`<div class="notice">Contractor is fixed to <strong>${esc(selected.contractor_name)}</strong>. The customer is the party that issued this PO. The customer defaults to the contractor's regular customer when configured.</div>
-<form class="form" style="padding:0;border:0;box-shadow:none;margin-top:14px" onsubmit="addPO(event)"><div class="formgrid">
-<div class="field"><label>Contractor</label><input class="readonly" readonly value="${esc(selected.contractor_name)}"></div>
-<div class="field"><label>Customer</label><select id="mCustomer" required><option value="">Select customer</option>${customerOptions}</select></div>
-<div class="field"><label>PO Number</label><input id="mPoNumber" required></div>
-<div class="field"><label>PO Date</label><input id="mPoDate" type="date" value="${today()}"></div>
-<div class="field"><label>PO Valid From</label><input id="mValidFrom" type="date"></div>
-<div class="field"><label>PO Valid To</label><input id="mValidTo" type="date"></div>
-<div class="field"><label>PO Quantity (MT)</label><input id="mPoQty" type="number" step="0.001" min="0"></div>
-<div class="field"><label>Species</label><select id="mSpecies" required><option value="">Select species</option>${speciesOptions}</select></div>
-<div class="field"><label>Wood Rate / MT</label><input id="mWoodRate" type="number" step="0.01" min="0" required></div>
-<div class="field"><label>Handling & Other Charges / MT</label><input id="mHandling" type="number" step="0.01" min="0" value="0"></div>
-<div class="field"><label>AMC Rate / MT</label><input id="mAmc" type="number" step="0.01" min="0" value="0"></div>
-<div class="field"><label>HSN</label><input id="mHsn" placeholder="Optional if stored on PO"></div>
-</div><div class="actions"><button class="btn primary" type="submit">Add PO</button></div></form>`
-:`<div class="notice">Select a contractor from the contractor cards before creating a PO.</div>`}
-</div>
+ <div class="section card"><h2>POs for ${esc(c?.contractor_name||"")}</h2>
+ ${state.pos.length?`<div class="tablewrap"><table><thead><tr><th>PO</th><th>Customer</th><th>Date</th><th>Species</th><th>Qty MT</th><th>Wood Rate</th><th>Handling</th><th>AMC</th></tr></thead><tbody>${state.pos.map(x=>`<tr><td>${esc(x.po_number)}</td><td>${esc(x.customer_master?.customer_name||"")}</td><td>${esc(x.po_date||"")}</td><td>${esc(x.species_master?.species_name||"")}</td><td>${fmt(x.po_qty)}</td><td>${money(x.wood_rate)}</td><td>${money(x.handling_other_rate)}</td><td>${money(x.amc_rate)}</td></tr>`).join("")}</tbody></table></div>`:'<div class="empty">No POs for this contractor yet.</div>'}
+ </div>
 
-<div class="section card"><h2>POs for ${selected?esc(selected.contractor_name):'Selected Contractor'}</h2>
-${state.pos.length?`<div class="tablewrap"><table><thead><tr><th>PO</th><th>Customer</th><th>Species</th><th>Qty MT</th><th>Wood Rate</th><th>Handling</th><th>AMC</th></tr></thead><tbody>${state.pos.map(p=>`<tr><td>${esc(p.po_number)}</td><td>${esc(p.customer_master?.customer_name||'')}</td><td>${esc(p.species_master?.species_name||'')}</td><td>${fmt(p.po_qty)}</td><td>${money(p.wood_rate)}</td><td>${money(p.handling_other_rate)}</td><td>${money(p.amc_rate)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No active POs for this contractor.</div>'}</div>
-
-<div class="section card"><h2>Known Vehicles</h2>${state.vehicles.length?`<div class="tablewrap"><table><thead><tr><th>Vehicle</th><th>Current Tare MT</th></tr></thead><tbody>${state.vehicles.map(v=>`<tr><td>${esc(v.vehicle_number)}</td><td>${v.current_tare==null?'':fmt(v.current_tare)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No vehicles yet. Enter a vehicle directly in New Load.</div>'}</div>`;
+ <div class="section card"><h2>Vehicle Master</h2><div class="notice">Vehicle registration is automatic. Enter a new vehicle directly in New Load; existing vehicles will appear as suggestions. The latest confirmed tare is retained.</div>
+ ${state.vehicles.length?`<div class="tablewrap"><table><thead><tr><th>Vehicle</th><th>Current Tare MT</th></tr></thead><tbody>${state.vehicles.map(x=>`<tr><td>${esc(x.vehicle_number)}</td><td>${x.current_tare==null?"":fmt(x.current_tare)}</td></tr>`).join("")}</tbody></table></div>`:'<div class="empty">No vehicles yet.</div>'}</div>`;
 }
 
-async function addContractor(e){
-e.preventDefault();const row={contractor_name:$('cName').value.trim(),contractor_code:$('cCode').value.trim()||null,gstin:$('cGstin').value.trim()||null,pan:$('cPan').value.trim()||null,address:$('cAddress').value.trim()||null,is_active:true};
-const {error}=await sb.from('contractor_master').insert(row);if(error)return alert(error.message);alert('Contractor added.');await render();
-}
 async function addCustomer(e){
-e.preventDefault();const row={customer_name:$('cuName').value.trim(),customer_code:$('cuCode').value.trim()||null,gstin:$('cuGstin').value.trim()||null,pan:$('cuPan').value.trim()||null,address:$('cuAddress').value.trim()||null,is_active:true};
-const {error}=await sb.from('customer_master').insert(row);if(error)return alert(error.message);alert('Customer added.');await render();
+ e.preventDefault();
+ const row={customer_name:$("cuName").value.trim(),customer_code:$("cuCode").value.trim()||null,gstin:$("cuGstin").value.trim()||null,pan:$("cuPan").value.trim()||null,address:$("cuAddress").value.trim()||null,is_active:true};
+ const {error}=await sb.from("customer_master").insert(row);
+ if(error)return alert(error.message);
+ alert("Customer added.");
+ await render();
 }
-async function setDefaultCustomer(e){
-e.preventDefault();if(!state.selectedContractor)return alert('Select a contractor first.');const customerId=$('defaultCustomer').value||null;
-const {error}=await sb.from('contractor_master').update({default_customer_id:customerId}).eq('id',state.selectedContractor.id);
-if(error)return alert(error.message);state.selectedContractor.default_customer_id=customerId;alert('Default customer saved.');await render();
+
+async function setDefaultCustomer(){
+ const c=activeContractor();
+ const id=$("defaultCustomer").value||null;
+ if(!c)return;
+ const {error}=await sb.from("contractor_master").update({default_customer_id:id}).eq("id",c.id);
+ if(error)return alert(error.message);
+ c.default_customer_id=id;
+ state.selectedContractor=c;
+ alert("Default customer saved.");
+ await render();
 }
+
 async function addPO(e){
-e.preventDefault();if(!state.selectedContractor)return alert('Select a contractor first.');
-const customerId=$('mCustomer').value;if(!customerId)return alert('Select the customer who issued the PO.');
-const po={po_number:$('mPoNumber').value.trim(),customer_id:customerId,contractor_id:state.selectedContractor.id,po_date:$('mPoDate').value||null,valid_from:$('mValidFrom').value||null,valid_to:$('mValidTo').value||null,po_qty:num($('mPoQty').value),species_id:$('mSpecies').value,wood_rate:num($('mWoodRate').value),handling_other_rate:num($('mHandling').value),amc_rate:num($('mAmc').value),is_active:true};
-const {error}=await sb.from('po_master').insert(po);if(error)return alert(error.message);alert('PO added successfully for the selected contractor.');await render();
+ e.preventDefault();
+ const c=activeContractor();
+ if(!c)return alert("No contractor selected.");
+ const row={
+  po_number:$("mPoNumber").value.trim(),
+  po_date:$("mPoDate").value||null,
+  valid_from:$("mValidFrom").value||null,
+  valid_to:$("mValidTo").value||null,
+  po_qty:num($("mPoQty").value),
+  species_id:$("mSpecies").value,
+  wood_rate:num($("mWoodRate").value),
+  handling_other_rate:num($("mHandling").value),
+  amc_rate:num($("mAmc").value),
+  hsn_code:$("mHsn").value.trim()||null,
+  customer_id:$("mCustomer").value,
+  contractor_id:c.id,
+  is_active:true
+ };
+ if(!row.customer_id)return alert("Select the customer who issued the PO.");
+ const {error}=await sb.from("po_master").insert(row);
+ if(error)return alert(error.message);
+ alert("PO created for "+c.contractor_name+".");
+ await render();
 }
 
 async function render(){
-const app=$('app');
-if(!state.session){app.innerHTML=`<div class="login"><div class="loginbox"><h1>🌲 WoodMaster</h1><div class="sub">Cloud operations system</div><div class="field"><label>Email</label><input id="email" type="email" placeholder="Email"></div><div class="field" style="margin-top:12px"><label>Password</label><input id="password" type="password" placeholder="Password"></div><div class="actions"><button class="btn primary" onclick="login()">Sign in</button><button class="btn secondary" onclick="signup()">Create account</button></div><div id="authmsg"></div></div></div>`;return}
-try{
-let body=state.page==='contractors'?await contractorLanding():state.page==='dashboard'?await dashboard():state.page==='loads'?await loadsPage():state.page==='newload'?(await loadMasters(),newLoad()):await masters();
-app.innerHTML=shell(body);
-if(state.page==='masters'&&state.selectedContractor){
-const e=$('defaultCustomer');if(e)e.value=state.selectedContractor.default_customer_id||'';
-const c=$('mCustomer');if(c&&state.selectedContractor.default_customer_id)c.value=state.selectedContractor.default_customer_id;
+ const app=$("app");
+ if(!state.session){
+  app.innerHTML=`<div class="login"><div class="loginbox"><h1>🌲 WoodMaster</h1><div class="sub">Wood Supply, Load, ITC Weighment and Billing Management</div>
+   <div class="field"><label>Email</label><input id="email" type="email" placeholder="Email" autocomplete="username"></div>
+   <div class="field" style="margin-top:12px"><label>Password</label><input id="password" type="password" placeholder="Password" autocomplete="current-password"></div>
+   <div class="actions"><button class="btn primary" onclick="login()">Sign in</button><button class="btn secondary" onclick="signup()">Create account</button></div>
+   <div id="authmsg"></div>
+  </div></div>`;
+  return;
+ }
+ try{
+  if(state.page==="registration"){app.innerHTML=shell(registrationPage(false));return;}
+  if(state.page==="contractors"){app.innerHTML=shell(await contractorSelection());return;}
+  let body="";
+  if(state.page==="dashboard")body=await dashboard();
+  else if(state.page==="loads")body=await loadsPage();
+  else if(state.page==="newload")body=await newLoad();
+  else if(state.page==="masters")body=await masters();
+  else body=await dashboard();
+  app.innerHTML=shell(body);
+  if(state.page==="masters"){
+   const d=$("defaultCustomer");
+   if(d)d.value=activeContractor()?.default_customer_id||"";
+   const m=$("mCustomer");
+   if(m)m.value=activeContractor()?.default_customer_id||"";
+  }
+ }catch(err){
+  app.innerHTML=shell(`<h1>Error</h1><div class="notice error">${esc(err.message||err)}</div><button class="btn secondary" onclick="go('contractors')">Return to Contractors</button>`);
+ }
 }
-}catch(err){app.innerHTML=shell(`<h1>Error</h1><div class="notice error">${esc(err.message||err)}</div>`)}
+
+async function login(){
+ const {error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});
+ if(error){$("authmsg").innerHTML=`<div class="notice error">${esc(error.message)}</div>`;return;}
+ state.page="contractors";state.selectedContractor=null;
 }
-async function login(){const {error}=await sb.auth.signInWithPassword({email:$('email').value,password:$('password').value});if(error)$('authmsg').innerHTML=`<div class="notice error">${esc(error.message)}</div>`}
-async function signup(){const {error}=await sb.auth.signUp({email:$('email').value,password:$('password').value});$('authmsg').innerHTML=`<div class="notice ${error?'error':''}">${esc(error?error.message:'Account created. Check your email if confirmation is enabled.')}</div>`}
-async function logout(){await sb.auth.signOut();state.selectedContractor=null;state.page='contractors'}
-async function go(p){state.page=p;await render()}
-sb.auth.onAuthStateChange((_e,s)=>{state.session=s;render()});
-sb.auth.getSession().then(({data})=>{state.session=data.session;render()});
+async function signup(){
+ const email=$("email").value.trim(),password=$("password").value;
+ const {error}=await sb.auth.signUp({email,password});
+ $("authmsg").innerHTML=`<div class="notice ${error?"error":"success"}">${esc(error?error.message:"Account created. Check your email if email confirmation is enabled.")}</div>`;
+}
+function showRegistration(){state.page="registration";render();}
+function changeContractor(){state.selectedContractor=null;state.page="contractors";render();}
+async function logout(){await sb.auth.signOut();state.selectedContractor=null;state.page="contractors";}
+async function go(p){if(p!=="contractors"&&!activeContractor()){state.page="contractors";return render();}state.page=p;await render();}
+
+sb.auth.onAuthStateChange((_event,session)=>{state.session=session; if(!session){state.selectedContractor=null;state.page="contractors";} render();});
+sb.auth.getSession().then(({data})=>{state.session=data.session;if(!state.session)state.page="contractors";render();});
 </script>
 </body>
 </html>
