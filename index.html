@@ -368,7 +368,7 @@ async function newLoad(){
     <div class="field"><label>Net Weight (MT)</label><input id="netWeight" class="readonly" readonly></div>
     <div class="field"><label>PO *</label><select id="loadPO" required onchange="poChanged()"><option value="">Select PO</option>${poOptions}</select></div>
     <div class="field"><label>Material</label><input id="loadSpecies" class="readonly" readonly></div>
-    <div class="field"><label>E-way Bill Number *</label><div class="eway-inline"><div><input id="eway" placeholder="Enter E-way Bill Number" required><select id="ewayMode" onchange="ewayModeChanged()" style="margin-top:8px"><option value="manual">1. Manual Entry</option><option value="extract">2. Extract from uploaded PDF</option></select></div><div class="eway-tools"><button type="button" class="btn secondary upload-btn" onclick="document.getElementById('ewayPdf').click()">Upload E-way Bill</button><input id="ewayPdf" class="file-hidden" type="file" accept="application/pdf" onchange="extractEwayFromPDF(event)"></div></div><div id="ewayExtractStatus" class="upload-status">Enter manually, or upload the E-way Bill PDF to extract the number.</div></div>
+    <div class="field"><label>E-way Bill Number *</label><div class="eway-inline"><div><input id="eway" placeholder="Enter E-way Bill Number" required></div><div class="eway-tools"><button type="button" class="btn secondary upload-btn" onclick="document.getElementById('ewayPdf').click()">Upload E-way Bill</button><input id="ewayPdf" class="file-hidden" type="file" accept="application/pdf" onchange="extractEwayFromPDF(event)"></div></div><div id="ewayExtractStatus" class="upload-status">Enter the E-way Bill number manually, or upload the E-way Bill PDF and WoodMaster will extract it automatically.</div></div>
     <div class="field"><label>Wood Rate / MT</label><input id="loadWoodRate" class="readonly" readonly></div>
     <div class="field"><label>Handling & Other Charges / MT</label><input id="loadHandling" class="readonly" readonly></div>
     <div class="field"><label>AMC Rate / MT</label><input id="loadAmc" class="readonly" readonly></div>
@@ -407,15 +407,6 @@ function advanceByChanged(){
  if(choice!=="Others") other.value="";
 }
 
-function ewayModeChanged(){
- const mode=$("ewayMode")?.value||"manual";
- const input=$("eway");
- const status=$("ewayExtractStatus");
- if(!input)return;
- input.readOnly=mode==="extract";
- input.placeholder=mode==="extract"?"Upload PDF to extract E-way Bill Number":"Enter E-way Bill Number";
- if(status)status.textContent=mode==="extract"?"Upload the E-way Bill PDF to extract the 12-digit number.":"Enter the E-way Bill number manually.";
-}
 function findEwayNumber(text){
  const t=String(text||"").replace(/\s+/g," ");
  const labeled=[/(?:e[- ]?way\s*bill(?:\s*(?:no|number))?|eway\s*(?:no|number))\s*[:#-]?\s*(\d{12})/i,/(?:e[- ]?way\s*bill\s*(?:no|number))[^\d]{0,30}(\d{12})/i];
@@ -425,7 +416,7 @@ function findEwayNumber(text){
 }
 async function extractEwayFromPDF(e){
  const file=e.target.files?.[0];if(!file)return;
- const status=$("ewayExtractStatus");if(status)status.textContent="Reading E-way Bill PDF…";
+ const status=$("ewayExtractStatus");if(status)status.textContent="Reading E-way Bill PDF and extracting the E-way Bill number…";
  try{
   const buf=await file.arrayBuffer();
   const pdf=await window.pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;
@@ -435,11 +426,11 @@ async function extractEwayFromPDF(e){
    text+=" "+content.items.map(x=>x.str||"").join(" ");
   }
   const no=findEwayNumber(text);
-  if(no){$("eway").value=no;if(status)status.textContent=`Extracted E-way Bill Number: ${no}`;}
-  else if(status)status.innerHTML='<span class="danger-text">E-way Bill Number not found. Please use Manual Entry.</span>';
+  if(no){$("eway").value=no;if(status)status.textContent=`E-way Bill Number extracted automatically: ${no}`;}
+  else if(status)status.innerHTML='<span class="danger-text">E-way Bill Number could not be extracted. Please enter it manually in the field above.</span>';
   // Keep the uploaded PDF in browser storage only; it is never sent to Supabase.
   window.__pendingEwayPdfFile=file;
- }catch(err){if(status)status.innerHTML='<span class="danger-text">Could not read this PDF. Please use Manual Entry.</span>';}
+ }catch(err){if(status)status.innerHTML='<span class="danger-text">Could not read this PDF. Please enter the E-way Bill number manually.</span>';}
 }
 async function saveEwayPdfForLoad(loadId,file){
  if(!loadId||!file)return;
