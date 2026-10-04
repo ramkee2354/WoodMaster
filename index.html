@@ -55,6 +55,23 @@ async function refreshContractors(){
  state.contractors=data||[];
 }
 
+async function backfillCustomerCodes(){
+ const customers=[...(state.customers||[])];
+ const used=new Set(customers.map(c=>String(c.customer_code||"").trim().toUpperCase()).filter(Boolean));
+ let n=1;
+ for(const c of customers){
+  if(String(c.customer_code||"").trim()) continue;
+  while(used.has(`CUS-${String(n).padStart(3,'0')}`)) n++;
+  const code=`CUS-${String(n).padStart(3,'0')}`;
+  const {error}=await sb.from("customer_master").update({customer_code:code}).eq("id",c.id);
+  if(error) throw error;
+  c.customer_code=code;
+  used.add(code);
+  n++;
+ }
+ state.customers=customers;
+}
+
 async function refreshMasters(){
  const [cu,po,sp,vh]=await Promise.all([
   sb.from("customer_master").select("id,customer_name,customer_code,address,gstin,pan,is_active").eq("is_active",true).order("customer_name"),
@@ -64,6 +81,9 @@ async function refreshMasters(){
  ]);
  if(cu.error)throw cu.error;if(po.error)throw po.error;if(sp.error)throw sp.error;if(vh.error)throw vh.error;
  state.customers=cu.data||[];
+ // Existing AppSheet customers may not have had a Customer Code.
+ // Assign a permanent WoodMaster code once, without changing existing codes.
+ await backfillCustomerCodes();
  state.pos=(po.data||[]).filter(x=>!activeContractor()||x.contractor_id===activeContractor().id);
  state.species=sp.data||[];
  state.vehicles=vh.data||[];
