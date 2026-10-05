@@ -97,6 +97,75 @@ const state={
  loading:false
 };
 
+// Unfinished forms are kept ONLY in memory while this page/tab is alive.
+// They intentionally disappear after a real page reload, browser restart, or tab reload.
+// This avoids sessionStorage/IndexedDB persistence while preventing SPA re-renders from
+// clearing selections and uploaded files when the user temporarily switches away.
+const WM_MEMORY_DRAFTS=new Map();
+function wmDraftKey(){
+ const contractor=state.selectedContractor?.id||"none";
+ const record=state.page==="newload"?(state.editingLoadId||"new"):"current";
+ return [state.session?.user?.id||"anon",contractor,state.page,record].join(":");
+}
+function wmDraftFields(){
+ return [...document.querySelectorAll("#app input[id],#app select[id],#app textarea[id]")]
+ .filter(el=>el.type!=="password"&&el.type!=="file"&&el.type!=="submit"&&!el.readOnly&&!el.disabled);
+}
+function wmSaveDraft(){
+ if(!state.session||!state.selectedContractor||!["newload","itcWeighment","masters"].includes(state.page))return;
+ const fields={};
+ for(const el of wmDraftFields())fields[el.id]=el.type==="checkbox"?el.checked:el.value;
+ const existing=WM_MEMORY_DRAFTS.get(wmDraftKey())||{fields:{},files:{}};
+ existing.fields=fields;
+ existing.savedAt=Date.now();
+ WM_MEMORY_DRAFTS.set(wmDraftKey(),existing);
+}
+function wmRestoreDraft(){
+ const draft=WM_MEMORY_DRAFTS.get(wmDraftKey());
+ if(!draft?.fields)return;
+ for(const [id,value] of Object.entries(draft.fields)){
+  const el=document.getElementById(id);if(!el||el.type==="file"||el.readOnly||el.disabled)continue;
+  if(el.type==="checkbox")el.checked=!!value;
+  else if(el.tagName==="SELECT" && ![...el.options].some(o=>o.value===value))continue;
+  else el.value=value;
+ }
+ if(state.page==="newload"){
+  if(typeof advanceByChanged==="function")advanceByChanged();
+  if(typeof loadPOChanged==="function")loadPOChanged();
+  if(typeof calcLoad==="function")calcLoad();
+ }
+}
+function wmClearDraft(){WM_MEMORY_DRAFTS.delete(wmDraftKey());}
+function wmRememberDraftFile(id,file){
+ if(!file)return;
+ const key=wmDraftKey();
+ const draft=WM_MEMORY_DRAFTS.get(key)||{fields:{},files:{}};
+ draft.files=draft.files||{};
+ draft.files[id]=file;
+ draft.savedAt=Date.now();
+ WM_MEMORY_DRAFTS.set(key,draft);
+}
+function wmRestoreDraftFiles(){
+ if(!["newload","itcWeighment"].includes(state.page))return;
+ const draft=WM_MEMORY_DRAFTS.get(wmDraftKey());
+ if(!draft?.files)return;
+ for(const id of ["itcFile","ewayPdf"]){
+  const file=draft.files[id];
+  const el=document.getElementById(id);
+  if(!file||!el)continue;
+  try{const dt=new DataTransfer();dt.items.add(file);el.files=dt.files;}catch(e){}
+  if(id==="ewayPdf")window.__pendingEwayPdfFile=file;
+  const status=document.getElementById(id==="itcFile"?"itcStatus":"ewayExtractStatus");
+  if(status)status.textContent="Selected file retained while this page is open: "+file.name;
+ }
+}
+document.addEventListener("input",e=>{if(e.target.closest?.("#app"))wmSaveDraft();},true);
+document.addEventListener("change",e=>{
+ if(!e.target.closest?.("#app"))return;
+ if(e.target.type==="file"&&e.target.id&&e.target.files?.[0])wmRememberDraftFile(e.target.id,e.target.files[0]);
+ wmSaveDraft();
+},true);
+
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 const num=v=>Number(v||0);
@@ -387,7 +456,7 @@ function loadDetailsPage(){
  </div></div>`;
 }
 
-function editLoad(loadId){ state.editingLoadId=loadId; state.page="newload"; render(); }
+function editLoad(loadId){ wmSaveDraft();state.editingLoadId=loadId; state.page="newload"; render(); }
 
 async function deleteLoad(loadId){
  const load=state.loads.find(x=>x.id===loadId); if(!load)return;
@@ -614,6 +683,7 @@ async function createLoad(e){
  const {data:load,error:le}=await sb.from("loads").insert(loadRow).select().single();
  if(le){await sb.from("network_weighments").delete().eq("id",nw.id);return alert(le.message);}
  if(window.__pendingEwayPdfFile) await saveEwayPdfForLoad(load.id,window.__pendingEwayPdfFile);
+ wmClearDraft();
  alert("Load "+(load.dc_number||load.load_number)+" created successfully.");
  state.page="loads";await render();
 }
@@ -641,6 +711,7 @@ async function saveLoad(e){
  const {error}=await sb.from("loads").update({po_id:poId,vehicle_id:vehicle.id,load_date:$("loadDate").value,species_name:p.species_name,network_gross:g,network_tare:t,network_net:n,eway_bill_no:eway,freight_rate:num($("freight").value),advance:num($("advance").value),advance_given_by:advanceBy}).eq("id",load.id);
  if(error)return alert(error.message);
  if(window.__pendingEwayPdfFile) await saveEwayPdfForLoad(load.id,window.__pendingEwayPdfFile);
+ wmClearDraft();
  alert("Load updated successfully."); state.editingLoadId=null; state.page="loads"; await render();
 }
 
@@ -1240,6 +1311,7 @@ async function saveITCWeighment(){
  };
  const {error}=await sb.from("itc_weighments").insert(row);
  if(error){alert(error.message);return;}
+ wmClearDraft();
  alert("ITC Weighment saved successfully.");
  go("loads");
 }
@@ -1268,6 +1340,7 @@ async function render(){
   else body=await dashboard();
   app.innerHTML=shell(body);
   if(state.page==="newload" && state.editingLoadId) await initEditLoadForm();
+  if(["newload","itcWeighment","masters"].includes(state.page)){wmRestoreDraft();await wmRestoreDraftFiles();}
   if(state.page==="masters"){
    const d=$("defaultCustomer");
    if(d)d.value=activeContractor()?.default_customer_id||"";
@@ -1292,7 +1365,7 @@ async function signup(){
 function showRegistration(){state.page="registration";render();}
 function changeContractor(){state.selectedContractor=null;state.page="contractors";render();}
 async function logout(){await sb.auth.signOut();state.selectedContractor=null;state.page="contractors";}
-async function go(p){if(p!=="contractors"&&!activeContractor()){state.page="contractors";return render();}state.page=p;await render();}
+async function go(p){wmSaveDraft();if(p!=="contractors"&&!activeContractor()){state.page="contractors";return render();}state.page=p;await render();}
 
 sb.auth.onAuthStateChange((_event,session)=>{state.session=session; if(!session){state.selectedContractor=null;state.page="contractors";} render();});
 sb.auth.getSession().then(({data})=>{state.session=data.session;if(!state.session)state.page="contractors";render();});
