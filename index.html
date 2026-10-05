@@ -31,8 +31,52 @@ window.pdfjsLib=pdfjsLib;
 .readonly{background:#f1f5f8!important}
 @media(max-width:800px){.grid3{grid-template-columns:1fr}}
 </style>
+
+<style>
+.itc-modal-backdrop{position:fixed;inset:0;background:rgba(10,30,50,.55);display:none;align-items:center;justify-content:center;z-index:9999;padding:18px}
+.itc-modal{background:#fff;width:min(1050px,96vw);max-height:92vh;overflow:auto;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.28)}
+.itc-modal-head{padding:16px 20px;background:#eef7ff;border-bottom:1px solid #d6e7f5}
+.itc-modal-head h2{margin:0;color:#0b4f8a;font-size:20px}
+.itc-modal-head p{margin:5px 0 0;color:#536575;font-size:13px}
+.itc-compare{width:100%;border-collapse:collapse}
+.itc-compare th,.itc-compare td{border-bottom:1px solid #e3e8ed;padding:10px 12px;text-align:left;vertical-align:middle}
+.itc-compare th{background:#f7fafc;font-size:13px}
+.itc-compare td:first-child{font-weight:600;width:20%}
+.itc-card-val{background:#fffdf0;border:1px solid #e5d48a}
+.itc-existing{background:#f4f7f9;color:#40515e}
+.itc-match{background:#eef9f0!important;border-color:#a9d8b0!important}
+.itc-mismatch{background:#fff0f0!important;border-color:#e1a6a6!important}
+.itc-modal-actions{display:flex;gap:10px;justify-content:flex-end;padding:16px 20px;border-top:1px solid #e3e8ed}
+.itc-badge{display:inline-block;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:600}
+.itc-badge.match{background:#dff3e2;color:#1f6b2b}
+.itc-badge.diff{background:#ffe1e1;color:#9b2222}
+@media(max-width:700px){
+ .itc-compare th:nth-child(2),.itc-compare td:nth-child(2){display:none}
+ .itc-compare td:first-child{width:28%}
+ .itc-modal{width:100%;max-height:94vh}
+}
+</style>
 </head>
 <body>
+<div id="itcCompareModal" class="itc-modal-backdrop">
+ <div class="itc-modal">
+  <div class="itc-modal-head">
+   <h2>ITC Weighment — Verify Before Saving</h2>
+   <p>Compare the values read from the ITC card with the Load data already stored in WoodMaster. Confirm, edit, or enter manually.</p>
+  </div>
+  <div style="padding:0 20px">
+   <table class="itc-compare">
+    <thead><tr><th>Field</th><th>WoodMaster Load</th><th>ITC Card / OCR</th><th>Result</th></tr></thead>
+    <tbody id="itcCompareBody"></tbody>
+   </table>
+  </div>
+  <div class="itc-modal-actions">
+   <button class="btn secondary" onclick="itcManualEntry()">Enter Manually</button>
+   <button class="btn primary" onclick="itcConfirmComparison()">Confirm & Continue</button>
+  </div>
+ </div>
+</div>
+
 <div id="app"></div>
 <script>
 const SUPABASE_URL="https://betjenxaqebqhqvjotyd.supabase.co";
@@ -837,9 +881,132 @@ function itcLoadChanged(){
  $("wcMaterial").value=parts[2]||"";
 }
 
+
+function formatDisplayDate(v){
+ const s=String(v||"").slice(0,10);
+ const m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+ return m?`${m[3]}-${m[2]}-${m[1]}`:s;
+}
+let pendingITCOCR = null;
+let pendingITCExisting = null;
+
+function normCompare(v){
+ return String(v??"").trim().toUpperCase().replace(/\s+/g," ");
+}
+function compareValues(a,b,field){
+ const aa=normCompare(a), bb=normCompare(b);
+ if(!aa || !bb) return {match:false,unknown:true};
+ if(["Gross Weight (MT)","Tare Weight (MT)","Net Weight (MT)","Approved Weight (MT)"].includes(field)){
+   const x=Number(String(a).replace(/,/g,"")), y=Number(String(b).replace(/,/g,""));
+   return {match:Number.isFinite(x)&&Number.isFinite(y)&&Math.abs(x-y)<0.001,unknown:false};
+ }
+ return {match:aa===bb,unknown:false};
+}
+function escAttr(v){return esc(String(v??"")).replace(/"/g,"&quot;");}
+
+async function showITCComparison(ocr){
+ const loadId=$("itcLoad")?.value;
+ if(!loadId){alert("Select the Load / DC before uploading the ITC card.");return;}
+ const {data:load,error}=await sb.from("loads")
+  .select("id,dc_number,load_date,gross_weight,tare_weight,net_weight,vehicle_id,vehicle_master(vehicle_number),po_master(po_number,species_name)")
+  .eq("id",loadId).single();
+ if(error){alert(error.message);return;}
+
+ pendingITCOCR=ocr;
+ pendingITCExisting=load;
+
+ const existing={
+  "DC Number":load.dc_number||"",
+  "DC Date":load.load_date?formatDisplayDate(load.load_date):"",
+  "Vehicle Number":load.vehicle_master?.vehicle_number||"",
+  "Material":load.po_master?.species_name||"",
+  "Gross Weight (MT)":load.gross_weight??"",
+  "Tare Weight (MT)":load.tare_weight??"",
+  "Net Weight (MT)":load.net_weight??""
+ };
+ const card={
+  "WC Number":ocr.wcNumber||"",
+  "WC Date":ocr.wcDate||"",
+  "DC Number":ocr.wcDC||"",
+  "DC Date":ocr.wcDCDate||"",
+  "Vehicle Number":ocr.wcVehicle||"",
+  "Material":ocr.wcMaterial||"",
+  "Gross Weight (MT)":ocr.wcGross||"",
+  "Tare Weight (MT)":ocr.wcTare||"",
+  "Net Weight (MT)":ocr.wcNet||"",
+  "Approved Weight (MT)":ocr.wcApproved||""
+ };
+ const rows=[
+  ["WC Number","",card["WC Number"],"card"],
+  ["WC Date","",card["WC Date"],"card"],
+  ["DC Number",existing["DC Number"],card["DC Number"],"compare"],
+  ["DC Date",existing["DC Date"],card["DC Date"],"compare"],
+  ["Vehicle Number",existing["Vehicle Number"],card["Vehicle Number"],"compare"],
+  ["Material",existing["Material"],card["Material"],"compare"],
+  ["Gross Weight (MT)",existing["Gross Weight (MT)"],card["Gross Weight (MT)"],"compare"],
+  ["Tare Weight (MT)",existing["Tare Weight (MT)"],card["Tare Weight (MT)"],"compare"],
+  ["Net Weight (MT)",existing["Net Weight (MT)"],card["Net Weight (MT)"],"compare"],
+  ["Approved Weight (MT)","",card["Approved Weight (MT)"],"card"]
+ ];
+ $("itcCompareBody").innerHTML=rows.map(([field,oldVal,newVal,type])=>{
+   const c=type==="compare"?compareValues(oldVal,newVal,field):{match:false,unknown:true};
+   const cls=c.unknown?"":(c.match?"itc-match":"itc-mismatch");
+   const badge=c.unknown?"":(c.match?'<span class="itc-badge match">MATCH</span>':'<span class="itc-badge diff">CHECK</span>');
+   return `<tr>
+    <td>${esc(field)}</td>
+    <td class="itc-existing">${esc(oldVal||"—")}</td>
+    <td><input id="cmp_${field.replace(/[^A-Za-z0-9]/g,"_")}" class="${cls} itc-card-val" value="${escAttr(newVal)}" style="width:100%"></td>
+    <td>${badge}</td>
+   </tr>`;
+ }).join("");
+ $("itcCompareModal").style.display="flex";
+}
+
+function cmpVal(field){
+ const id="cmp_"+field.replace(/[^A-Za-z0-9]/g,"_");
+ return $(id)?.value?.trim()||"";
+}
+function itcConfirmComparison(){
+ const o={
+  wcNumber:cmpVal("WC Number"),
+  wcDate:cmpVal("WC Date"),
+  wcDC:cmpVal("DC Number"),
+  wcDCDate:cmpVal("DC Date"),
+  wcVehicle:cmpVal("Vehicle Number"),
+  wcMaterial:cmpVal("Material"),
+  wcGross:cmpVal("Gross Weight (MT)"),
+  wcTare:cmpVal("Tare Weight (MT)"),
+  wcNet:cmpVal("Net Weight (MT)"),
+  wcApproved:cmpVal("Approved Weight (MT)")
+ };
+ $("wcNumber").value=o.wcNumber;
+ $("wcDate").value=o.wcDate;
+ $("wcDC").value=o.wcDC || pendingITCExisting?.dc_number || "";
+ $("wcDCDate").value=o.wcDCDate || (pendingITCExisting?.load_date?formatDisplayDate(pendingITCExisting.load_date):"");
+ $("wcVehicle").value=o.wcVehicle || pendingITCExisting?.vehicle_master?.vehicle_number || "";
+ $("wcMaterial").value=o.wcMaterial || pendingITCExisting?.po_master?.species_name || "";
+ $("wcGross").value=o.wcGross;
+ $("wcTare").value=o.wcTare;
+ $("wcNet").value=o.wcNet;
+ $("wcApproved").value=o.wcApproved;
+ $("itcStatus").textContent="ITC card values confirmed. Review the form below, then save.";
+ $("itcCompareModal").style.display="none";
+ $("wcNumber").focus();
+}
+function itcManualEntry(){
+ $("itcCompareModal").style.display="none";
+ ["wcNumber","wcDate","wcDCDate","wcMaterial","wcGross","wcTare","wcNet","wcApproved"].forEach(id=>{if($(id))$(id).value="";});
+ if(pendingITCExisting){
+  $("wcDC").value=pendingITCExisting.dc_number||"";
+  $("wcVehicle").value=pendingITCExisting.vehicle_master?.vehicle_number||"";
+ }
+ $("itcStatus").textContent="Manual entry selected. Enter/verify the ITC weighment details below.";
+ $("wcNumber").focus();
+}
+
 async function extractITCWeighment(e){
  const file=e.target.files?.[0]; if(!file)return;
- const status=$("itcStatus"); status.textContent="Reading card…";
+ const status=$("itcStatus"); status.textContent="Reading ITC weighment card…";
  try{
   let text="";
   if(file.type==="application/pdf"){
@@ -851,44 +1018,172 @@ async function extractITCWeighment(e){
     text+=tc.items.map(x=>x.str).join(" ")+" ";
    }
   }else{
-   const r=await Tesseract.recognize(file,"eng",{logger:m=>{
-    if(m.status==="recognizing text")status.textContent=`OCR ${Math.round((m.progress||0)*100)}%…`;
-   }});
-   text=r.data.text||"";
+   // OCR the original image plus an enhanced copy. ITC cards are often
+   // low-contrast WhatsApp photographs, so one OCR pass is not reliable.
+   const original=await Tesseract.recognize(file,"eng",{
+    logger:m=>{if(m.status==="recognizing text")status.textContent=`OCR ${Math.round((m.progress||0)*100)}%…`;}
+   });
+   text=original.data.text||"";
+
+   const enhanced=await enhanceITCImage(file);
+   const second=await Tesseract.recognize(enhanced,"eng",{
+    logger:m=>{if(m.status==="recognizing text")status.textContent=`OCR enhanced image ${Math.round((m.progress||0)*100)}%…`;}
+   });
+   text+="\n"+(second.data.text||"");
+
+   // A focused OCR pass on the bottom weight row improves Gross/Tare/Net/Approved.
+   const weightCrop=await cropITCImage(file,0.08,0.56,0.92,0.72);
+   const wr=await Tesseract.recognize(weightCrop,"eng",{config:{tessedit_pageseg_mode:"6"}});
+   text+="\n"+(wr.data.text||"");
   }
+
   parseITCText(text);
-  status.textContent="Extraction complete. Verify all fields before saving.";
+  const ocr={
+   wcNumber:$("wcNumber")?.value||"",
+   wcDate:$("wcDate")?.value||"",
+   wcVehicle:$("wcVehicle")?.value||"",
+   wcDC:$("wcDC")?.value||"",
+   wcDCDate:$("wcDCDate")?.value||"",
+   wcMaterial:$("wcMaterial")?.value||"",
+   wcGross:$("wcGross")?.value||"",
+   wcTare:$("wcTare")?.value||"",
+   wcNet:$("wcNet")?.value||"",
+   wcApproved:$("wcApproved")?.value||""
+  };
+  const filled=Object.values(ocr).filter(Boolean).length;
+  status.textContent=`Extraction complete (${filled}/10 fields found). Opening comparison…`;
+  await showITCComparison(ocr);
  }catch(err){
-  status.textContent="Could not extract. Enter/verify the fields manually.";
+  console.error("ITC extraction error:",err);
+  status.textContent="Could not extract automatically. Please verify/enter the fields manually.";
  }
 }
 
-function findITC(text,patterns){
- for(const p of patterns){const m=text.match(p);if(m&&m[1])return m[1].trim();}
- return "";
-}
-function parseITCText(text){
- const t=text.replace(/\s+/g," ");
- const wc=findITC(t,[/(?:WC|Weighment\s*Card|Weight\s*Card)\s*(?:No\.?|Number)?\s*[:\-]?\s*([A-Z0-9\/-]{6,})/i]);
- const date=findITC(t,[/(?:WC\s*Date|Date)\s*[:\-]?\s*(\d{2}[\/-]\d{2}[\/-]\d{4})/i]);
- const vehicle=findITC(t,[/(?:Vehicle\s*(?:No\.?|Number)?|Truck\s*(?:No\.?|Number)?)\s*[:\-]?\s*([A-Z0-9-]{6,})/i]);
- const dc=findITC(t,[/(?:DC\s*(?:No\.?|Number)?|Delivery\s*Challan\s*(?:No\.?|Number)?)\s*[:\-]?\s*([A-Z0-9\/-]{1,})/i]);
- const material=findITC(t,[/(?:Material\s*(?:Description)?|Description)\s*[:\-]?\s*(Eucalyptus[^,;]*|[A-Za-z][A-Za-z ]{3,60}(?:Wood)?)/i]);
- const gross=findITC(t,[/(?:Gross\s*Weight|Gross)\s*[:\-]?\s*([\d,.]+)/i]);
- const tare=findITC(t,[/(?:Tare\s*Weight|Tare)\s*[:\-]?\s*([\d,.]+)/i]);
- const net=findITC(t,[/(?:Net\s*Weight|Net)\s*[:\-]?\s*([\d,.]+)/i]);
- const approved=findITC(t,[/(?:Approved\s*Weight|Approved)\s*[:\-]?\s*([\d,.]+)/i]);
- if(wc)$("wcNumber").value=wc;
- if(date)$("wcDate").value=date.replace(/\//g,"-");
- if(vehicle)$("wcVehicle").value=vehicle;
- if(dc)$("wcDC").value=dc;
- if(material)$("wcMaterial").value=material;
- if(gross)$("wcGross").value=gross.replace(/,/g,"");
- if(tare)$("wcTare").value=tare.replace(/,/g,"");
- if(net)$("wcNet").value=net.replace(/,/g,"");
- if(approved)$("wcApproved").value=approved.replace(/,/g,"");
+async function enhanceITCImage(file){
+ const bmp=await createImageBitmap(file);
+ const scale=2;
+ const c=document.createElement("canvas");
+ c.width=bmp.width*scale; c.height=bmp.height*scale;
+ const ctx=c.getContext("2d",{willReadFrequently:true});
+ ctx.drawImage(bmp,0,0,c.width,c.height);
+ const d=ctx.getImageData(0,0,c.width,c.height);
+ for(let i=0;i<d.data.length;i+=4){
+   const g=(0.299*d.data[i])+(0.587*d.data[i+1])+(0.114*d.data[i+2]);
+   const v=g<175?0:255;
+   d.data[i]=d.data[i+1]=d.data[i+2]=v;
+ }
+ ctx.putImageData(d,0,0);
+ return await new Promise(resolve=>c.toBlob(resolve,"image/png"));
 }
 
+async function cropITCImage(file,x1,y1,x2,y2){
+ const bmp=await createImageBitmap(file);
+ const c=document.createElement("canvas");
+ const sx=Math.round(bmp.width*x1), sy=Math.round(bmp.height*y1);
+ const sw=Math.round(bmp.width*(x2-x1)), sh=Math.round(bmp.height*(y2-y1));
+ c.width=sw*3; c.height=sh*3;
+ const ctx=c.getContext("2d");
+ ctx.drawImage(bmp,sx,sy,sw,sh,0,0,c.width,c.height);
+ return await new Promise(resolve=>c.toBlob(resolve,"image/png"));
+}
+
+function normalizeITCText(text){
+ return String(text||"")
+  .replace(/[|]/g," ")
+  .replace(/[“”]/g,'"')
+  .replace(/[’]/g,"'")
+  .replace(/\r/g," ")
+  .replace(/\s+/g," ")
+  .trim();
+}
+
+function cleanITCNumber(v){
+ return String(v||"").replace(/[^0-9.]/g,"");
+}
+
+function cleanITCDate(v){
+ const s=String(v||"").replace(/[./]/g,"-").replace(/\s+/g,"").trim();
+ const m=s.match(/(\d{2})-(\d{2})-(\d{4})/);
+ return m ? `${m[1]}-${m[2]}-${m[3]}` : "";
+}
+
+function parseITCText(text){
+ const t=normalizeITCText(text);
+
+ // Do NOT use a generic "Date" pattern: this card contains Security No Date,
+ // Weighment Card Date and DC Date.
+ const wc =
+   findITC(t,[
+    /Weighment\s*Card\s*(?:No|Number)\s*[:\-]?\s*([A-Z0-9\/-]{8,})/i,
+    /Weighment\s*Card\s*No\.?\s*([A-Z0-9\/-]{8,})/i,
+    /(?:WC|Weight\s*Card)\s*(?:No|Number)\s*[:\-]?\s*([A-Z0-9\/-]{8,})/i
+   ]) || "";
+
+ const wcDateRaw=findITC(t,[
+   /Weighment\s*Card\s*Date\s*[:\-]?\s*(\d{2}[./-]\d{2}[./-]\d{4})/i
+ ]);
+ const dcDateRaw=findITC(t,[
+   /DC\s*Date\s*[:\-]?\s*(\d{2}[./-]\d{2}[./-]\d{4})/i
+ ]);
+
+ const vehicle =
+   findITC(t,[
+    /Vehicle\s*(?:No|Number)\s*[:\-]?\s*([A-Z0-9-]{8,})/i,
+    /Vehicle\s*No\.?\s*([A-Z0-9-]{8,})/i
+   ]) || "";
+
+ const dc =
+   findITC(t,[
+    /DC\s*(?:No|Number)\s*[:\-]?\s*(\d{1,8})/i,
+    /DC\s*No\.?\s*(\d{1,8})/i
+   ]) || "";
+
+ const material =
+   findITC(t,[
+    /Material\s*Description\s*[:\-]?\s*(EUCALYPTUS\s+DEBARKED\s+WOOD[^|;]*?)(?=\s+UOM\b|\s+P\.?\s*O\b|\s+PO\s+No\b|$)/i,
+    /(EUCALYPTUS\s+DEBARKED\s+WOOD)/i
+   ]) || "";
+
+ // Weight-row extraction: prefer the four values that appear together near
+ // Gross WT / Tare WT / Net WT / Approved WT.
+ let gross="",tare="",net="",approved="";
+ const weightRow=t.match(
+   /Gross\s*WT\s+([0-9.,]+)\s+Tare\s*WT\s+([0-9.,]+)\s+Net\s*WT\s+([0-9.,]+)\s+Approved\s*WT\s+([0-9.,]+)/i
+ );
+ if(weightRow){
+   gross=cleanITCNumber(weightRow[1]);
+   tare=cleanITCNumber(weightRow[2]);
+   net=cleanITCNumber(weightRow[3]);
+   approved=cleanITCNumber(weightRow[4]);
+ }
+
+ // Fallbacks for OCR where labels and values are separated.
+ if(!gross) gross=findITC(t,[/Gross\s*WT[^0-9]{0,30}([0-9]{2,3}[.,][0-9]{3})/i,/Gross\s*Weight[^0-9]{0,30}([0-9.,]+)/i]);
+ if(!tare) tare=findITC(t,[/Tare\s*WT[^0-9]{0,30}([0-9]{1,3}[.,][0-9]{3})/i,/Tare\s*Weight[^0-9]{0,30}([0-9.,]+)/i]);
+ if(!net) net=findITC(t,[/Net\s*WT[^0-9]{0,30}([0-9]{1,3}[.,][0-9]{3})/i,/Net\s*Weight[^0-9]{0,30}([0-9.,]+)/i]);
+ if(!approved) approved=findITC(t,[/Approved\s*WT[^0-9]{0,30}([0-9]{1,3}[.,][0-9]{3})/i,/Approved\s*Weight[^0-9]{0,30}([0-9.,]+)/i]);
+
+ if(wc) $("wcNumber").value=wc;
+ if(wcDateRaw) $("wcDate").value=cleanITCDate(wcDateRaw);
+ if(vehicle) $("wcVehicle").value=vehicle.replace(/\s+/g,"").toUpperCase();
+ if(dc) $("wcDC").value=dc;
+ if(dcDateRaw) $("wcDCDate").value=cleanITCDate(dcDateRaw);
+ if(material) $("wcMaterial").value=material.trim().toUpperCase();
+ if(gross) $("wcGross").value=gross;
+ if(tare) $("wcTare").value=tare;
+ if(net) $("wcNet").value=net;
+ if(approved) $("wcApproved").value=approved;
+
+ // If OCR missed net/approved but the other values are clear, calculate only
+ // as a fallback; the user can still verify the printed values before saving.
+ if(!$("wcNet").value && gross && tare){
+   const n=Number(gross)-Number(tare);
+   if(n>0)$("wcNet").value=n.toFixed(3);
+ }
+ if(!$("wcApproved").value && $("wcNet").value){
+   $("wcApproved").value=$("wcNet").value;
+ }
+}
 async function saveITCWeighment(){
  const loadId=$("itcLoad").value,wc=$("wcNumber").value.trim();
  if(!loadId||!wc){alert("Select Load/DC and enter WC Number.");return;}
