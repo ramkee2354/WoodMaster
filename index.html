@@ -165,20 +165,29 @@ function nextCustomerCode(){
 }
 
 async function nextDCNumber(){
- // Continue from existing AppSheet/ITC DC numbers and WoodMaster loads; display as NN/YYYY-YY.
- const [iw,ld]=await Promise.all([
-  sb.from('itc_weighments').select('dc_number').not('dc_number','is',null).limit(5000),
-  sb.from('loads').select('dc_number').not('dc_number','is',null).limit(5000)
- ]);
- if(iw.error) throw iw.error; if(ld.error) throw ld.error;
- let max=0;
- for(const r of [...(iw.data||[]),...(ld.data||[])]){
-  const m=String(r.dc_number||'').trim().match(/(\d+)(?!.*\d)/);
-  if(m) max=Math.max(max,Number(m[1]));
- }
+ // WoodMaster DC sequence is based on WoodMaster load records for the current FY.
+ // Do not let historical/ITC weighment DC numbers (e.g. an old AppSheet DC 28)
+ // force a new WoodMaster test/load sequence to start at 29.
+ const {data,error}=await sb.from('loads')
+   .select('dc_number,load_date')
+   .not('dc_number','is',null)
+   .limit(10000);
+ if(error) throw error;
  const d=new Date();
  const startYear=d.getMonth()>=3?d.getFullYear():d.getFullYear()-1;
  const fy=`${startYear}-${String(startYear+1).slice(-2)}`;
+ let max=0;
+ for(const r of (data||[])){
+   const ds=String(r.load_date||'');
+   if(ds){
+     const yr=Number(ds.slice(0,4));
+     const mo=Number(ds.slice(5,7));
+     const rowStart=mo>=4?yr:yr-1;
+     if(rowStart!==startYear) continue;
+   }
+   const m=String(r.dc_number||'').trim().match(/^(\d+)(?:\/\d{4}-\d{2})?$/);
+   if(m) max=Math.max(max,Number(m[1]));
+ }
  return `${String(max+1).padStart(2,'0')}/${fy}`;
 }
 
@@ -289,7 +298,7 @@ async function dashboard(){
 function recentLoadsTable(){
  const rows=state.loads.slice(0,10);
  if(!rows.length)return '<div class="empty">No loads created yet.</div>';
- return `<div class="tablewrap"><table><thead><tr><th>Load</th><th>Date</th><th>Vehicle</th><th>PO</th><th>Net MT</th><th>Status</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${esc(x.load_number)}</td><td>${esc(x.load_date)}</td><td>${esc(x.vehicle_master?.vehicle_number||"")}</td><td>${esc(x.po_master?.po_number||"")}</td><td>${fmt(x.network_net)}</td><td><span class="badge">${esc(x.status||"")}</span></td></tr>`).join("")}</tbody></table></div>`;
+ return `<div class="tablewrap"><table><thead><tr><th>DC Number</th><th>Date</th><th>Vehicle</th><th>PO</th><th>Net MT</th><th>Status</th></tr></thead><tbody>${rows.map(x=>`<tr><td><button class="linkbtn" onclick="openLoadDetails('${x.id}')">${esc(x.dc_number||x.load_number||"")}</button></td><td>${esc(x.load_date||"")}</td><td>${esc(x.vehicle_master?.vehicle_number||"")}</td><td>${esc(poDisplayLabel(x.po_master||{})||x.po_master?.po_number||"")}</td><td>${fmt(x.network_net)}</td><td><span class="badge">${esc(x.status||"")}</span></td></tr>`).join("")}</tbody></table></div>`;
 }
 
 async function loadsPage(){
