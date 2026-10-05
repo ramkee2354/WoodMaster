@@ -787,11 +787,11 @@ async function addPO(e){
 
 async function renderITCWeighment(){
  const {data:loads,error}=await sb.from("loads")
-  .select("id,dc_number,load_date,vehicle_number,po_master(po_number,species_name)")
+  .select("id,dc_number,load_date,vehicle_id,vehicle_master(vehicle_number),po_master(po_number,species_name)")
   .order("load_date",{ascending:false}).limit(500);
  if(error) throw error;
  const options=(loads||[]).map(l=>{
-   const label=[l.dc_number||"",l.vehicle_number||"",l.po_master?.species_name||""].filter(Boolean).join(" — ");
+   const label=[l.dc_number||"",l.vehicle_master?.vehicle_number||"",l.po_master?.species_name||""].filter(Boolean).join(" — ");
    return `<option value="${esc(l.id)}">${esc(label)}</option>`;
  }).join("");
  return `
