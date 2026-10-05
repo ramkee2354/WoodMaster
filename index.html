@@ -17,6 +17,20 @@ main{flex:1;padding:25px;max-width:1500px;margin:auto;width:100%}h1{font-size:25
 
 .doc-modal{position:fixed;inset:0;background:#0007;display:flex;align-items:center;justify-content:center;z-index:30;padding:20px}.doc-box{background:#fff;border-radius:14px;max-width:680px;width:100%;padding:22px;box-shadow:0 10px 35px #0003}.doc-option{border:1px solid var(--line);border-radius:10px;padding:14px;margin:10px 0;background:#fff}.doc-option button{margin-top:8px}.upload-inline{display:flex;gap:8px;align-items:center}.upload-status{font-size:12px;color:var(--muted);margin-top:5px}.danger-text{color:var(--danger)}.linkbtn{border:0;background:transparent;color:var(--primary);font-weight:700;cursor:pointer;padding:0;text-decoration:underline}.linkbtn:hover{color:var(--primary2)}.file-hidden{display:none}.eway-inline{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}.eway-tools{display:flex;gap:7px;align-items:center}.upload-btn{white-space:nowrap}
 </style>
+<script type="module">
+import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs";
+pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
+window.pdfjsLib=pdfjsLib;
+</script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+.card{background:#fff;border:1px solid #d6e7f5;border-radius:12px;padding:0;margin-top:16px;overflow:hidden}
+.card h2{margin:0;padding:14px 18px;background:#eef7ff;color:#0b4f8a;font-size:18px}
+.card>.grid3,.card>.actions{padding:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.readonly{background:#f1f5f8!important}
+@media(max-width:800px){.grid3{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
 <div id="app"></div>
@@ -114,6 +128,7 @@ function shell(body){
    <button class="${state.page==="loads"?"active":""}" onclick="go('loads')">🚚 Loads</button>
    <button class="${state.page==="newload"?"active":""}" onclick="go('newload')">＋ New Load</button>
    <button class="${state.page==="masters"?"active":""}" onclick="go('masters')">⚙ Masters</button>
+   <button class="${state.page==="itcWeighment"?"active":""}" onclick="go('itcWeighment')">⚖ ITC Weighment</button>
    <button onclick="changeContractor()">⇄ Contractors</button>
    <button onclick="logout()">↪ Sign out</button>
   </nav>
@@ -769,6 +784,135 @@ async function addPO(e){
  await render();
 }
 
+
+async function renderITCWeighment(){
+ const {data:loads,error}=await sb.from("loads")
+  .select("id,dc_number,load_date,vehicle_number,po_master(po_number,species_name)")
+  .order("load_date",{ascending:false}).limit(500);
+ if(error) throw error;
+ const options=(loads||[]).map(l=>{
+   const label=[l.dc_number||"",l.vehicle_number||"",l.po_master?.species_name||""].filter(Boolean).join(" — ");
+   return `<option value="${esc(l.id)}">${esc(label)}</option>`;
+ }).join("");
+ return `
+ <div class="context"><b>Active Contractor:</b> ${esc(activeContractor()?.contractor_name||"")}${activeContractor()?.contractor_code?` &nbsp;•&nbsp; ${esc(activeContractor().contractor_code)}`:""}</div>
+ <div class="notice"><b>ITC Weighment</b><br>Upload the ITC weighment card/receipt. WoodMaster extracts the details for verification before saving.</div>
+ <div class="card">
+  <h2>1. Upload ITC Weighment Card</h2>
+  <div class="grid3">
+   <div class="field"><label>Load / DC *</label><select id="itcLoad" onchange="itcLoadChanged()"><option value="">Select Load / DC</option>${options}</select></div>
+   <div class="field"><label>ITC Weighment Card / WC PDF or Image *</label><input id="itcFile" type="file" accept="application/pdf,image/*" onchange="extractITCWeighment(event)"></div>
+   <div class="field"><label>Extraction Status</label><div id="itcStatus" class="readonly" style="padding:11px;border:1px solid #d6e0e8;border-radius:7px">Waiting for upload…</div></div>
+  </div>
+ </div>
+ <div class="card">
+  <h2>2. Verify ITC Weighment Details</h2>
+  <div class="grid3">
+   <div class="field"><label>WC Number *</label><input id="wcNumber"></div>
+   <div class="field"><label>WC Date *</label><input id="wcDate" placeholder="dd-mm-yyyy"></div>
+   <div class="field"><label>Vehicle Number *</label><input id="wcVehicle"></div>
+   <div class="field"><label>DC Number</label><input id="wcDC" class="readonly" readonly></div>
+   <div class="field"><label>DC Date</label><input id="wcDCDate" class="readonly" readonly></div>
+   <div class="field"><label>Material Description</label><input id="wcMaterial"></div>
+   <div class="field"><label>Gross Weight (MT)</label><input id="wcGross" type="number" step="0.001"></div>
+   <div class="field"><label>Tare Weight (MT)</label><input id="wcTare" type="number" step="0.001"></div>
+   <div class="field"><label>Net Weight (MT)</label><input id="wcNet" type="number" step="0.001"></div>
+   <div class="field"><label>Approved Weight (MT) *</label><input id="wcApproved" type="number" step="0.001"></div>
+  </div>
+  <div class="actions">
+   <button class="btn primary" onclick="saveITCWeighment()">Save ITC Weighment</button>
+   <button class="btn secondary" onclick="go('loads')">Cancel</button>
+  </div>
+ </div>`;
+}
+
+function itcLoadChanged(){
+ const id=$("itcLoad")?.value;
+ if(!id)return;
+ const opt=$("itcLoad").selectedOptions[0];
+ const text=opt?.textContent||"";
+ const parts=text.split(" — ");
+ $("wcDC").value=parts[0]||"";
+ $("wcVehicle").value=parts[1]||"";
+ $("wcMaterial").value=parts[2]||"";
+}
+
+async function extractITCWeighment(e){
+ const file=e.target.files?.[0]; if(!file)return;
+ const status=$("itcStatus"); status.textContent="Reading card…";
+ try{
+  let text="";
+  if(file.type==="application/pdf"){
+   if(!window.pdfjsLib)throw new Error("PDF reader is loading.");
+   const pdf=await window.pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;
+   for(let p=1;p<=pdf.numPages;p++){
+    const page=await pdf.getPage(p);
+    const tc=await page.getTextContent({normalizeWhitespace:true});
+    text+=tc.items.map(x=>x.str).join(" ")+" ";
+   }
+  }else{
+   const r=await Tesseract.recognize(file,"eng",{logger:m=>{
+    if(m.status==="recognizing text")status.textContent=`OCR ${Math.round((m.progress||0)*100)}%…`;
+   }});
+   text=r.data.text||"";
+  }
+  parseITCText(text);
+  status.textContent="Extraction complete. Verify all fields before saving.";
+ }catch(err){
+  status.textContent="Could not extract. Enter/verify the fields manually.";
+ }
+}
+
+function findITC(text,patterns){
+ for(const p of patterns){const m=text.match(p);if(m&&m[1])return m[1].trim();}
+ return "";
+}
+function parseITCText(text){
+ const t=text.replace(/\s+/g," ");
+ const wc=findITC(t,[/(?:WC|Weighment\s*Card|Weight\s*Card)\s*(?:No\.?|Number)?\s*[:\-]?\s*([A-Z0-9\/-]{6,})/i]);
+ const date=findITC(t,[/(?:WC\s*Date|Date)\s*[:\-]?\s*(\d{2}[\/-]\d{2}[\/-]\d{4})/i]);
+ const vehicle=findITC(t,[/(?:Vehicle\s*(?:No\.?|Number)?|Truck\s*(?:No\.?|Number)?)\s*[:\-]?\s*([A-Z0-9-]{6,})/i]);
+ const dc=findITC(t,[/(?:DC\s*(?:No\.?|Number)?|Delivery\s*Challan\s*(?:No\.?|Number)?)\s*[:\-]?\s*([A-Z0-9\/-]{1,})/i]);
+ const material=findITC(t,[/(?:Material\s*(?:Description)?|Description)\s*[:\-]?\s*(Eucalyptus[^,;]*|[A-Za-z][A-Za-z ]{3,60}(?:Wood)?)/i]);
+ const gross=findITC(t,[/(?:Gross\s*Weight|Gross)\s*[:\-]?\s*([\d,.]+)/i]);
+ const tare=findITC(t,[/(?:Tare\s*Weight|Tare)\s*[:\-]?\s*([\d,.]+)/i]);
+ const net=findITC(t,[/(?:Net\s*Weight|Net)\s*[:\-]?\s*([\d,.]+)/i]);
+ const approved=findITC(t,[/(?:Approved\s*Weight|Approved)\s*[:\-]?\s*([\d,.]+)/i]);
+ if(wc)$("wcNumber").value=wc;
+ if(date)$("wcDate").value=date.replace(/\//g,"-");
+ if(vehicle)$("wcVehicle").value=vehicle;
+ if(dc)$("wcDC").value=dc;
+ if(material)$("wcMaterial").value=material;
+ if(gross)$("wcGross").value=gross.replace(/,/g,"");
+ if(tare)$("wcTare").value=tare.replace(/,/g,"");
+ if(net)$("wcNet").value=net.replace(/,/g,"");
+ if(approved)$("wcApproved").value=approved.replace(/,/g,"");
+}
+
+async function saveITCWeighment(){
+ const loadId=$("itcLoad").value,wc=$("wcNumber").value.trim();
+ if(!loadId||!wc){alert("Select Load/DC and enter WC Number.");return;}
+ const dup=await sb.from("itc_weighments").select("id").eq("wc_number",wc).limit(1);
+ if(dup.error){alert(dup.error.message);return;}
+ if(dup.data?.length){alert("This WC Number already exists.");return;}
+ const row={
+  load_id:loadId,
+  wc_number:wc,
+  wc_date:toISODate($("wcDate").value),
+  vehicle_number:$("wcVehicle").value.trim(),
+  dc_number:$("wcDC").value.trim(),
+  material_description:$("wcMaterial").value.trim(),
+  gross_weight:Number($("wcGross").value)||null,
+  tare_weight:Number($("wcTare").value)||null,
+  net_weight:Number($("wcNet").value)||null,
+  approved_weight:Number($("wcApproved").value)||null
+ };
+ const {error}=await sb.from("itc_weighments").insert(row);
+ if(error){alert(error.message);return;}
+ alert("ITC Weighment saved successfully.");
+ go("loads");
+}
+
 async function render(){
  const app=$("app");
  if(!state.session){
@@ -787,6 +931,7 @@ async function render(){
   if(state.page==="dashboard")body=await dashboard();
   else if(state.page==="loads")body=await loadsPage();
   else if(state.page==="newload")body=await newLoad();
+  else if(state.page==="itcWeighment")body=await renderITCWeighment();
   else if(state.page==="loaddetail"){window.__loadDetailId=window.__loadDetailId||null;body=loadDetailsPage();}
   else if(state.page==="masters")body=await masters();
   else body=await dashboard();
