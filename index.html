@@ -908,7 +908,7 @@ async function showITCComparison(ocr){
  const loadId=$("itcLoad")?.value;
  if(!loadId){alert("Select the Load / DC before uploading the ITC card.");return;}
  const {data:load,error}=await sb.from("loads")
-  .select("id,dc_number,load_date,gross_weight,tare_weight,net_weight,vehicle_id,vehicle_master(vehicle_number),po_master(po_number,species_name)")
+  .select("id,dc_number,load_number,load_date,vehicle_id,po_id,network_gross,network_tare,network_net,species_name,vehicle_master(vehicle_number),po_master(po_number,species_name)")
   .eq("id",loadId).single();
  if(error){alert(error.message);return;}
 
@@ -916,13 +916,13 @@ async function showITCComparison(ocr){
  pendingITCExisting=load;
 
  const existing={
-  "DC Number":load.dc_number||"",
+  "DC Number":load.dc_number||load.load_number||"",
   "DC Date":load.load_date?formatDisplayDate(load.load_date):"",
   "Vehicle Number":load.vehicle_master?.vehicle_number||"",
-  "Material":load.po_master?.species_name||"",
-  "Gross Weight (MT)":load.gross_weight??"",
-  "Tare Weight (MT)":load.tare_weight??"",
-  "Net Weight (MT)":load.net_weight??""
+  "Material":load.species_name||load.po_master?.species_name||"",
+  "Gross Weight (MT)":load.network_gross??"",
+  "Tare Weight (MT)":load.network_tare??"",
+  "Net Weight (MT)":load.network_net??""
  };
  const card={
   "WC Number":ocr.wcNumber||"",
