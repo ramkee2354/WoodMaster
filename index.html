@@ -108,8 +108,11 @@ function wmDraftKey(){
  return [state.session?.user?.id||"anon",contractor,state.page,record].join(":");
 }
 function wmDraftFields(){
+ // Keep ALL visible form values, including automatically populated/read-only
+ // values such as DC number, DC date, material, rates, GSTIN and HSN.
+ // File inputs are handled separately in memory.
  return [...document.querySelectorAll("#app input[id],#app select[id],#app textarea[id]")]
- .filter(el=>el.type!=="password"&&el.type!=="file"&&el.type!=="submit"&&!el.readOnly&&!el.disabled);
+ .filter(el=>el.type!=="password"&&el.type!=="file"&&el.type!=="submit");
 }
 function wmSaveDraft(){
  if(!state.session||!state.selectedContractor||!["newload","itcWeighment","masters"].includes(state.page))return;
@@ -124,7 +127,7 @@ function wmRestoreDraft(){
  const draft=WM_MEMORY_DRAFTS.get(wmDraftKey());
  if(!draft?.fields)return;
  for(const [id,value] of Object.entries(draft.fields)){
-  const el=document.getElementById(id);if(!el||el.type==="file"||el.readOnly||el.disabled)continue;
+  const el=document.getElementById(id);if(!el||el.type==="file")continue;
   if(el.type==="checkbox")el.checked=!!value;
   else if(el.tagName==="SELECT" && ![...el.options].some(o=>o.value===value))continue;
   else el.value=value;
