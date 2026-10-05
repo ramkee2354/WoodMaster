@@ -361,8 +361,8 @@ async function newLoad(){
  const vehicleList=state.vehicles.map(v=>`<option value="${esc(v.vehicle_number)}" data-tare="${v.current_tare??""}"></option>`).join("");
  return `${contractorContext()}
  <div class="topbar newload-head">
-   <div><h1>New Load</h1><div class="sub">Network weighbridge slip has already been received. Start the process here.</div></div>
-   <div class="dc-box"><div class="dc-label">DC Number</div><input id="dcNumber" class="readonly dc-input" readonly value="${esc(autoDC)}"><div class="small">Automatically generated. Do not enter manually.</div></div>
+   <div><h1>${editing ? "Edit Load" : "New Load"}</h1><div class="sub">${editing ? "Edit the existing load details and update the load." : "Network weighbridge slip has already been received. Start the process here."}</div></div>
+   <div class="dc-box"><div class="dc-label">DC Number</div><input id="dcNumber" class="readonly dc-input" readonly value="${esc(autoDC)}"><div class="small">${editing ? "Existing DC number. It will not change when the load is updated." : "Automatically generated. Do not enter manually."}</div></div>
  </div>
  <div class="notice">No Network Receipt Number is required. The network weighment is created automatically with this Load.</div>
  <form class="form load-form" onsubmit="saveLoad(event)">
@@ -398,7 +398,12 @@ async function newLoad(){
     <div><div class="label">Value 3 — Total</div><div id="ewayV3" class="metric">${money(0)}</div></div>
    </div>
   </div>
-  <div class="actions"><button class="btn primary">Create Load</button><button type="button" class="btn secondary" onclick="go('dashboard')">Cancel</button></div>
+  <div class="actions">
+   ${editing
+     ? `<button class="btn primary">Update Load</button><button type="button" class="btn danger" onclick="deleteLoad('${editLoadRow.id}')">Delete Load</button><button type="button" class="btn secondary" onclick="state.editingLoadId=null;go('loads')">Cancel</button>`
+     : `<button class="btn primary">Create Load</button><button type="button" class="btn secondary" onclick="go('dashboard')">Cancel</button>`
+   }
+  </div>
  </form>`;
 }
 
