@@ -20,6 +20,7 @@ const num=v=>Number(v||0); const fmt=v=>Number(v||0).toLocaleString("en-IN",{min
 function isoToday(){return new Date().toISOString().slice(0,10)}
 function fmtDate(v){if(!v)return "";const s=String(v).slice(0,10);const m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${m[3]}-${m[2]}-${m[1]}`:s}
 function active(){return state.selectedContractor}
+function contractorContext(){const c=active();return c?`<div class="context">Active Contractor: <b>${esc(c.contractor_name||"")}</b></div>`:""}
 // Form drafts use localStorage so an unfinished entry survives navigation, tab/app switching,
 // browser re-render and normal refresh. Explicit Cancel/Save clears the draft.
 function saveForm(key,obj){try{localStorage.setItem("wm360:draft:"+key,JSON.stringify({savedAt:Date.now(),data:obj}))}catch{} }
