@@ -237,34 +237,109 @@ async function downloadFreightLetter(id){
  if(!window.PDFLib)return alert('PDF generator is still loading. Please try again.');
  try{
   const {PDFDocument,StandardFonts,rgb}=PDFLib;
-  const pdf=await PDFDocument.create();const page=pdf.addPage([595.28,841.89]);
+  const pdf=await PDFDocument.create();
+  const page=pdf.addPage([595.28,841.89]);
   const font=await pdf.embedFont(StandardFonts.Helvetica),bold=await pdf.embedFont(StandardFonts.HelveticaBold);
-  const c=active(), contractor=c?.contractor_name||'SRI VENKATESHWARA TRADERS';
-  const address=c?.address||'15-8-539, Rama Devi Nilayam, Rotary Nagar, Srinagar colony, Khammam, Telangana-507002';
-  const left=42,right=553;let y=800;
-  const pdfSafeText=(value)=>String(value??'').replace(/₹/g,'Rs. ').replace(/ /g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'\"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'?');
-  const text=(t,x,yv,size=10,b=false)=>page.drawText(pdfSafeText(t),{x,y:yv,size,font:b?bold:font,color:rgb(0,0,0)});
-  const line=(y0)=>page.drawLine({start:{x:left,y:y0},end:{x:right,y:y0},thickness:0.8,color:rgb(0,0,0)});
-  const row=(label,val)=>{text(label,left,y,10,true);text(val,left+155,y,10,false);y-=22;};
-  text('FREIGHT RECEIPT',190,y,17,true);y-=22;line(y);y-=22;
-  text('FROM',left,y,10,true);text(contractor,left+70,y,10,true);y-=16;
-  const addrWords=String(address).split(/\s+/);let addrLine='', lines=[];addrWords.forEach(wd=>{if((addrLine+' '+wd).trim().length>70){lines.push(addrLine.trim());addrLine=wd}else addrLine+=(addrLine?' ':'')+wd});if(addrLine)lines.push(addrLine.trim());lines.forEach(l=>{text(l,left+70,y,9);y-=13});y-=5;
-  row('Challan No.',x.dc_number||'');row('Challan Date',fmtDate(x.load_date));line(y);y-=22;
-  row('Vehicle Number',x.vehicle_master?.vehicle_number||'');row('WC Number',w.wc_number||'');
-  y-=5;line(y);y-=22;
-  const entries=[
-   ['Freight Rate',money(f.freight_rate)+'/Ton'],['Freightable / Approved Weight',fmt(f.applicable_weight)+' MT'],['Freight Charges',money(f.freight_charges)],['AMC Charges',money(f.amc_charges)],['Gross Amount',money(f.gross_amount)],['Gross Amount in Words',numberWordsIndian(f.gross_amount)],['Advance',money(f.advance)],['Clerk Commission',money(f.clerk_commission)],['Shortage',money(f.shortage)],['Net Amount',money(f.net_amount)],['Net Amount in Words',numberWordsIndian(f.net_amount)]
-  ];
-  entries.forEach(([lab,val])=>{text(lab,left,y,9,lab==='Gross Amount'||lab==='Net Amount');const words=String(val);if(words.length>65){const a=words.slice(0,65),b=words.slice(65);text(a,left+155,y,9,lab==='Gross Amount'||lab==='Net Amount');y-=13;text(b,left+155,y,9);y-=20}else{text(words,left+155,y,9,lab==='Gross Amount'||lab==='Net Amount');y-=20}});
-  line(y);y-=22;
-  row('Account Number / UPI Number',f.account_number||'');row('Account Holder Name',f.account_holder||'');row('Paid Date',fmtDate(f.paid_date||''));
-  y-=28;
-  if(y<105){page.drawText('For '+contractor,{x:left,y:70,size:10,font:bold});}
-  else {
-   try{const png=await pdf.embedPng(FREIGHT_SIGNATURE_DATA);const scale=Math.min(125/png.width,48/png.height);page.drawImage(png,{x:left,y:y-40,width:png.width*scale,height:png.height*scale});}catch{}
-   text('For '+contractor,left,y-52,10,true);text('Driver Signature',420,y-52,10,true);
-  }
-  const bytes=await pdf.save();const blob=new Blob([bytes],{type:'application/pdf'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`Freight_Letter_${String(x.dc_number||x.load_number||id).replace(/[^A-Za-z0-9_-]/g,'_')}.pdf`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
+  const contractorName='S V TRADERS';
+  const activeContractor=active();
+  let address=activeContractor?.address||'Rama Devi Nilayam, Rotary Nagar, Srinagar Colony, Khammam District, Telangana - 507002';
+  // Customer-facing freight letter must not print the house number.
+  address=String(address).replace(/^\s*\d+[-\/]?\d*\s*,?\s*/,'').trim();
+  const black=rgb(0,0,0), light=rgb(0.93,0.93,0.93);
+  const left=34,right=561,width=right-left;
+  const pdfSafeText=(value)=>String(value??'').replace(/₹/g,'Rs. ').replace(/ /g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'?');
+  const text=(t,x,yv,size=9,b=false,align='left')=>{
+   const str=pdfSafeText(t),fn=b?bold:font,tw=fn.widthOfTextAtSize(str,size);
+   let xx=x;if(align==='center')xx=x-tw/2;else if(align==='right')xx=x-tw;
+   page.drawText(str,{x:xx,y:yv,size,font:fn,color:black});return tw;
+  };
+  const rect=(x,y,w,h,fill=null,th=.9)=>{page.drawRectangle({x,y,width:w,height:h,borderColor:black,borderWidth:th,color:fill||undefined});};
+  const hline=(x1,y1,x2,th=0.9)=>page.drawLine({start:{x:x1,y:y1},end:{x:x2,y:y1},thickness:th,color:black});
+  const vline=(x1,y1,y2,th=0.9)=>page.drawLine({start:{x:x1,y:y1},end:{x:x1,y:y2},thickness:th,color:black});
+  const wrap=(str,maxChars)=>{const words=String(str||'').split(/\s+/);let lines=[],cur='';words.forEach(wd=>{const t=(cur+' '+wd).trim();if(t.length>maxChars&&cur){lines.push(cur);cur=wd}else cur=t});if(cur)lines.push(cur);return lines};
+
+  // Outer A4 border
+  page.drawRectangle({x:20,y:20,width:555,height:801,borderColor:black,borderWidth:1});
+
+  // Header
+  text('FINAL FREIGHT LETTER',W/2,792,18,true,'center');
+  hline(W/2-118,781,W/2+118,1.2);
+  let y=758;
+  text('FROM',left+5,y,8.5,true); text(contractorName,left+5,y-18,15.5,true);
+  const addrLines=wrap(address,58).slice(0,2);
+  addrLines.forEach((ln,i)=>text(ln,left+5,y-35-i*12,8.5));
+  const metaX=365;
+  text('Challan No.',metaX,y-2,8.7,true); text(':',metaX+62,y-2,8.7); text(x.dc_number||'',right,y-2,9,true,'right');
+  text('Challan Date',metaX,y-26,8.7,true); text(':',metaX+62,y-26,8.7); text(fmtDate(x.load_date),right,y-26,9,true,'right');
+  hline(left,690,right,.9);
+
+  // Vehicle / WC reference box
+  let top=678,boxH=67,mid=(left+right)/2;
+  rect(left,top-boxH,width,boxH,null,1);
+  vline(mid,top,top-boxH,1);
+  text('TO',left+10,top-16,9,true); text('Vehicle Number',left+10,top-33,8.2); text(x.vehicle_master?.vehicle_number||'',left+10,top-54,15,true);
+  text('REFERENCE',mid+10,top-16,9,true); text('Weighment Card (WC) Number',mid+10,top-33,8.2); text(w.wc_number||'',mid+10,top-54,13,true);
+
+  // Common table columns. Strong borders everywhere.
+  const tL=left,tR=right,snoW=42,partW=222,qtyW=145;
+  const s1=tL+snoW,s2=s1+partW,s3=s2+qtyW;
+  const drawHeader=(topY)=>{
+    rect(tL,topY-25,width,25,light,1.25);vline(s1,topY,topY-25,1.25);vline(s2,topY,topY-25,1.25);vline(s3,topY,topY-25,1.25);
+    text('S.No.',(tL+s1)/2,topY-17,8.5,true,'center');text('PARTICULARS',(s1+s2)/2,topY-17,8.5,true,'center');text('QUANTITY / RATE',(s2+s3)/2,topY-17,8.5,true,'center');text('AMOUNT (Rs.)',(s3+tR)/2,topY-17,8.5,true,'center');
+  };
+  const drawNormalRow=(topY,h,no,part,qty,amt,highlight=false)=>{
+    if(highlight){page.drawRectangle({x:tL,y:topY-h,width:width,height:h,color:light,borderColor:black,borderWidth:1.25});}
+    else{rect(tL,topY-h,width,h,null,1.05);}
+    vline(s1,topY,topY-h,1.05);vline(s2,topY,topY-h,1.05);vline(s3,topY,topY-h,1.05);
+    text(no,(tL+s1)/2,topY-h/2-3,8.4,highlight,'center');text(part,s1+9,topY-h/2-3,8.5,highlight);if(qty)text(qty,(s2+s3)/2,topY-h/2-3,8.5,false,'center');if(amt)text(amt,tR-9,topY-h/2-3,8.5,highlight,'right');
+    return topY-h;
+  };
+  const drawWordsRow=(topY,h,label,value)=>{
+    rect(tL,topY-h,width,h,null,1.05);vline(s1,topY,topY-h,1.05);vline(s2,topY,topY-h,1.05);
+    // Merge Quantity + Amount into ONE cell. No s3 border here.
+    text('',s2,topY-h/2,8);text(label,s1+9,topY-h/2-3,8.5);text(value,(s2+tR)/2,topY-h/2-3,8.4,true,'center');
+    return topY-h;
+  };
+  const drawTotalRow=(topY,h,label,amount)=>{
+    page.drawRectangle({x:tL,y:topY-h,width:width,height:h,color:light,borderColor:black,borderWidth:1.25});
+    vline(s1,topY,topY-h,1.05);
+    text(label,s1+9,topY-h/2-3,9,true);text(amount,tR-9,topY-h/2-3,9,true,'right');
+    return topY-h;
+  };
+
+  // SECTION 1: up to Gross Amount in Words
+  top=652;drawHeader(top);top-=25;
+  top=drawNormalRow(top,25,'1','Freight Rate',money(f.freight_rate)+'/ Ton','');
+  top=drawNormalRow(top,25,'2','Freightable / Approved Weight',fmt(f.applicable_weight)+' MT','');
+  top=drawNormalRow(top,25,'3','Freight Charges','',money(f.freight_charges));
+  top=drawNormalRow(top,25,'4','AMC Charges','',money(f.amc_charges));
+  top=drawTotalRow(top,27,'Gross Amount',money(f.gross_amount));
+  top=drawWordsRow(top,31,'Gross Amount in Words',numberWordsIndian(f.gross_amount));
+
+  // SECTION 2: settlement through Net Amount in Words
+  top-=13;drawHeader(top);top-=25;
+  top=drawNormalRow(top,25,'5','Advance','',money(f.advance));
+  top=drawNormalRow(top,25,'6','Clerk Commission','',money(f.clerk_commission));
+  top=drawNormalRow(top,25,'7','Shortage','',money(f.shortage));
+  top=drawTotalRow(top,27,'NET AMOUNT',money(f.net_amount));
+  top=drawWordsRow(top,31,'Net Amount in Words',numberWordsIndian(f.net_amount));
+
+  // Payment section with equal-height rows and stronger borders
+  top-=13;const payTop=top,payHeader=25,payRow=27,payH=payHeader+payRow*3,payBottom=payTop-payH,payMid=left+205;
+  rect(left,payBottom,width,payH,null,1.2);page.drawRectangle({x:left,y:payTop-payHeader,width:width,height:payHeader,color:light,borderColor:black,borderWidth:1.2});
+  text('PAYMENT DETAILS',left+10,payTop-17,9.2,true);text('(FOR FINAL PAYMENT)',left+111,payTop-17,7.8);
+  hline(left,payTop-payHeader,right,1.1);vline(payMid,payTop-payHeader,payBottom,1.1);
+  for(let i=1;i<3;i++)hline(left,payTop-payHeader-payRow*i,right,1.0);
+  [['Account Number / UPI Number',0],['Account Holder Name',1],['Paid Date',2]].forEach(([lab,i])=>{const cy=payTop-payHeader-payRow*i-payRow/2-3;text(lab,left+9,cy,8.5,true);text(':',payMid+9,cy,8.5);});
+
+  // Signature area, balanced to use remaining A4 space
+  const sigTop=payBottom-16,sigBase=58;
+  hline(left+8,sigBase,right/2-8,.9);hline(W/2+8,sigBase,right-8,.9);
+  try{const png=await pdf.embedPng(FREIGHT_SIGNATURE_DATA);const scale=Math.min(115/png.width,42/png.height);page.drawImage(png,{x:left+22,y:sigBase+4,width:png.width*scale,height:png.height*scale});}catch{}
+  text('For S V TRADERS',(left+W/2)/2,sigBase-14,8.7,true,'center');text('Driver Signature',(W/2+right)/2,sigBase-14,8.7,true,'center');
+
+  const bytes=await pdf.save();
+  const blob=new Blob([bytes],{type:'application/pdf'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`Final_Freight_Letter_${String(x.dc_number||x.load_number||id).replace(/[^A-Za-z0-9_-]/g,'_')}.pdf`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
  }catch(e){alert('Could not generate Freight Letter PDF.\n\n'+(e?.message||e));}
 }
 async function billingPage(){
