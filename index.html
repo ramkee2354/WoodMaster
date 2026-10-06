@@ -241,7 +241,9 @@ async function billingPage(){
     <div class="formgrid"><div class="field"><label>From Date *</label><input id="biManualFrom" type="date" value="${esc(invoiceDraft.manualFromDate||'')}" onchange="saveBillingInvoiceDraft()"></div><div class="field"><label>To Date / Cutoff *</label><input id="biManualTo" type="date" value="${esc(invoiceDraft.manualToDate||'')}" onchange="saveBillingInvoiceDraft()"></div><div class="field"><label>Invoice Date *</label><input id="biManualDate" type="date" value="${esc(invoiceDraft.invoiceDate||isoToday())}" onchange="saveBillingInvoiceDraft();refreshBillingInvoicePreview()"></div><div class="field"><label>Invoice Number</label><input id="biManualNo" class="readonly" readonly value="${esc(preview)}"><div class="small">Automatically assigned from the common Material + AMC invoice series.</div></div></div>
     <div class="actions"><button class="btn primary" onclick="buildMaterialInvoiceDraft('manual')">Review & Confirm Billable Loads</button></div></div></div>
 
-  <div class="section"><h2>Recent Material Invoices</h2><div class="tablewrap"><table><thead><tr><th>Invoice</th><th>Method</th><th>Date</th><th>Period</th><th>Qty MT</th><th>Total</th><th>Status</th></tr></thead><tbody>${invoices.length?invoices.map(i=>`<tr><td>${esc(i.invoice_number)}</td><td>${esc(i.billing_method||'—')}</td><td>${fmtDate(i.invoice_date)}</td><td>${fmtDate(i.from_date)} – ${fmtDate(i.to_date)}</td><td>${fmt(i.total_qty)}</td><td>${money(i.invoice_total)}</td><td><span class="badge">${esc(i.status)}</span></td></tr>`).join(''):`<tr><td colspan="7" class="empty">No material invoices yet.</td></tr>`}</tbody></table></div></div>`;
+  <div class="section"><h2>Draft Material Invoices</h2><div class="notice">Draft invoices can be edited or deleted. Finalizing a draft marks its loads as Billed. Invoice numbers are never reused after allocation.</div><div class="tablewrap"><table><thead><tr><th>Invoice</th><th>Method</th><th>Date</th><th>Period</th><th>Qty MT</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>${invoices.filter(i=>i.status==='Draft').length?invoices.filter(i=>i.status==='Draft').map(i=>`<tr><td>${esc(i.invoice_number)}</td><td>${esc(i.billing_method||'—')}</td><td>${fmtDate(i.invoice_date)}</td><td>${fmtDate(i.from_date)} – ${fmtDate(i.to_date)}</td><td>${fmt(i.total_qty)}</td><td>${money(i.invoice_total)}</td><td><span class="badge">Draft</span></td><td><div class="rowactions"><button class="btn secondary mini" onclick="editMaterialInvoice('${i.id}')">Edit</button><button class="btn primary mini" onclick="finalizeMaterialInvoice('${i.id}')">Finalize</button><button class="btn danger mini" onclick="deleteMaterialInvoice('${i.id}')">Delete</button></div></td></tr>`).join(''):`<tr><td colspan="8" class="empty">No draft material invoices.</td></tr>`}</tbody></table></div></div>
+  <div class="section"><h2>Final Material Invoices</h2><div class="notice">Final invoices are retained for history. Edit/Delete actions are currently enabled; later they can be restricted centrally by user role without redesigning the workflow.</div><div class="tablewrap"><table><thead><tr><th>Invoice</th><th>Method</th><th>Date</th><th>Period</th><th>Qty MT</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>${invoices.filter(i=>i.status==='Finalized').length?invoices.filter(i=>i.status==='Finalized').map(i=>`<tr><td>${esc(i.invoice_number)}</td><td>${esc(i.billing_method||'—')}</td><td>${fmtDate(i.invoice_date)}</td><td>${fmtDate(i.from_date)} – ${fmtDate(i.to_date)}</td><td>${fmt(i.total_qty)}</td><td>${money(i.invoice_total)}</td><td><span class="badge">Finalized</span></td><td><div class="rowactions"><button class="btn secondary mini" onclick="editMaterialInvoice('${i.id}')">Edit</button><button class="btn danger mini" onclick="deleteMaterialInvoice('${i.id}')">Delete</button></div></td></tr>`).join(''):`<tr><td colspan="8" class="empty">No final material invoices.</td></tr>`}</tbody></table></div></div>
+  <div class="section"><h2>Other / Cancelled Material Invoices</h2><div class="tablewrap"><table><thead><tr><th>Invoice</th><th>Method</th><th>Date</th><th>Period</th><th>Qty MT</th><th>Total</th><th>Status</th><th>Action</th></tr></thead><tbody>${invoices.filter(i=>!['Draft','Finalized'].includes(i.status)).length?invoices.filter(i=>!['Draft','Finalized'].includes(i.status)).map(i=>`<tr><td>${esc(i.invoice_number)}</td><td>${esc(i.billing_method||'—')}</td><td>${fmtDate(i.invoice_date)}</td><td>${fmtDate(i.from_date)} – ${fmtDate(i.to_date)}</td><td>${fmt(i.total_qty)}</td><td>${money(i.invoice_total)}</td><td><span class="badge">${esc(i.status)}</span></td><td>—</td></tr>`).join(''):`<tr><td colspan="8" class="empty">No cancelled/other invoices.</td></tr>`}</tbody></table></div></div>`;
 }
 function saveBillingReceiptDraft(){const old=loadForm('billingReceipt')||{};const lines=old.lines||[];saveForm('billingReceipt',{receiptNumber:$('brNo')?.value||old.receiptNumber||'',receiptDate:$('brDate')?.value||old.receiptDate||'',fromDate:$('brFrom')?.value||old.fromDate||'',toDate:$('brTo')?.value||old.toDate||'',poNumber:$('brPo')?.value||old.poNumber||'',text:$('brText')?.value||old.text||'',lines});}
 function clearBillingReceiptDraft(){clearForm('billingReceipt');go('billing')}
@@ -333,8 +335,7 @@ async function markBillingWaitingAndRefresh(loadId){
 }
 async function prepareManualMaterialDraft(){
   const d=loadForm('billingInvoice')||{},lines=d.confirmationLines||[];if(!lines.length)return alert('No confirmed billing lines are available.');
-  // Manual Date Selection intentionally bills exactly the Final Weighments in the selected period.
-  // Cutoff/carry-forward completeness control belongs to the GR reconciliation method, where ITC's customer-side receipt list is compared against WoodMaster.
+  // Manual Date Selection bills the selected period and also enforces the earlier-load completeness control before the draft is prepared.
 
   const fd=d.manualFromDate,td=d.manualToDate,idate=d.invoiceDate;
   if(!fd||!td||!idate)return alert('Billing period and invoice date are required.');
@@ -347,6 +348,111 @@ async function prepareManualMaterialDraft(){
   const rows=lines.map(x=>({...x,invoice_id:ir.data.id}));const rr=await sb.from('invoice_items').insert(rows);if(rr.error){await sb.from('material_invoices').delete().eq('id',ir.data.id);return alert(`Draft bill lines were not saved: ${rr.error.message}`)}
   clearForm('billingInvoice');closeModal();alert(`Material Draft Bill ${ino} prepared for ${fmt(totals.qty)} MT.`);await refreshLoads();await render();
 }
+function invoiceActionAllowed(action,status){
+  // Central permission hook. For now all authenticated users may act; later role-based
+  // permissions can be enforced here without changing invoice screens/workflows.
+  if(!state.session?.user)return false;
+  return ['edit','delete','finalize'].includes(action) && ['Draft','Finalized'].includes(status);
+}
+async function getMaterialInvoiceBundle(id){
+  const ir=await sb.from('material_invoices').select('*').eq('id',id).maybeSingle();
+  if(ir.error)throw ir.error;
+  if(!ir.data)throw new Error('Material invoice not found.');
+  const rr=await sb.from('invoice_items').select('*').eq('invoice_id',id).order('created_at',{ascending:true});
+  if(rr.error)throw rr.error;
+  const items=rr.data||[];
+  const loadIds=items.map(x=>x.load_id).filter(Boolean);
+  let weighments=[];
+  if(loadIds.length){
+    const wr=await sb.from('itc_weighments').select('load_id,vehicle_number,wc_number').in('load_id',loadIds);
+    if(wr.error)throw wr.error;
+    weighments=wr.data||[];
+  }
+  const vm=new Map(weighments.map(x=>[x.load_id,x]));
+  return {invoice:ir.data,items:items.map(x=>({...x,vehicle_number:vm.get(x.load_id)?.vehicle_number||''}))};
+}
+function invoiceEditorRow(item,i){
+  return `<tr><td>${i+1}</td><td>${esc(item.wc_number||'')}</td><td>${esc(String(item.vehicle_number||'').toUpperCase())}</td><td>${fmt(item.approved_qty)}</td><td>MT</td><td>${money(item.wood_rate)}</td><td>${money(item.wood_value)}</td><td>${money(item.handling_rate)}</td><td>${money(item.handling_value)}</td><td><label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="invKeep_${item.id}" checked> Keep</label></td></tr>`;
+}
+async function editMaterialInvoice(id){
+  try{
+    const {invoice,items}=await getMaterialInvoiceBundle(id);
+    if(!invoiceActionAllowed('edit',invoice.status))return alert('You do not have permission to edit this invoice.');
+    const final=invoice.status==='Finalized';
+    const body=`<div class="notice"><b>${esc(invoice.invoice_number)}</b> — ${esc(invoice.status)}. ${final?'Final invoice editing is recorded; removing a line releases that load back to Ready for Material Invoice.':'Draft editing can change the header and remove lines before finalization.'}</div>
+      <div class="formgrid"><div class="field"><label>Invoice Date *</label><input id="eiDate" type="date" value="${esc(invoice.invoice_date||'')}"></div><div class="field"><label>From Date</label><input id="eiFrom" type="date" value="${esc(invoice.from_date||'')}"></div><div class="field"><label>To Date</label><input id="eiTo" type="date" value="${esc(invoice.to_date||'')}"></div><div class="field"><label>Invoice Number</label><input class="readonly" readonly value="${esc(invoice.invoice_number)}"></div></div>
+      <div class="sectionhead" style="margin-top:14px">Invoice Lines</div><div class="tablewrap"><table><thead><tr><th>S.No</th><th>WC Number</th><th>Truck</th><th>Qty</th><th>UOM</th><th>Wood Rate</th><th>Wood Value</th><th>Handling Rate</th><th>Handling Value</th><th>Action</th></tr></thead><tbody>${items.length?items.map(invoiceEditorRow).join(''):`<tr><td colspan="10" class="empty">No invoice lines.</td></tr>`}</tbody></table></div>
+      <div class="notice" style="margin-top:12px">Quantity and rates remain sourced from the Final Weighment and PO; they are not free-typed here. Uncheck a line only if it should be removed from this invoice. To add a new load later, use a new billing draft rather than manually altering source quantities.</div>`;
+    showModal(`${final?'Edit Final':'Edit Draft'} Material Invoice`,body,`saveMaterialInvoiceEdit('${id}')`,'Save Changes');
+  }catch(e){alert(`Could not open invoice: ${e.message||e}`)}
+}
+async function saveMaterialInvoiceEdit(id){
+  try{
+    const {invoice,items}=await getMaterialInvoiceBundle(id);
+    if(!invoiceActionAllowed('edit',invoice.status))return alert('You do not have permission to edit this invoice.');
+    const date=$('eiDate')?.value||'',from=$('eiFrom')?.value||null,to=$('eiTo')?.value||null;
+    if(!date)return alert('Invoice Date is required.');
+    if(from&&to&&from>to)return alert('From Date cannot be after To Date.');
+    const keep=items.filter(x=>$(`invKeep_${x.id}`)?.checked);
+    if(!keep.length)return alert('At least one invoice line must remain. Use Delete to cancel the whole invoice if it should contain no loads.');
+    const removed=items.filter(x=>!keep.some(k=>k.id===x.id));
+    const totals=keep.reduce((a,x)=>({qty:a.qty+num(x.approved_qty),mv:a.mv+num(x.wood_value),hv:a.hv+num(x.handling_value),gst:a.gst+num(x.gst),total:a.total+num(x.total)}),{qty:0,mv:0,hv:0,gst:0,total:0});
+    const upd=await sb.from('material_invoices').update({invoice_date:date,from_date:from,to_date:to,total_qty:totals.qty,material_value:totals.mv,handling_value:totals.hv,gst:totals.gst,invoice_total:totals.total,updated_at:new Date().toISOString()}).eq('id',id);
+    if(upd.error)return alert(`Invoice was not updated: ${upd.error.message}`);
+    if(removed.length){
+      const del=await sb.from('invoice_items').delete().in('id',removed.map(x=>x.id));
+      if(del.error)return alert(`Invoice header updated, but removed lines could not be saved: ${del.error.message}`);
+      for(const x of removed){await sb.from('loads').update({status:'Ready for Material Invoice'}).eq('id',x.load_id)}
+    }
+    await sb.from('audit_log').insert({user_id:state.session.user.id,module:'Material Billing',record_id:id,action:'EDIT_INVOICE',old_value:JSON.stringify({status:invoice.status,invoice_date:invoice.invoice_date,from_date:invoice.from_date,to_date:invoice.to_date,total_qty:invoice.total_qty,invoice_total:invoice.invoice_total}),new_value:JSON.stringify({status:invoice.status,invoice_date:date,from_date:from,to_date:to,total_qty:totals.qty,invoice_total:totals.total}),reason:invoice.status==='Finalized'?'Edited finalized invoice':'Edited draft invoice'});
+    closeModal();alert(`${invoice.status==='Finalized'?'Final':'Draft'} invoice ${invoice.invoice_number} updated. The invoice number remains unchanged.`);await refreshLoads();await render();
+  }catch(e){alert(`Could not save invoice changes: ${e.message||e}`)}
+}
+async function finalizeMaterialInvoice(id){
+  try{
+    const {invoice,items}=await getMaterialInvoiceBundle(id);
+    if(!invoiceActionAllowed('finalize',invoice.status))return alert('You do not have permission to finalize this invoice.');
+    if(invoice.status!=='Draft')return alert('Only Draft invoices can be finalized.');
+    if(!items.length)return alert('Cannot finalize an invoice with no lines.');
+    const dup=await sb.from('invoice_items').select('load_id,invoice_id').in('load_id',items.map(x=>x.load_id));
+    if(dup.error)return alert(dup.error.message);
+    const conflicts=(dup.data||[]).filter(x=>x.invoice_id!==id);
+    if(conflicts.length)return alert('One or more loads are already reserved by another invoice. Refresh and resolve the conflict before finalizing.');
+    const ok=confirm(`Finalize invoice ${invoice.invoice_number}? ${items.length} load(s) will be marked Billed. This should only be done after the draft is fully checked.`);if(!ok)return;
+    const priorStatuses=[];
+    for(const x of items){
+      const l=state.loads.find(v=>v.id===x.load_id);
+      priorStatuses.push({id:x.load_id,status:l?.status||'Ready for Material Invoice'});
+      const lr=await sb.from('loads').update({status:'Billed',billing_waiting_next_cycle:false}).eq('id',x.load_id);
+      if(lr.error){
+        for(const prev of priorStatuses){await sb.from('loads').update({status:prev.status}).eq('id',prev.id)}
+        return alert(`Invoice was not finalized because load ${x.load_id} could not be marked Billed: ${lr.error.message}`);
+      }
+    }
+    const r=await sb.from('material_invoices').update({status:'Finalized',updated_at:new Date().toISOString()}).eq('id',id).eq('status','Draft');
+    if(r.error){for(const prev of priorStatuses){await sb.from('loads').update({status:prev.status}).eq('id',prev.id)}return alert(`Invoice could not be finalized: ${r.error.message}`)}
+    await sb.from('audit_log').insert({user_id:state.session.user.id,module:'Material Billing',record_id:id,action:'FINALIZE_INVOICE',new_value:invoice.invoice_number,reason:'Draft invoice finalized after user review'});
+    alert(`Material Invoice ${invoice.invoice_number} is finalized.`);await refreshLoads();await render();
+  }catch(e){alert(`Could not finalize invoice: ${e.message||e}`)}
+}
+async function deleteMaterialInvoice(id){
+  try{
+    const {invoice}=await getMaterialInvoiceBundle(id);
+    if(!invoiceActionAllowed('delete',invoice.status))return alert('You do not have permission to delete this invoice.');
+    const msg=`Delete ${invoice.status==='Finalized'?'final':'draft'} invoice ${invoice.invoice_number}?\n\nWoodMaster will check the shared Material + AMC invoice series:\n• If this is the LAST invoice number, it will be deleted, its number will become reusable, and its loads will be released for billing again.\n• If this is an IN-BETWEEN invoice number, it will be retained as Cancelled, its number will remain permanently blocked, and its loads will remain reserved.\n\nContinue?`;
+    if(!confirm(msg))return;
+    const r=await sb.rpc('delete_material_invoice_with_shared_sequence',{p_invoice_id:id,p_user_id:state.session.user.id});
+    if(r.error)return alert(`Invoice could not be processed: ${r.error.message}`);
+    const result=r.data||{};
+    if(result.reusable){
+      alert(`Invoice ${invoice.invoice_number} was deleted. Its number is reusable and its loads are available for billing again.`);
+    }else{
+      alert(`Invoice ${invoice.invoice_number} was cancelled because it was not the last invoice number. Its number will NOT be reused, and its loads remain reserved.`);
+    }
+    await refreshLoads();await render();
+  }catch(e){alert(`Could not delete invoice: ${e.message||e}`)}
+}
+
 async function amcPage(){
   const date=isoToday();let preview='—';const r=await sb.rpc('peek_shared_invoice_number',{p_invoice_date:date});if(!r.error)preview=r.data||'—';
   return `<div class="context">AMC is separate from Material Billing and accumulates monthly from actual eligible AMC payments. Material Billing and AMC Billing use the same invoice-number series.</div><div class="topbar"><div><h1>AMC</h1><div class="sub">Monthly AMC reimbursement workflow.</div></div></div><div class="card"><div class="formgrid"><div class="field"><label>From Date</label><input id="amcFrom" type="date"></div><div class="field"><label>To Date</label><input id="amcTo" type="date"></div><div class="field"><label>Invoice Number</label><input id="amcBillNo" class="readonly" readonly value="${esc(preview)}"><div class="small">Automatically assigned from the common Material + AMC invoice series.</div></div></div><div class="actions"><button class="btn primary" onclick="createAmcDraft()">Create AMC Draft</button></div></div>`;
