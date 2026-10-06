@@ -229,15 +229,15 @@ async function billingPage(){
     if(!pr.error)preview=pr.data||'—';
   }
   return `<div class="context">Active Contractor: <b>${esc(active()?.contractor_name)}</b></div>
-  <div class="topbar"><div><h1>Material Billing</h1><div class="sub">Two billing methods use the same cutoff-control principle. Every Final Weighment up to the cutoff must be billed, carried forward as Waiting for Next Bill Cycle, or remain a documented exception.</div></div></div>
+  <div class="topbar"><div><h1>Material Billing</h1><div class="sub">Material Billing has two methods. Manual Date Selection uses your own WoodMaster data for the selected period. GR / Wood Receipt Summary uses the customer's (ITC) receipt data and reconciles it against WoodMaster; cutoff/carry-forward control is applied primarily to the GR method.</div></div></div>
   <div class="grid"><div class="card"><div class="label">Final Weighments</div><div class="metric">${eligible.length}</div></div><div class="card"><div class="label">Billed Loads</div><div class="metric">${billed.length}</div></div><div class="card"><div class="label">Waiting for Next Cycle</div><div class="metric">${waiting.length}</div></div><div class="card"><div class="label">Next Shared Invoice No.</div><div class="metric">${esc(preview)}</div><div class="small">Material + AMC share one sequence.</div></div></div>
 
-  <div class="section"><h2>Method 1 — Create Invoice from GR / Wood Receipt Summary</h2><div class="card"><div class="notice">GR method is available for the next stage. It will use the same shared invoice-number sequence and the same cutoff-control rules.</div>
+  <div class="section"><h2>Method 1 — Create Invoice from GR / Wood Receipt Summary</h2><div class="card"><div class="notice">Upload the ITC Wood Receipt Summary. The GR lines are the customer's data and will be reconciled against WoodMaster Final Weighments. The GR method will identify customer-received loads missing from our data, our eligible loads missing from the GR, quantity/vehicle/PO differences, duplicates, and loads to carry forward to the next bill cycle.</div>
     <div class="formgrid"><div class="field"><label>Receipt / GR Number</label><input id="brNo" value="${esc(receiptDraft.receiptNumber||'')}" oninput="saveBillingReceiptDraft()"></div><div class="field"><label>Receipt Date</label><input id="brDate" type="date" value="${esc(receiptDraft.receiptDate||'')}" onchange="saveBillingReceiptDraft()"></div><div class="field"><label>From Date</label><input id="brFrom" type="date" value="${esc(receiptDraft.fromDate||'')}" onchange="saveBillingReceiptDraft()"></div><div class="field"><label>To Date</label><input id="brTo" type="date" value="${esc(receiptDraft.toDate||'')}" onchange="saveBillingReceiptDraft()"></div><div class="field"><label>Purchase Order</label><input id="brPo" value="${esc(receiptDraft.poNumber||'')}" oninput="saveBillingReceiptDraft()"></div><div class="field"><label>Wood Receipt Summary PDF</label><input id="brFile" type="file" accept="application/pdf" onchange="extractBillingReceipt(event)"><div id="brFileStatus" class="small">Upload the actual ITC receipt PDF for automatic extraction.</div></div></div>
     <div id="billingReceiptPreview" style="margin-top:14px">${renderBillingReceiptPreview(receiptDraft.lines||[])}</div><div class="field" style="margin-top:10px"><details><summary>Raw extracted text (verification)</summary><textarea id="brText" rows="5" oninput="saveBillingReceiptDraft()" placeholder="Extracted receipt text">${esc(receiptDraft.text||'')}</textarea></details></div>
     <div class="actions"><button class="btn primary" onclick="saveAndReconcileBillingReceipt()">Save GR & Reconcile All Lines</button><button class="btn secondary" onclick="clearBillingReceiptDraft()">Clear Draft</button></div></div></div>
 
-  <div class="section"><h2>Method 2 — Manual Date Selection <span class="badge">Current Method</span></h2><div class="card"><div class="notice">Select From Date and To Date. WoodMaster will prepare a confirmation list before creating the draft bill. The To Date is the billing cutoff.</div>
+  <div class="section"><h2>Method 2 — Manual Date Selection <span class="badge">Current Method</span></h2><div class="card"><div class="notice">Select From Date and To Date. WoodMaster will take the billable Final Weighments from <b>your WoodMaster data</b> whose WC dates fall within this period. Before the selected From Date, WoodMaster also checks for any earlier load that is still unbilled and not already marked Waiting for Next Bill Cycle. Such loads must be accounted for before the draft bill can be prepared. Carry-forward loads already marked Waiting for Next Bill Cycle are automatically included.</div>
     <div class="formgrid"><div class="field"><label>From Date *</label><input id="biManualFrom" type="date" value="${esc(invoiceDraft.manualFromDate||'')}" onchange="saveBillingInvoiceDraft()"></div><div class="field"><label>To Date / Cutoff *</label><input id="biManualTo" type="date" value="${esc(invoiceDraft.manualToDate||'')}" onchange="saveBillingInvoiceDraft()"></div><div class="field"><label>Invoice Date *</label><input id="biManualDate" type="date" value="${esc(invoiceDraft.invoiceDate||isoToday())}" onchange="saveBillingInvoiceDraft();refreshBillingInvoicePreview()"></div><div class="field"><label>Invoice Number</label><input id="biManualNo" class="readonly" readonly value="${esc(preview)}"><div class="small">Automatically assigned from the common Material + AMC invoice series.</div></div></div>
     <div class="actions"><button class="btn primary" onclick="buildMaterialInvoiceDraft('manual')">Review & Confirm Billable Loads</button></div></div></div>
 
@@ -269,30 +269,72 @@ async function buildMaterialInvoiceDraft(modeOverride){
   const invR=await sb.from('invoice_items').select('load_id,invoice_id').in('load_id',ids);if(invR.error)return alert(invR.error.message);
   const billedOrDraftIds=new Set((invR.data||[]).map(x=>x.load_id));
   const source=allW.map(w=>({w,l:state.loads.find(x=>x.id===w.load_id)})).filter(x=>x.l&&num(x.w.approved_weight)>0);
-  const valid=[],pending=[];
+  const valid=[];
   for(const x of source){
     const {w,l}=x;
     if(billedOrDraftIds.has(l.id)||l.status==='Billed')continue;
-    const d=String(w.wc_date||'');
+    const d=String(w.wc_date||l.load_date||'');
     const carry=Boolean(l.billing_waiting_next_cycle);
     const inPeriod=d>=fd&&d<=td;
     if(carry||inPeriod)valid.push(billingLineFromLoad(l,w,null));
-    else if(d&&d<=td&&l.status!=='Exception')pending.push({l,w,reason:'Eligible Final Weighment is before or on the cutoff but is outside this bill period and is not yet billed or carried forward.'});
   }
   const seen=new Set();const unique=valid.filter(x=>{if(seen.has(x.l.id))return false;seen.add(x.l.id);return true;});
-  if(!unique.length&&pending.length===0)return alert(`No billable Final Weighments found through ${fmtDate(td)}.`);
+
+  // 360-degree completeness check for Manual Date Selection:
+  // every earlier unbilled load must either already be in a billing draft/invoice,
+  // be billed, or be explicitly carried forward as Waiting for Next Bill Cycle.
+  // This prevents a load before the selected From Date from being silently missed.
+  const pendingBeforeFrom=[];
+  for(const l of state.loads){
+    if(!l?.id)continue;
+    if(billedOrDraftIds.has(l.id)||l.status==='Billed'||l.billing_waiting_next_cycle===true)continue;
+    const w=allW.find(x=>x.load_id===l.id);
+    const businessDate=String(w?.wc_date||l.load_date||'');
+    if(!businessDate||businessDate>=fd)continue;
+    if(w&&num(w.approved_weight)>0){
+      pendingBeforeFrom.push({l,w,kind:'ready'});
+    }else{
+      pendingBeforeFrom.push({l,w:null,kind:'no_final'});
+    }
+  }
+  if(!unique.length && !pendingBeforeFrom.length)return alert(`No billable Final Weighments found between ${fmtDate(fd)} and ${fmtDate(td)}.`);
+
   const preview=await sb.rpc('peek_shared_invoice_number',{p_invoice_date:idate});
   const invoiceNo=preview.error?'—':(preview.data||'—');
   const totalQty=unique.reduce((a,x)=>a+x.qty,0);
-  const pendingHtml=pending.length?`<div class="notice error"><b>Billing cutoff warning:</b> ${pending.length} load(s) up to ${fmtDate(td)} are not included. You must either resolve them or explicitly mark them <b>Waiting for Next Bill Cycle</b>. Until then, the draft cannot be prepared.</div><div class="tablewrap"><table><thead><tr><th>DC</th><th>WC Number</th><th>WC Date</th><th>Approved MT</th><th>Action</th></tr></thead><tbody>${pending.map(x=>`<tr><td>${esc(x.l.dc_number||x.l.load_number)}</td><td>${esc(x.w.wc_number)}</td><td>${fmtDate(x.w.wc_date)}</td><td>${fmt(x.w.approved_weight)}</td><td><button class="btn secondary mini" onclick="markBillingWaiting('${x.l.id}','${td}','manual');closeModal();buildMaterialInvoiceDraft('manual')">Waiting for Next Bill Cycle</button></td></tr>`).join('')}</tbody></table></div>`:'';
   const rows=unique.map((x,i)=>`<tr><td>${i+1}</td><td>${fmtDate(x.w.wc_date)}</td><td>${esc(x.w.wc_number)}</td><td>${esc(String(x.w.vehicle_number||x.l.vehicle_number||'').toUpperCase())}</td><td>${fmt(x.qty)}</td><td>MT</td></tr>`).join('');
-  const body=`<div class="notice"><b>Billing Period:</b> ${fmtDate(fd)} to ${fmtDate(td)} &nbsp; | &nbsp; <b>Invoice Date:</b> ${fmtDate(idate)} &nbsp; | &nbsp; <b>Auto Invoice No:</b> ${esc(invoiceNo)}</div>${pendingHtml}<div class="sectionhead">Final Billable Loads — Verify Before Preparing Draft</div><div class="tablewrap"><table><thead><tr><th>S.No</th><th>Date</th><th>WC Number</th><th>Truck Number</th><th>Approved Quantity</th><th>UOM</th></tr></thead><tbody>${rows||`<tr><td colspan="6" class="empty">No loads selected.</td></tr>`}</tbody><tfoot><tr><th colspan="4" style="text-align:right">Total Quantity</th><th>${fmt(totalQty)}</th><th>MT</th></tr></tfoot></table></div><div class="notice" style="margin-top:12px">Please verify that these are the final loads for this billing cycle. <b>Prepare Draft Bill</b> will create the Material Invoice as a Draft only; loads will not be marked Billed until the invoice is finalized.</div>`;
-  saveForm('billingInvoice',{mode:'manual',manualFromDate:fd,manualToDate:td,invoiceDate:idate,confirmationLines:unique.map(x=>({load_id:x.l.id,wc_number:x.w.wc_number,approved_qty:x.qty,wood_rate:x.woodRate,wood_value:x.wood,handling_rate:x.handlingRate,handling_value:x.handling,gst:x.gst,total:x.total})),confirmationInvoiceNo:invoiceNo});
-  showModal('Material Billing — Final Confirmation',body,`prepareManualMaterialDraft()`,'Prepare Draft Bill');
+
+  let pendingHtml='';
+  if(pendingBeforeFrom.length){
+    const pRows=pendingBeforeFrom.map((x,i)=>{
+      const l=x.l,w=x.w;
+      const status=x.kind==='ready'?'Final Weighment ready but not billed':'Final Weighment not yet available';
+      const date=w?.wc_date||l.load_date;
+      return `<tr><td>${i+1}</td><td>${fmtDate(date)}</td><td>${esc(w?.wc_number||'—')}</td><td>${esc(String(w?.vehicle_number||l.vehicle_master?.vehicle_number||'').toUpperCase())}</td><td>${w?fmt(w.approved_weight):'—'}</td><td>${esc(l.dc_number||l.load_number||'—')}</td><td>${status}</td><td><button class="btn secondary" type="button" onclick="markBillingWaitingAndRefresh('${l.id}')">Waiting for Next Bill Cycle</button></td></tr>`;
+    }).join('');
+    pendingHtml=`<div class="notice error" style="margin-top:12px"><b>⚠ Billing completeness warning</b><br>There are ${pendingBeforeFrom.length} earlier unbilled load(s) before the selected From Date (${fmtDate(fd)}). To avoid silently leaving a load out of billing, each must be accounted for before the draft can be prepared. You can mark a load as <b>Waiting for Next Bill Cycle</b>; it will automatically be included in the next billing cycle.</div><div class="tablewrap" style="margin-top:10px"><table><thead><tr><th>S.No</th><th>Date</th><th>WC Number</th><th>Truck Number</th><th>Approved Qty</th><th>DC Number</th><th>Reason</th><th>Action</th></tr></thead><tbody>${pRows}</tbody></table></div>`;
+  }
+  const blockNote=pendingBeforeFrom.length?`<div class="notice error" style="margin-top:12px"><b>Prepare Draft Bill is blocked</b> until the earlier pending loads are either billed/reserved in an invoice or explicitly marked Waiting for Next Bill Cycle.</div>`:'';
+  const body=`<div class="notice"><b>Billing Period:</b> ${fmtDate(fd)} to ${fmtDate(td)} &nbsp; | &nbsp; <b>Invoice Date:</b> ${fmtDate(idate)} &nbsp; | &nbsp; <b>Auto Invoice No:</b> ${esc(invoiceNo)}</div>${pendingHtml}<div class="sectionhead" style="margin-top:14px">Final Billable Loads — Verify Before Preparing Draft</div><div class="tablewrap"><table><thead><tr><th>S.No</th><th>Date</th><th>WC Number</th><th>Truck Number</th><th>Approved Quantity</th><th>UOM</th></tr></thead><tbody>${rows||`<tr><td colspan="6" class="empty">No loads selected for this period.</td></tr>`}</tbody><tfoot><tr><th colspan="4" style="text-align:right">Total Quantity</th><th>${fmt(totalQty)}</th><th>MT</th></tr></tfoot></table></div><div class="notice" style="margin-top:12px">Please verify that these are the final loads for this billing cycle. <b>Prepare Draft Bill</b> will create the Material Invoice as a Draft only; loads will not be marked Billed until the invoice is finalized.</div>${blockNote}`;
+  saveForm('billingInvoice',{mode:'manual',manualFromDate:fd,manualToDate:td,invoiceDate:idate,confirmationLines:unique.map(x=>({load_id:x.l.id,wc_number:x.w.wc_number,approved_qty:x.qty,wood_rate:x.woodRate,wood_value:x.wood,handling_rate:x.handlingRate,handling_value:x.handling,gst:x.gst,total:x.total})),confirmationInvoiceNo:invoiceNo,pendingBeforeFrom:pendingBeforeFrom.map(x=>x.l.id)});
+  showModal('Material Billing — Final Confirmation',body,pendingBeforeFrom.length?'blockManualMaterialDraft()':'prepareManualMaterialDraft()','Prepare Draft Bill');
+}
+function blockManualMaterialDraft(){alert('Draft Bill cannot be prepared yet. Please account for every earlier unbilled load shown in the Billing completeness warning. Mark it Waiting for Next Bill Cycle if it should be carried forward.');}
+async function markBillingWaitingAndRefresh(loadId){
+  const l=state.loads.find(x=>x.id===loadId);if(!l)return;
+  const ok=confirm(`Mark ${l.dc_number||l.load_number} as Waiting for Next Bill Cycle? It will be automatically carried into the next invoice draft.`);if(!ok)return;
+  const r=await sb.from('loads').update({billing_waiting_next_cycle:true,billing_waiting_since:isoToday(),billing_waiting_reason:'Waiting for next bill cycle (manual billing completeness check)',status:'Billing Hold'}).eq('id',loadId);
+  if(r.error)return alert(`Could not mark waiting: ${r.error.message}`);
+  await refreshLoads();
+  closeModal();
+  await render();
+  // Re-open the manual confirmation using the same selected dates so the user can continue after accounting for this load.
+  if($('biManualFrom')){await buildMaterialInvoiceDraft('manual');}
 }
 async function prepareManualMaterialDraft(){
   const d=loadForm('billingInvoice')||{},lines=d.confirmationLines||[];if(!lines.length)return alert('No confirmed billing lines are available.');
-  const checkIds=state.loads.map(x=>x.id).filter(Boolean);const cw=await sb.from('itc_weighments').select('load_id,wc_date,approved_weight').in('load_id',checkIds);if(cw.error)return alert(cw.error.message);const ci=await sb.from('invoice_items').select('load_id').in('load_id',checkIds);if(ci.error)return alert(ci.error.message);const reserved=new Set((ci.data||[]).map(x=>x.load_id));const pendingNow=(cw.data||[]).map(w=>({w,l:state.loads.find(x=>x.id===w.load_id)})).filter(x=>x.l&&num(x.w.approved_weight)>0&&!reserved.has(x.l.id)&&x.l.status!=='Billed'&&!x.l.billing_waiting_next_cycle&&String(x.w.wc_date||'')<=String(d.manualToDate||'' )&&!(String(x.w.wc_date||'')>=String(d.manualFromDate||'')&&String(x.w.wc_date||'')<=String(d.manualToDate||'')));if(pendingNow.length)return alert(`Billing blocked. ${pendingNow.length} eligible load(s) through ${fmtDate(d.manualToDate)} are still unaccounted for. Resolve them or mark them Waiting for Next Bill Cycle first.`);
+  // Manual Date Selection intentionally bills exactly the Final Weighments in the selected period.
+  // Cutoff/carry-forward completeness control belongs to the GR reconciliation method, where ITC's customer-side receipt list is compared against WoodMaster.
 
   const fd=d.manualFromDate,td=d.manualToDate,idate=d.invoiceDate;
   if(!fd||!td||!idate)return alert('Billing period and invoice date are required.');
