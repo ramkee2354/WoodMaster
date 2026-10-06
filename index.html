@@ -77,7 +77,7 @@ async function generatePackage(id){
   const black=rgb(0,0,0), light=rgb(.93,.93,.93);
   const safe=v=>String(v??'').replace(/₹/g,'Rs. ').replace(/ /g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'?');
   const txt=(pg,t,x,y,size=9,b=false,align='left')=>{const str=safe(t),fn=b?bold:font,tw=fn.widthOfTextAtSize(str,size);let xx=x;if(align==='center')xx=x-tw/2;else if(align==='right')xx=x-tw;pg.drawText(str,{x:xx,y,size,font:fn,color:black});};
-  const rect=(pg,x,y,w,h,fill=null,bw=1)=>pg.drawRectangle({x,y,width:w,height:h,borderColor:black,borderWidth:bw,color:fill||undefined});
+  const rect=(pg,x,y,w,h,fill=null,bw=1)=>{if(typeof pg.drawRectangle==='function'){pg.drawRectangle({x,y,width:w,height:h,borderColor:black,borderWidth:bw,color:fill||undefined});}else{pg.drawLine({start:{x,y},end:{x:x+w,y},thickness:bw,color:black});pg.drawLine({start:{x,y},end:{x,y:y+h},thickness:bw,color:black});pg.drawLine({start:{x:x+w,y},end:{x:x+w,y:y+h},thickness:bw,color:black});pg.drawLine({start:{x,y:y+h},end:{x:x+w,y:y+h},thickness:bw,color:black});}};
   const hline=(pg,x1,y,x2,bw=1)=>pg.drawLine({start:{x:x1,y},end:{x:x2,y},thickness:bw,color:black});
   const vline=(pg,x,y1,y2,bw=1)=>pg.drawLine({start:{x,y:y1},end:{x,y:y2},thickness:bw,color:black});
   const wrap=(str,max)=>{const words=String(str||'').split(/\s+/),lines=[];let cur='';for(const w of words){const t=(cur+' '+w).trim();if(cur&&t.length>max){lines.push(cur);cur=w}else cur=t}if(cur)lines.push(cur);return lines};
@@ -146,190 +146,65 @@ async function generatePackage(id){
   // -------- DELIVERY CHALLAN --------
   function makeDC(){
     const pg=out.addPage([PW,PH]); addFrame(pg,'DELIVERY CHALLAN');
-    let y=758;
-    txt(pg,'Challan No',402,y,8.8,true);txt(pg,':',464,y,8.8);txt(pg,challan,478,y,9,true);
-    txt(pg,'Challan Date',402,y-22,8.8,true);txt(pg,':',464,y-22,8.8);txt(pg,challanDate,478,y-22,9,true);
+    let y=758; txt(pg,'Challan No',402,y,8.8,true);txt(pg,':',464,y,8.8);txt(pg,challan,478,y,9,true);txt(pg,'Challan Date',402,y-22,8.8,true);txt(pg,':',464,y-22,8.8);txt(pg,challanDate,478,y-22,9,true);
     y=716; hline(pg,left,y,right,.9);
-
-    function sectionTitle(title,top){
-      pg.drawRectangle({x:left,y:top-20,width:width,height:20,color:light,borderColor:black,borderWidth:1.15});
-      txt(pg,title,PW/2,top-14,9,true,'center');
-    }
-    function partySection(title,top,rows,height=86){
-      rect(pg,left,top-height,width,height,null,1.1); sectionTitle(title,top);
-      let cy=top-33;
-      rows.forEach((r,i)=>{
-        txt(pg,r[0],left+9,cy,8.0,i===0||r[0]);
-        txt(pg,r[1],left+105,cy,8.0);
-        if(r[2]){txt(pg,r[2],left+315,cy,8.0,true);txt(pg,':',left+392,cy,8.0);txt(pg,r[3]||'',left+404,cy,8.0);}
-        cy-=11;
-      });
-      return top-height-10;
-    }
-
+    function section(title, rows, height){const top=y;rect(pg,left,top-height,width,height,null,1.05);pageSectionTitle(pg,title,top);let cy=top-24;for(const r of rows){txt(pg,r[0],left+8,cy,8.1,true);txt(pg,':',left+122,cy,8.1);txt(pg,r[1],left+133,cy,8.1);if(r[2]){txt(pg,r[2],left+315,cy,8.1,true);txt(pg,':',left+390,cy,8.1);txt(pg,r[3],left+402,cy,8.1);}cy-=15;}return top-height-10;}
+    function pageSectionTitle(pg2,title2,top2){rect(pg2,left,top2-20,width,20,light,1);txt(pg2,title2,PW/2,top2-14,9,true,'center');}
     // Supplier
-    y=partySection('SUPPLIER',y,[
-      ['Name & Address','S V TRADERS','State Code','36'],
-      ['','Rama Devi Nilayam, Rotary Nagar, Srinagar Colony,','State','Telangana (TS)'],
-      ['','Khammam, Telangana - 507002','GSTIN No','36TOHPS0526H1ZE'],
-      ['','','PAN','TOHPS0526H'],
-      ['','','PO No',poNo]
-    ]);
-
-    // Customer / Consignee
-    y=partySection('CUSTOMER / CONSIGNEE',y,[
-      ['Name & Address','ITC Limited-PSPD','State Code','36'],
-      ['','UNIT: Bhadrachalam, Sarapaka','State','Telangana (TS)'],
-      ['','Bhadradri-Kothagudem District','GSTIN','36AAACI5950L1ZB'],
-      ['','Telangana State - 507128','PAN','AAACI5950L']
-    ]);
-
-    // Place of supply
-    y=partySection('PLACE OF SUPPLY',y,[
-      ['Destination','ITC Limited-PSPD, UNIT: Bhadrachalam, Sarapaka','',''],
-      ['','Bhadradri Kothagudem District, Telangana State - 507128','Transporter Name','S V Traders'],
-      ['','','Mode of Transport','By Road'],
-      ['','','LR Number',x.lr_number||challan],
-      ['','','Vehicle No',vehicle]
-    ]);
-
-    y-=2;
-    const taxableMaterial=net*woodRate;
-    const taxableOther=net*handling;
-    const cg1=taxableMaterial*.09, sg1=taxableMaterial*.09;
-    const cg2=taxableOther*.09, sg2=taxableOther*.09;
-    const totalTaxable=taxableMaterial+taxableOther;
-    const totalCG=cg1+cg2,totalSG=sg1+sg2,totalVal=totalTaxable+totalCG+totalSG;
-
-    const boxH=190;
-    rect(pg,left,y-boxH,width,boxH,null,1.1); sectionTitle('DESCRIPTION OF GOODS',y);
-    const tableTop=y-24;
-    // Sum = 527 points exactly. This keeps every vertical border inside the A4 frame.
-    const dcCols=[28,95,48,43,35,70,69,69,70];
-    const heads=[['S.No'],['Material','Description'],['HSN','Code'],['Qty'],['UOM'],['Taxable','Value (Rs.)'],['CGST 9%','(Rs.)'],['SGST 9%','(Rs.)'],['Total Value','(Rs.)']];
-    const headerH=34;
-    let xx=left;
-    rect(pg,left,tableTop-headerH,width,headerH,light,1.15);
-    dcCols.forEach((cw,i)=>{
-      if(i)vline(pg,xx,tableTop,tableTop-headerH,1.15);
-      const lines=heads[i];
-      if(lines.length===1) txt(pg,lines[0],xx+cw/2,tableTop-21,6.2,true,'center');
-      else {txt(pg,lines[0],xx+cw/2,tableTop-14,6.0,true,'center');txt(pg,lines[1],xx+cw/2,tableTop-25,6.0,true,'center');}
-      xx+=cw;
-    });
-
-    const dcRows=[
-      ['1',material,hsn,fmt(net),'MTS',money(taxableMaterial),money(cg1),money(sg1),money(taxableMaterial+cg1+sg1)],
-      ['2','Transportation charges','0','0','0',money(0),money(0),money(0),money(0)],
-      ['3','Other charges','','','',''+money(taxableOther),money(cg2),money(sg2),money(taxableOther+cg2+sg2)]
-    ];
-    const rowH=30;
-    let dy=tableTop-headerH;
-    const drawDCText=(val,x0,cw,topY,idx)=>{
-      const str=String(val||'');
-      if(idx===1){
-        const lines=wrap(str,18).slice(0,2);
-        lines.forEach((ln,j)=>txt(pg,ln,x0+4,topY-12-j*9,5.9));
-      } else if(idx===0||idx===2||idx===3||idx===4){
-        txt(pg,str,x0+cw/2,topY-rowH/2-2,6.2,false,'center');
-      } else {
-        txt(pg,str,x0+cw-3,topY-rowH/2-2,5.9,false,'right');
-      }
-    };
-    dcRows.forEach(rr=>{
-      rect(pg,left,dy-rowH,width,rowH,null,1.0);
-      let x0=left;
-      dcCols.forEach((cw,i)=>{if(i)vline(pg,x0,dy,x0,dy-rowH,1.0);drawDCText(rr[i],x0,cw,dy,i);x0+=cw;});
-      dy-=rowH;
-    });
-
-    // Total row with the same column grid.
-    const totalH=27;
-    rect(pg,left,dy-totalH,width,totalH,light,1.15);
-    let tx=left;
-    dcCols.forEach((cw,i)=>{if(i)vline(pg,tx,dy,tx,dy-totalH,1.15);tx+=cw;});
-    const totalLabelEnd=left+dcCols[0]+dcCols[1]+dcCols[2]+dcCols[3]+dcCols[4];
-    txt(pg,'TOTAL',totalLabelEnd-8,dy-totalH/2-3,6.8,true,'right');
-    let ax=left+dcCols[0]+dcCols[1]+dcCols[2]+dcCols[3]+dcCols[4];
-    [money(totalTaxable),money(totalCG),money(totalSG),money(totalVal)].forEach((v,i)=>{
-      const cw=dcCols[5+i];txt(pg,v,ax+cw-3,dy-totalH/2-3,6.1,true,'right');ax+=cw;
-    });
-    dy-=totalH;
-    txt(pg,'For S V TRADERS',right-8,dy-18,8.8,true,'right');
+    rect(pg,left,y-86,width,86,null,1.05); pageSectionTitle(pg,'SUPPLIER',y); let cy=y-32;
+    const supL=[['Name & Address','S V TRADERS, State Code : 36'],['','Rama Devi Nilayam, Rotary Nagar, Srinagar Colony,'],['','Khammam, Telangana - 507002'],['','GSTIN No : 36TOHPS0526H1ZE'],['','PAN : TOHPS0526H'],['','PO No',poNo]];
+    supL.forEach((r,i)=>{txt(pg,r[0],left+8,cy,8.1,i===0);txt(pg,r[1],left+105,cy,8.1);cy-=11});
+    y-=96;
+    rect(pg,left,y-86,width,86,null,1.05);pageSectionTitle(pg,'CUSTOMER / CONSIGNEE',y);cy=y-32;
+    [['Name & Address','ITC Limited-PSPD'],['','UNIT: Bhadrachalam, Sarapaka'],['','Bhadradri-Kothagudem District'],['','Telangana State - 507128'],['','GSTIN : 36AAACI5950L1ZB'],['','PAN : AAACI5950L']].forEach((r,i)=>{txt(pg,r[0],left+8,cy,8.1,i===0);txt(pg,r[1],left+105,cy,8.1);cy-=11});
+    y-=96;
+    rect(pg,left,y-86,width,86,null,1.05);pageSectionTitle(pg,'PLACE OF SUPPLY',y);cy=y-32;
+    [['Destination','ITC Limited-PSPD, UNIT:Bhadrachalam,Sarapaka'],['','Bhadradri Kothagudem District, Telangana State - 507128'],['Transporter Name','S V Traders'],['Mode of Transport','By Road'],['LR Number',x.lr_number||challan],['Vehicle No',vehicle]].forEach((r,i)=>{txt(pg,r[0],left+8,cy,8.1,true);txt(pg,r[1],left+105,cy,8.1);cy-=11});
+    y-=96;
+    // Values: material base, handling/other, GST. Follow current PO rates.
+    const taxableMaterial=net*woodRate, taxableOther=net*handling, cg1=taxableMaterial*.09, sg1=taxableMaterial*.09, cg2=taxableOther*.09, sg2=taxableOther*.09;
+    const totalTaxable=taxableMaterial+taxableOther,totalCG=cg1+cg2,totalSG=sg1+sg2,totalVal=totalTaxable+totalCG+totalSG;
+    rect(pg,left,y-164,width,164,null,1.05);pageSectionTitle(pg,'DESCRIPTION OF GOODS',y);
+    const dcTop=y-24; const dcCols=[28,115,55,55,38,70,70,70,71]; let xx=left;
+    const heads=['S.No','Material Description','HSN Code','Qty','UOM','Taxable Value (Rs.)','CGST 9% (Rs.)','SGST 9% (Rs.)','Total Value (Rs.)'];
+    dcCols.forEach((cw,i)=>{if(i)vline(pg,xx,dcTop,dcTop-116,1.0);txt(pg,heads[i],xx+cw/2,dcTop-17,6.5,true,'center');xx+=cw});hline(pg,left,dcTop-27,right,1.0);
+    const data=[['1',material,hsn,fmt(net),'MTS',money(taxableMaterial),money(cg1),money(sg1),money(taxableMaterial+cg1+sg1)],['2','Transportation charges','0','0','0',money(0),money(0),money(0),money(0)],['3','Other charges','', '', '',money(taxableOther),money(cg2),money(sg2),money(taxableOther+cg2+sg2)]];
+    let dy=dcTop-27; for(const rr of data){const rh=29;let x0=left;for(let i=0;i<dcCols.length;i++){if(i)vline(pg,x0,dy,dy-rh,1.0);const val=rr[i]||'';if(i===0)txt(pg,val,x0+dcCols[i]/2,dy-18,6.7,false,'center');else if(i>=5)txt(pg,val,x0+dcCols[i]-4,dy-18,6.5,false,'right');else txt(pg,val,x0+3,dy-12,6.4);x0+=dcCols[i]}hline(pg,left,dy-rh,right,1.0);dy-=rh;}
+    let x0=left;dcCols.forEach((cw,i)=>{if(i)vline(pg,x0,dy,x0,1);x0+=cw});txt(pg,'TOTAL',left+28+115+55+55+38+(70/2),dy-17,7,true,'center');txt(pg,money(totalTaxable),left+28+115+55+55+38+70-4,dy-17,6.8,true,'right');txt(pg,money(totalCG),left+28+115+55+55+38+140-4,dy-17,6.8,true,'right');txt(pg,money(totalSG),left+28+115+55+55+38+210-4,dy-17,6.8,true,'right');txt(pg,money(totalVal),right-4,dy-17,6.8,true,'right');hline(pg,left,dy-28,right,1.0);
+    txt(pg,'For S V TRADERS',right-8,dy-49,9,true,'right');
   }
 
   // -------- INITIAL FREIGHT LETTER --------
-  // Same complete structure as Final Freight Letter. No WC/reference block and no signature.
-  // Only values known before unloading are populated; later/final values remain blank.
+  // Same visual system as Final Freight Letter, but NO WC/reference block because
+  // WC reference is available only after unloading/final weighment.
   function makeInitialFL(){
     const pg=out.addPage([PW,PH]); addFrame(pg,'INITIAL FREIGHT LETTER');
     let y=758;
     txt(pg,'FROM',left+5,y,8.5,true);
     txt(pg,'S V TRADERS',left+5,y-18,15.5,true);
     wrap(addr,58).slice(0,2).forEach((ln,i)=>txt(pg,ln,left+5,y-35-i*12,8.5));
-    const mx=405;
+    const mx=402;
     txt(pg,'Challan No.',mx,y-2,8.7,true);txt(pg,':',mx+62,y-2,8.7);txt(pg,challan,mx+76,y-2,9,true);
     txt(pg,'Challan Date',mx,y-26,8.7,true);txt(pg,':',mx+62,y-26,8.7);txt(pg,challanDate,mx+76,y-26,9,true);
     hline(pg,left,690,right,.9);
 
-    // Same TO design as Final FL, but full width because reference/WC is not available yet.
-    const toTop=678,toH=67;
-    rect(pg,left,toTop-toH,width,toH,null,1);
-    txt(pg,'TO',left+10,toTop-16,9,true);
-    txt(pg,'Vehicle Number',left+10,toTop-33,8.2);
-    txt(pg,vehicle,left+10,toTop-54,15,true);
+    // TO box occupies the full width; no Reference column at this stage.
+    let top=678, boxH=67;
+    rect(pg,left,top-boxH,width,boxH,null,1);
+    txt(pg,'TO',left+10,top-16,9,true);
+    txt(pg,'Vehicle Number',left+10,top-33,8.2);
+    txt(pg,vehicle,left+10,top-54,15,true);
 
-    const tL=left,tR=right,width2=width,snoW=42,partW=205,qtyW=162;
-    const s1=tL+snoW,s2=s1+partW,s3=s2+qtyW;
-    const drawHeader=(topY)=>{
-      rect(tL,topY-25,width2,25,light,1.25);vline(s1,topY,topY-25,1.25);vline(s2,topY,topY-25,1.25);vline(s3,topY,topY-25,1.25);
-      text('S.No.',(tL+s1)/2,topY-17,8.5,true,'center');text('PARTICULARS',(s1+s2)/2,topY-17,8.5,true,'center');text('QUANTITY / RATE',(s2+s3)/2,topY-17,8.5,true,'center');text('AMOUNT (Rs.)',(s3+tR)/2,topY-17,8.5,true,'center');
-    };
-    const drawNormalRow=(topY,h,no,part,qty,amt,highlight=false)=>{
-      if(highlight){page.drawRectangle({x:tL,y:topY-h,width:width2,height:h,color:light,borderColor:black,borderWidth:1.25});}
-      else rect(tL,topY-h,width2,h,null,1.05);
-      vline(s1,topY,topY-h,1.05);vline(s2,topY,topY-h,1.05);vline(s3,topY,topY-h,1.05);
-      text(no,(tL+s1)/2,topY-h/2-3,8.4,highlight,'center');text(part,s1+9,topY-h/2-3,8.5,highlight);
-      if(qty)text(qty,(s2+s3)/2,topY-h/2-3,8.5,false,'center');
-      if(amt)text(amt,tR-9,topY-h/2-3,8.5,highlight,'right');
-      return topY-h;
-    };
-    const drawWordsRow=(topY,h,label,value)=>{
-      rect(tL,topY-h,width2,h,null,1.05);vline(s1,topY,topY-h,1.05);vline(s2,topY,topY-h,1.05);
-      text(label,s1+9,topY-h/2-3,8.5);if(value)text(value,(s2+tR)/2,topY-h/2-3,8.4,true,'center');
-      return topY-h;
-    };
-    const drawTotalRow=(topY,h,no,label,amount)=>{
-      page.drawRectangle({x:tL,y:topY-h,width:width2,height:h,color:light,borderColor:black,borderWidth:1.35});
-      vline(s1,topY,topY-h,1.1);text(no,(tL+s1)/2,topY-h/2-3,8.5,true,'center');text(label,s1+9,topY-h/2-3,9,true);if(amount)text(amount,tR-9,topY-h/2-3,9,true,'right');
-      return topY-h;
-    };
-
-    let top=toTop-toH-12;drawHeader(top);top-=25;
-    top=drawNormalRow(top,25,'1','Freight Rate',freightRate?money(freightRate)+' / Ton':'','');
-    top=drawNormalRow(top,25,'2','Network Net Weight',net?fmt(net)+' MT':'','');
-    top=drawNormalRow(top,25,'3','Freight Charges', '', (freightRate&&net)?money(freightRate*net):'');
-    top=drawNormalRow(top,25,'4','AMC Charges','',amc?money(amc):'');
-    // Initial stage: Gross Amount, Net Amount, deductions and payment details are intentionally blank unless final data exists.
-    top=drawTotalRow(top,27,'5','Gross Amount','');
-    top=drawWordsRow(top,31,'Gross Amount in Words','');
-
-    top-=13;drawHeader(top);top-=25;
-    top=drawNormalRow(top,25,'6','Advance','',advance?money(advance):'');
-    top=drawNormalRow(top,25,'7','Clerk Commission','', '');
-    top=drawNormalRow(top,25,'8','Shortage','', '');
-    top=drawTotalRow(top,27,'9','NET AMOUNT','');
-    top=drawWordsRow(top,31,'Net Amount in Words','');
-
-    top-=13;
-    const payTop=top,payHeader=25,payRow=27,payH=payHeader+payRow*3,payBottom=payTop-payH,payMid=left+205;
-    rect(left,payBottom,width,payH,null,1.2);
-    page.drawRectangle({x:left,y:payTop-payHeader,width:width,height:payHeader,color:light,borderColor:black,borderWidth:1.2});
-    text('PAYMENT DETAILS',left+10,payTop-17,9.2,true);text('(FOR FINAL PAYMENT)',left+111,payTop-17,7.8);
-    hline(left,payTop-payHeader,right,1.1);vline(payMid,payTop-payHeader,payBottom,1.1);
-    for(let i=1;i<3;i++)hline(left,payTop-payHeader-payRow*i,right,1.0);
-    [['Account Number / UPI Number',0],['Account Holder Name',1],['Paid Date',2]].forEach(([lab,i])=>{const cy=payTop-payHeader-payRow*i-payRow/2-3;text(lab,left+9,cy,8.5,true);text(':',payMid+9,cy,8.5);});
-    // No signature on Initial Freight Letter.
+    // Same freight table proportions and strong borders as Final Freight Letter.
+    let t=top-boxH-12;
+    const cols=[42,205,162,118];
+    t=tableHeader(pg,t,cols,['S.No.','PARTICULARS','QUANTITY / RATE','AMOUNT (Rs.)']);
+    t=row(pg,t,27,cols,['1','Freight Rate',money(freightRate)+' / Ton','']);
+    t=row(pg,t,27,cols,['2','Network Net Weight',fmt(net)+' MT','']);
+    t=row(pg,t,27,cols,['3','Freight Charges','',money(freightRate*net)]);
+    t=row(pg,t,27,cols,['4','Advance','',money(advance)]);
+    t=row(pg,t,27,cols,['5','AMC Charges','',money(amc)]);
+    // Deliberately no signature / For S V TRADERS line in Initial FL.
   }
 
   if(pkg==='LRDC'||pkg==='LRDCFL'||pkg==='LRDCEWAY'||pkg==='LRDCFLEWAY'){makeLR();makeDC();}
