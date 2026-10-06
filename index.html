@@ -175,7 +175,7 @@ async function saveComparedItc(loadId){
       }
       throw r.error;
     }
-    const sr=await sb.from('loads').update({status:'Final Weighment Received'}).eq('id',loadId);
+    const sr=await sb.from('loads').update({status:'ITC Weighment Received'}).eq('id',loadId);
     if(sr.error)throw sr.error;
     if(vehicle){
       let v=state.vehicles.find(z=>z.vehicle_number.toUpperCase()===vehicle);
