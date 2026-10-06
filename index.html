@@ -78,7 +78,22 @@ async function generatePackage(id){
   const black=rgb(0,0,0),light=rgb(.93,.93,.93),white=rgb(1,1,1);
   const safe=v=>String(v??'').replace(/₹/g,'Rs. ').replace(/\u00a0/g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'?');
   const txt=(pg,t,x,y,size=9,b=false,align='left')=>{const str=safe(t),fn=b?bold:font,tw=fn.widthOfTextAtSize(str,size);let xx=x;if(align==='center')xx=x-tw/2;else if(align==='right')xx=x-tw;pg.drawText(str,{x:xx,y,size,font:fn,color:black});};
-  const line=(pg,x1,y1,x2,y2=y1,bw=1)=>pg.drawLine({start:{x:x1,y:y1},end:{x:x2,y:y2},thickness:bw,color:black});
+  const line=(pg,x1,y1,x2,y2=y1,bw=1)=>{
+    if(typeof pg?.drawLine==='function'){pg.drawLine({start:{x:x1,y:y1},end:{x:x2,y:y2},thickness:bw,color:black});return;}
+    if(typeof pg?.drawRectangle==='function'){
+      const t=Math.max(bw,0.5);
+      if(Math.abs(y2-y1)<0.01) pg.drawRectangle({x:Math.min(x1,x2),y:y1-t/2,width:Math.abs(x2-x1),height:t,color:black,borderWidth:0});
+      else if(Math.abs(x2-x1)<0.01) pg.drawRectangle({x:x1-t/2,y:Math.min(y1,y2),width:t,height:Math.abs(y2-y1),color:black,borderWidth:0});
+      return;
+    }
+    if(typeof pg?.drawSvgPath==='function'){
+      pg.drawSvgPath(`M ${x1} ${y1} L ${x2} ${y2}`,{borderColor:black,borderWidth:bw}); return;
+    }
+    // Last-resort compatibility fallback for unusual PDF page implementations.
+    const horizontal=Math.abs(y2-y1)<0.01;
+    const len=Math.max(1,Math.round(Math.hypot(x2-x1,y2-y1)/3));
+    pg.drawText(horizontal?'-'.repeat(len):'|',{x:x1,y:y1-2,size:4,font, color:black});
+  };
   const vline=(pg,x,y1,y2,bw=1)=>line(pg,x,y1,x,y2,bw);
   const rect=(pg,x,y,w,h,fill=null,bw=1)=>{if(typeof pg.drawRectangle==='function'){const o={x,y,width:w,height:h,borderColor:black,borderWidth:bw};if(fill)o.color=fill;pg.drawRectangle(o);}else{line(pg,x,y,x+w,y,bw);line(pg,x,y,x,y+h,bw);line(pg,x+w,y,x+w,y+h,bw);line(pg,x,y+h,x+w,y+h,bw);}};
   const wrap=(str,max)=>{const words=String(str||'').split(/\s+/).filter(Boolean),lines=[];let cur='';for(const wd of words){const t=(cur+' '+wd).trim();if(cur&&t.length>max){lines.push(cur);cur=wd}else cur=t}if(cur)lines.push(cur);return lines;};
