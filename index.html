@@ -244,7 +244,7 @@ async function downloadFreightLetter(id){
   const activeContractor=active();
   let address=activeContractor?.address||'Rama Devi Nilayam, Rotary Nagar, Srinagar Colony, Khammam District, Telangana - 507002';
   // Customer-facing freight letter must not print the house number.
-  address=String(address).replace(/^\s*\d+[-\/]?\d*\s*,?\s*/,'').trim();
+  address=String(address).replace(/^\s*\d+(?:[-\/]\d+)*\s*,?\s*/,'').replace(/\s*-\s*539\b/g,'').replace(/\s{2,}/g,' ').trim();
   const black=rgb(0,0,0), light=rgb(0.93,0.93,0.93);
   const left=34,right=561,width=right-left;
   const pdfSafeText=(value)=>String(value??'').replace(/₹/g,'Rs. ').replace(/ /g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'?');
@@ -268,9 +268,9 @@ async function downloadFreightLetter(id){
   text('FROM',left+5,y,8.5,true); text(contractorName,left+5,y-18,15.5,true);
   const addrLines=wrap(address,58).slice(0,2);
   addrLines.forEach((ln,i)=>text(ln,left+5,y-35-i*12,8.5));
-  const metaX=365;
-  text('Challan No.',metaX,y-2,8.7,true); text(':',metaX+62,y-2,8.7); text(x.dc_number||'',right,y-2,9,true,'right');
-  text('Challan Date',metaX,y-26,8.7,true); text(':',metaX+62,y-26,8.7); text(fmtDate(x.load_date),right,y-26,9,true,'right');
+  const metaX=405;
+  text('Challan No.',metaX,y-2,8.7,true); text(':',metaX+62,y-2,8.7); text(x.dc_number||'',metaX+76,y-2,9,true);
+  text('Challan Date',metaX,y-26,8.7,true); text(':',metaX+62,y-26,8.7); text(fmtDate(x.load_date),metaX+76,y-26,9,true);
   hline(left,690,right,.9);
 
   // Vehicle / WC reference box
@@ -281,7 +281,7 @@ async function downloadFreightLetter(id){
   text('REFERENCE',mid+10,top-16,9,true); text('Weighment Card (WC) Number',mid+10,top-33,8.2); text(w.wc_number||'',mid+10,top-54,13,true);
 
   // Common table columns. Strong borders everywhere.
-  const tL=left,tR=right,snoW=42,partW=222,qtyW=145;
+  const tL=left,tR=right,snoW=42,partW=205,qtyW=162;
   const s1=tL+snoW,s2=s1+partW,s3=s2+qtyW;
   const drawHeader=(topY)=>{
     rect(tL,topY-25,width,25,light,1.25);vline(s1,topY,topY-25,1.25);vline(s2,topY,topY-25,1.25);vline(s3,topY,topY-25,1.25);
@@ -300,10 +300,12 @@ async function downloadFreightLetter(id){
     text('',s2,topY-h/2,8);text(label,s1+9,topY-h/2-3,8.5);text(value,(s2+tR)/2,topY-h/2-3,8.4,true,'center');
     return topY-h;
   };
-  const drawTotalRow=(topY,h,label,amount)=>{
-    page.drawRectangle({x:tL,y:topY-h,width:width,height:h,color:light,borderColor:black,borderWidth:1.25});
-    vline(s1,topY,topY-h,1.05);
-    text(label,s1+9,topY-h/2-3,9,true);text(amount,tR-9,topY-h/2-3,9,true,'right');
+  const drawTotalRow=(topY,h,no,label,amount)=>{
+    page.drawRectangle({x:tL,y:topY-h,width:width,height:h,color:light,borderColor:black,borderWidth:1.35});
+    vline(s1,topY,topY-h,1.1);
+    text(no,(tL+s1)/2,topY-h/2-3,8.5,true,'center');
+    text(label,s1+9,topY-h/2-3,9,true);
+    text(amount,tR-9,topY-h/2-3,9,true,'right');
     return topY-h;
   };
 
@@ -313,15 +315,15 @@ async function downloadFreightLetter(id){
   top=drawNormalRow(top,25,'2','Freightable / Approved Weight',fmt(f.applicable_weight)+' MT','');
   top=drawNormalRow(top,25,'3','Freight Charges','',money(f.freight_charges));
   top=drawNormalRow(top,25,'4','AMC Charges','',money(f.amc_charges));
-  top=drawTotalRow(top,27,'Gross Amount',money(f.gross_amount));
+  top=drawTotalRow(top,27,'5','Gross Amount',money(f.gross_amount));
   top=drawWordsRow(top,31,'Gross Amount in Words',numberWordsIndian(f.gross_amount));
 
   // SECTION 2: settlement through Net Amount in Words
   top-=13;drawHeader(top);top-=25;
-  top=drawNormalRow(top,25,'5','Advance','',money(f.advance));
-  top=drawNormalRow(top,25,'6','Clerk Commission','',money(f.clerk_commission));
-  top=drawNormalRow(top,25,'7','Shortage','',money(f.shortage));
-  top=drawTotalRow(top,27,'NET AMOUNT',money(f.net_amount));
+  top=drawNormalRow(top,25,'6','Advance','',money(f.advance));
+  top=drawNormalRow(top,25,'7','Clerk Commission','',money(f.clerk_commission));
+  top=drawNormalRow(top,25,'8','Shortage','',money(f.shortage));
+  top=drawTotalRow(top,27,'9','NET AMOUNT',money(f.net_amount));
   top=drawWordsRow(top,31,'Net Amount in Words',numberWordsIndian(f.net_amount));
 
   // Payment section with equal-height rows and stronger borders
