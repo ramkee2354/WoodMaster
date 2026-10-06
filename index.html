@@ -238,7 +238,7 @@ async function downloadFreightLetter(id){
  try{
   const {PDFDocument,StandardFonts,rgb}=PDFLib;
   const pdf=await PDFDocument.create();
-  const page=pdf.addPage([595.28,841.89]);
+  const pageW=595.28,pageH=841.89; const page=pdf.addPage([pageW,pageH]);
   const font=await pdf.embedFont(StandardFonts.Helvetica),bold=await pdf.embedFont(StandardFonts.HelveticaBold);
   const contractorName='S V TRADERS';
   const activeContractor=active();
@@ -262,8 +262,8 @@ async function downloadFreightLetter(id){
   page.drawRectangle({x:20,y:20,width:555,height:801,borderColor:black,borderWidth:1});
 
   // Header
-  text('FINAL FREIGHT LETTER',W/2,792,18,true,'center');
-  hline(W/2-118,781,W/2+118,1.2);
+  text('FINAL FREIGHT LETTER',pageW/2,792,18,true,'center');
+  hline(pageW/2-118,781,pageW/2+118,1.2);
   let y=758;
   text('FROM',left+5,y,8.5,true); text(contractorName,left+5,y-18,15.5,true);
   const addrLines=wrap(address,58).slice(0,2);
@@ -334,9 +334,9 @@ async function downloadFreightLetter(id){
 
   // Signature area, balanced to use remaining A4 space
   const sigTop=payBottom-16,sigBase=58;
-  hline(left+8,sigBase,right/2-8,.9);hline(W/2+8,sigBase,right-8,.9);
+  hline(left+8,sigBase,right/2-8,.9);hline(pageW/2+8,sigBase,right-8,.9);
   try{const png=await pdf.embedPng(FREIGHT_SIGNATURE_DATA);const scale=Math.min(115/png.width,42/png.height);page.drawImage(png,{x:left+22,y:sigBase+4,width:png.width*scale,height:png.height*scale});}catch{}
-  text('For S V TRADERS',(left+W/2)/2,sigBase-14,8.7,true,'center');text('Driver Signature',(W/2+right)/2,sigBase-14,8.7,true,'center');
+  text('For S V TRADERS',(left+pageW/2)/2,sigBase-14,8.7,true,'center');text('Driver Signature',(pageW/2+right)/2,sigBase-14,8.7,true,'center');
 
   const bytes=await pdf.save();
   const blob=new Blob([bytes],{type:'application/pdf'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`Final_Freight_Letter_${String(x.dc_number||x.load_number||id).replace(/[^A-Za-z0-9_-]/g,'_')}.pdf`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
