@@ -99,6 +99,7 @@ async function generatePackage(id){
       line(pg,x,y,x+w,y,bw);line(pg,x,y,x,y+h,bw);line(pg,x+w,y,x+w,y+h,bw);line(pg,x,y+h,x+w,y+h,bw);
     }
   };
+  const text=txt;
   const wrap=(str,max)=>{
     const words=String(str||'').split(/\s+/).filter(Boolean), lines=[]; let cur='';
     for(const wd of words){const t=(cur+' '+wd).trim();if(cur&&t.length>max){lines.push(cur);cur=wd}else cur=t}
@@ -291,7 +292,7 @@ async function generatePackage(id){
     const totalTop=mergeStart;
     line(pg,left,totalTop,right,totalTop,1.05);
     const totalLabelX=left+dcCols.slice(0,5).reduce((a,b)=>a+b,0);
-    text(pg,'TOTAL',totalLabelX-6,totalTop-totalH/2-3,7.0,true,'right');
+    txt(pg,'TOTAL',totalLabelX-6,totalTop-totalH/2-3,7.0,true,'right');
     let ax=totalLabelX;
     [money(totalTaxable),money(totalCG),money(totalSG),money(totalValue)].forEach((v,i)=>{
       const cw=dcCols[5+i];txt(pg,v,ax+cw-3,totalTop-totalH/2-3,6.3,true,'right');ax+=cw;
