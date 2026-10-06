@@ -69,7 +69,8 @@ async function generatePackage(id){
  const x=state.loads.find(v=>v.id===id); if(!x)return;
  const pkg=$('docPackage')?.value||'LRDC'; const p=x.po_master||{}; const {PDFDocument,StandardFonts,rgb}=PDFLib;
  const out=await PDFDocument.create(); const font=await out.embedFont(StandardFonts.Helvetica); const bold=await out.embedFont(StandardFonts.HelveticaBold);
- const drawPage=(title,lines)=>{const pg=out.addPage([595,842]);let y=790;pg.drawText(title,{x:40,y,size:18,font:bold});y-=35;lines.forEach(([k,v])=>{pg.drawText(String(k),{x:40,y,size:10,font:bold});pg.drawText(String(v??''),{x:180,y,size:10,font});y-=19;if(y<55){pg.drawText('WoodMaster',{x:40,y:30,size:9,font});pg=out.addPage([595,842]);y=790}});return pg};
+ const pdfSafeText=(value)=>String(value??'').replace(/₹/g,'Rs. ').replace(/ /g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'\"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'?');
+ const drawPage=(title,lines)=>{let pg=out.addPage([595,842]);let y=790;pg.drawText(pdfSafeText(title),{x:40,y,size:18,font:bold});y-=35;lines.forEach(([k,v])=>{pg.drawText(pdfSafeText(k),{x:40,y,size:10,font:bold});pg.drawText(pdfSafeText(v),{x:180,y,size:10,font});y-=19;if(y<55){pg.drawText('WoodMaster',{x:40,y:30,size:9,font});pg=out.addPage([595,842]);y=790}});return pg};
  const common=[['DC Number',x.dc_number],['Date',fmtDate(x.load_date)],['Vehicle',x.vehicle_master?.vehicle_number||''],['Driver / Owner',x.vehicle_master?.driver_name||x.vehicle_master?.owner_name||''],['PO',poLabel(p)],['Customer',p.customer_master?.customer_name||''],['Material',x.species_name||p.species_name||''],['Gross MT',fmt(x.network_gross)],['Tare MT',fmt(x.network_tare)],['Net MT',fmt(x.network_net)],['E-way Bill',x.eway_bill_no||'']];
  drawPage('DELIVERY CHALLAN', [...common,['Wood Rate / MT',p.wood_rate||x.wood_rate||''],['Handling & Other / MT',p.handling_other_rate||x.handling_other_rate||''],['HSN',p.hsn_code||'']]);
  drawPage('LORRY RECEIPT / LR', [...common,['Freight Rate / MT',x.freight_rate||''],['Advance',x.advance||''],['Advance Given By',x.advance_given_by||'']]);
@@ -241,7 +242,8 @@ async function downloadFreightLetter(id){
   const c=active(), contractor=c?.contractor_name||'SRI VENKATESHWARA TRADERS';
   const address=c?.address||'15-8-539, Rama Devi Nilayam, Rotary Nagar, Srinagar colony, Khammam, Telangana-507002';
   const left=42,right=553;let y=800;
-  const text=(t,x,yv,size=10,b=false)=>page.drawText(String(t??''),{x,y:yv,size,font:b?bold:font,color:rgb(0,0,0)});
+  const pdfSafeText=(value)=>String(value??'').replace(/₹/g,'Rs. ').replace(/ /g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'\"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'?');
+  const text=(t,x,yv,size=10,b=false)=>page.drawText(pdfSafeText(t),{x,y:yv,size,font:b?bold:font,color:rgb(0,0,0)});
   const line=(y0)=>page.drawLine({start:{x:left,y:y0},end:{x:right,y:y0},thickness:0.8,color:rgb(0,0,0)});
   const row=(label,val)=>{text(label,left,y,10,true);text(val,left+155,y,10,false);y-=22;};
   text('FREIGHT RECEIPT',190,y,17,true);y-=22;line(y);y-=22;
