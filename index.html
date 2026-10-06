@@ -310,7 +310,8 @@ async function downloadFreightLetter(id){
   };
 
   // SECTION 1: up to Gross Amount in Words
-  top=652;drawHeader(top);top-=25;
+  // Start below the complete Vehicle / WC reference box so no content overlaps.
+  top=595;drawHeader(top);top-=25;
   top=drawNormalRow(top,25,'1','Freight Rate',money(f.freight_rate)+'/ Ton','');
   top=drawNormalRow(top,25,'2','Freightable / Approved Weight',fmt(f.applicable_weight)+' MT','');
   top=drawNormalRow(top,25,'3','Freight Charges','',money(f.freight_charges));
