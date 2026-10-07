@@ -129,17 +129,17 @@ async function generatePackage(id){
 
     let y=158;
     // Supplier: no middle divider; left block and right details share the same box.
-    section('SUPPLIER',y);y+=22;const infoH=92;rect(left,y,width,infoH,null,1.15);
+    section('SUPPLIER',y);y+=22;const infoH=98;rect(left,y,width,infoH,null,1.15);
     text('Name & Address',left+10,y+20,11,true);text(fullContractorName,left+10,y+41,11,true);
     wrap(addr,58).slice(0,3).forEach((ln,i)=>text(ln,left+10,y+61+i*14,11));
     const rx=left+340, vx=rx+78;
     text('State Code',rx,y+20,11,true);text(': 36',vx,y+20,11);
     text('State',rx,y+36,11,true);text(': Telangana (TS)',vx,y+36,11);
     text('GSTIN No',rx,y+52,11,true);text(': 36TOHPS0526H1ZE',vx,y+52,11);
-    text('PAN',rx,y+68,11,true);text(': TOHPS0526H',vx,y+68,11);
-    text('PO No',rx,y+84,11,true);text(': '+poNo,vx,y+84,11);
+    text('PAN',rx,y+70,11,true);text(': TOHPS0526H',vx,y+70,11);
+    text('PO No',rx,y+86,11,true);text(': '+poNo,vx,y+86,11);
 
-    y+=infoH+10;section('CUSTOMER / CONSIGNEE',y);y+=22;rect(left,y,width,92,null,1.15);
+    y+=infoH+10;section('CUSTOMER / CONSIGNEE',y);y+=22;rect(left,y,width,98,null,1.15);
     text('Name & Address',left+10,y+20,11,true);text('ITC Limited-PSPD',left+10,y+41,11,true);
     ['UNIT: Bhadrachalam, Sarapaka','Bhadradri-Kothagudem District','Telangana State - 507128'].forEach((ln,i)=>text(ln,left+10,y+61+i*14,11));
     text('State Code',rx,y+20,11,true);text(': 36',vx,y+20,11);
@@ -147,7 +147,7 @@ async function generatePackage(id){
     text('GSTIN',rx,y+52,11,true);text(': 36AAACI5950L1ZB',vx,y+52,11);
     text('PAN',rx,y+68,11,true);text(': AAACI5950L',vx,y+68,11);
 
-    y+=102;section('PLACE OF SUPPLY',y);y+=22;rect(left,y,width,78,null,1.15);
+    y+=10;section('PLACE OF SUPPLY',y);y+=22;rect(left,y,width,78,null,1.15);
     text('Destination',left+10,y+20,11,true);text('ITC Limited-PSPD, UNIT: Bhadrachalam, Sarapaka',left+105,y+20,10.5);
     text('Bhadradri Kothagudem District, Telangana State - 507128',left+105,y+36,10.5);
     text('Transporter Name',left+10,y+58,11,true);text(': S V Traders',left+130,y+58,11);
@@ -155,7 +155,7 @@ async function generatePackage(id){
     text('LR Number',left+10,y+74,11,true);text(': '+lrNo,left+130,y+74,11);
     text('Vehicle No',left+295,y+74,11,true);text(': '+vehicle,left+430,y+74,11);
 
-    y+=88;section('DESCRIPTION OF GOODS',y);
+    y+=10;section('DESCRIPTION OF GOODS',y);
     const tTop=y+22, hh=38, rh=42, totalH=30;
     // Exact fixed A4 table geometry. Total width = 527pt.
     const cols=[30,105,58,45,40,66,54,54,75];
@@ -208,20 +208,20 @@ async function generatePackage(id){
     text(money2(totalCG),x[7]-5,totalTop+20,9.5,true,'right');
     text(money2(totalSG),x[8]-5,totalTop+20,9.5,true,'right');
     text(money2(totalValue),x[9]-5,totalTop+20,9.5,true,'right');
-    text('For S V TRADERS',right-8,bottom+32,11,true,'right');
+    text('For S V TRADERS',right-8,785,11,true,'right');
   }
 
   function addInitialFL(){
     doc.addPage();frame('FREIGHT LETTER');
     let y=94;text('FROM',left+6,y,11,true);text(shortContractor,left+6,y+22,16,true);wrap(addr,56).slice(0,2).forEach((ln,i)=>text(ln,left+6,y+43+i*15,11));
     text('Challan No.',405,y-2,11,true);text(':',469,y-2,11);text(challan,483,y-2,11,true);
-    text('Challan Date',405,y+23,11,true);text(':',469,y+23,11);text(challanDate,483,y+23,11,true);line(left,151,right,151,1.1);
-    rect(left,163,width,67,null,1.1);text('TO',left+10,183,11,true);text('Vehicle Number',left+10,202,11);text(vehicle,left+10,222,16,true);
-    const top=244,cols=[42,195,175,115],header=28;const s1=left+42,s2=s1+195,s3=s2+175;
+    text('Challan Date',405,y+23,11,true);text(':',469,y+23,11);text(challanDate,483,y+23,11,true);line(left,165,right,165,1.1);
+    rect(left,177,width,72,null,1.1);text('TO',left+10,197,11,true);text('Vehicle Number',left+10,217,11);text(vehicle,left+10,238,16,true);
+    const top=266,cols=[42,195,175,115],header=28;const s1=left+42,s2=s1+195,s3=s2+175;
     const rows=[['1','Freight Rate',money2(freightRate)+' / Ton',''],['2','Network Net Weight','',''],['3','Freight Charges','',''],['4','AMC Charges','',''],['5','Gross Amount','',''],['','Gross Amount in Words','',''],['6','Advance','',money2(advance)],['7','Clerk Commission','',''],['8','Shortage','',''],['9','NET AMOUNT','',''],['','Net Amount in Words','','']];
     const hs=[30,30,30,30,32,40,30,30,30,32,40], total=hs.reduce((a,b)=>a+b,0);rect(left,top,width,header+total,null,1.2);
     let xx=left;cols.forEach((cw,i)=>{if(i)line(xx,top,xx,top+header,1.1);text(['S.No.','PARTICULARS','QUANTITY / RATE','AMOUNT (Rs.)'][i],xx+cw/2,top+19,9.2,true,'center');xx+=cw});line(left,top+header,right,top+header,1.1);
-    let yy=top+header;rows.forEach((r,i)=>{const rh=hs[i];let x0=left;cols.slice(0,-1).forEach(cw=>{x0+=cw;line(x0,yy,x0,yy+rh,1)});line(left,yy+rh,right,yy+rh,1);if(r[0])text(r[0],left+21,yy+rh/2+4,10.5,false,'center');text(r[1],s1+8,yy+rh/2+4,11,i===4||i===9);if(r[2])text(r[2],s2+8,yy+rh/2+4,11,false);if(r[3])text(r[3],right-8,yy+rh/2+4,11,false,'right');yy+=rh});text('For S V Traders',right-8,top+header+total+31,11,true,'right');
+    let yy=top+header;rows.forEach((r,i)=>{const rh=hs[i];let x0=left;cols.slice(0,-1).forEach(cw=>{x0+=cw;line(x0,yy,x0,yy+rh,1)});line(left,yy+rh,right,yy+rh,1);if(r[0])text(r[0],left+21,yy+rh/2+4,10.5,false,'center');text(r[1],s1+8,yy+rh/2+4,11,i===4||i===9);if(r[2])text(r[2],s2+8,yy+rh/2+4,11,false);if(r[3])text(r[3],right-8,yy+rh/2+4,11,false,'right');yy+=rh});text('For S V Traders',right-8,785,11,true,'right');
   }
 
   addLR();
