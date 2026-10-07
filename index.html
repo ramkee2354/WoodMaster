@@ -456,23 +456,66 @@ async function downloadFreightLetter(id){
   const filename=`Final_Freight_Letter_${String(challan||id).replace(/[^A-Za-z0-9_-]/g,'_')}.pdf`;doc.save(filename);
  }catch(e){alert('Could not generate Freight Letter PDF.\n\n'+(e?.message||e));console.error(e);}
 }
+async function getMaterialInvoiceStates(loadIds){
+  const ids=[...new Set((loadIds||[]).filter(Boolean).map(String))];
+  if(!ids.length)return {items:[],liveItems:[],liveByLoad:new Map(),allByLoad:new Map()};
+  const ir=await sb.from('invoice_items').select('id,load_id,invoice_id,is_active').in('load_id',ids);
+  if(ir.error)throw ir.error;
+  const raw=ir.data||[];
+  const invoiceIds=[...new Set(raw.map(x=>x.invoice_id).filter(Boolean))];
+  let headers=[];
+  if(invoiceIds.length){
+    const hr=await sb.from('material_invoices').select('id,invoice_number,status,invoice_date,from_date,to_date').in('id',invoiceIds);
+    if(hr.error)throw hr.error;
+    headers=hr.data||[];
+  }
+  const hmap=new Map(headers.map(h=>[String(h.id),h]));
+  const items=raw.map(x=>({...x,material_invoices:hmap.get(String(x.invoice_id))||null}));
+  const liveStatuses=new Set(['draft','verified','finalized']);
+  const liveItems=items.filter(x=>{
+    const st=String(x.material_invoices?.status||'').trim().toLowerCase();
+    return x.is_active!==false && liveStatuses.has(st);
+  });
+  const liveByLoad=new Map();
+  for(const x of liveItems){
+    const key=String(x.load_id);
+    const old=liveByLoad.get(key);
+    // Any Finalized invoice is authoritative as Billed; otherwise keep a live Draft/Verified reservation.
+    const st=String(x.material_invoices?.status||'').trim().toLowerCase();
+    if(!old || st==='finalized' || String(old.material_invoices?.status||'').toLowerCase()!=='finalized') liveByLoad.set(key,x);
+  }
+  const allByLoad=new Map();
+  for(const x of items){
+    const key=String(x.load_id);
+    const old=allByLoad.get(key);
+    if(!old || new Date(x.material_invoices?.invoice_date||0)>new Date(old.material_invoices?.invoice_date||0)) allByLoad.set(key,x);
+  }
+  return {items,liveItems,liveByLoad,allByLoad};
+}
 async function billingPage(){
   const ids=state.loads.map(x=>x.id).filter(Boolean);
   let finalRows=[],invRows=[],invoices=[],receipts=[];
+  let invoiceState={items:[],liveItems:[],liveByLoad:new Map(),allByLoad:new Map()};
   if(ids.length){
-    const [w,ii,mi,rr]=await Promise.all([
+    const [w,mi,rr]=await Promise.all([
       sb.from('itc_weighments').select('*').in('load_id',ids),
-      sb.from('invoice_items').select('*').in('load_id',ids),
       sb.from('material_invoices').select('*').order('created_at',{ascending:false}).limit(50),
       sb.from('itc_receipts').select('*').order('created_at',{ascending:false}).limit(50)
     ]);
-    if(w.error)throw w.error;if(ii.error)throw ii.error;if(mi.error)throw mi.error;if(rr.error)throw rr.error;
-    finalRows=w.data||[];invRows=ii.data||[];invoices=mi.data||[];receipts=rr.data||[];
+    if(w.error)throw w.error;if(mi.error)throw mi.error;if(rr.error)throw rr.error;
+    finalRows=w.data||[];invoices=mi.data||[];receipts=rr.data||[];
+    invoiceState=await getMaterialInvoiceStates(ids);
   }
   const byLoad=new Map(state.loads.map(x=>[x.id,x]));
-  const invoiceByLoad=new Map(invRows.map(x=>[x.load_id,x]));
+  // A load is BILLED only when its linked Material Invoice header is Finalized.
+  // Draft/Verified = reservation only. Cancelled/deleted/no-header = free.
+  const billedByLoad=new Map();
+  for(const [loadId,item] of invoiceState.liveByLoad.entries()){
+    if(String(item.material_invoices?.status||'').trim().toLowerCase()==='finalized') billedByLoad.set(loadId,item);
+  }
+  const invoiceByLoad=billedByLoad;
   const eligible=finalRows.filter(w=>byLoad.has(w.load_id)).map(w=>({w,l:byLoad.get(w.load_id),ii:invoiceByLoad.get(w.load_id)}));
-  const billed=eligible.filter(x=>x.ii||x.l.status==='Billed');
+  const billed=eligible.filter(x=>x.ii);
   const waiting=state.loads.filter(x=>x.billing_waiting_next_cycle===true);
   const receiptDraft=loadForm('billingReceipt')||{};
   const invoiceDraft=loadForm('billingInvoice')||{};
@@ -568,9 +611,9 @@ async function buildMaterialInvoiceDraft(modeOverride){
   // Cancelled invoice rows are retained for audit history, but they must NOT block
   // the load from being billed again. This is important for the Khammam case where
   // loads can still have invoice_items belonging to an older cancelled invoice.
-  const invR=await sb.from('invoice_items').select('load_id,invoice_id,material_invoices(id,invoice_number,status)').in('load_id',loadIds);
-  if(invR.error)return alert(`Could not check existing Material Invoice reservations.\n\n${invR.error.message}`);
-  const activeReservationRows=(invR.data||[]).filter(x=>x.is_active!==false&&['Draft','Verified','Finalized'].includes(String(x.material_invoices?.status||'')));
+  let invoiceState;
+  try{invoiceState=await getMaterialInvoiceStates(loadIds)}catch(e){return alert(`Could not check existing Material Invoice reservations.\n\n${e.message||e}`)}
+  const activeReservationRows=invoiceState.liveItems;
   const billedOrDraftIds=new Set(activeReservationRows.map(x=>x.load_id));
 
   const loadMap=new Map(poLoads.map(x=>[x.id,x]));
@@ -618,7 +661,7 @@ async function buildMaterialInvoiceDraft(modeOverride){
     const approvedCount=allW.filter(w=>num(w.approved_weight)>0).length;
     const inPeriodCount=allW.filter(w=>{const d=String(w.wc_date||'');return d>=fd&&d<=td&&num(w.approved_weight)>0;}).length;
     const reservedCount=allW.filter(w=>billedOrDraftIds.has(w.load_id)).length;
-    const cancelledReservationCount=(invR.data||[]).filter(x=>String(x.material_invoices?.status||'')==='Cancelled').length;
+    const cancelledReservationCount=invoiceState.items.filter(x=>String(x.material_invoices?.status||'').trim().toLowerCase()==='cancelled').length;
     return alert(
       `No billable Final Weighments found for PO ${selectedPO.po_number||'—'} between ${fmtDate(fd)} and ${fmtDate(td)}.\n\n`+
       `Diagnostic: ${poLoads.length} load(s) linked to this PO; ${finalCount} Final Weighment(s) found; ${approvedCount} with Approved Weight > 0; ${inPeriodCount} with WC Date inside the selected period; ${reservedCount} already reserved by a live invoice; ${cancelledReservationCount} item(s) belong to Cancelled invoice(s) and are not blocking.\n\n`+
@@ -666,7 +709,14 @@ async function prepareManualMaterialDraft(){
 
   const fd=d.manualFromDate,td=d.manualToDate,idate=d.invoiceDate;
   if(!fd||!td||!idate)return alert('Billing period and invoice date are required.');
-  const ids=lines.map(x=>x.load_id);const dup=await sb.from('invoice_items').select('load_id').in('load_id',ids);if(dup.error)return alert(dup.error.message);if(dup.data?.length)return alert('One or more loads are already reserved in a billing draft/invoice. Please refresh the billing screen.');
+  const ids=[...new Set(lines.map(x=>x.load_id).filter(Boolean))];
+  let stateCheck;
+  try{stateCheck=await getMaterialInvoiceStates(ids)}catch(e){return alert(e.message||String(e))}
+  const liveDup=stateCheck.liveItems.filter(x=>x.invoice_id!==d.invoiceId);
+  if(liveDup.length){
+    const nums=[...new Set(liveDup.map(x=>x.material_invoices?.invoice_number).filter(Boolean))].join(', ');
+    return alert(`One or more selected loads are already reserved by a live Material Invoice${nums?` (${nums})`:''}.\n\nCancelled invoice history does not block billing. Refresh the billing screen and choose only unreserved loads.`);
+  }
   const itc=state.itcs.find(x=>x.is_default)||state.itcs[0];if(!itc)return alert('No default ITC Master record is configured.');
   const numberRes=await sb.rpc('allocate_shared_invoice_number',{p_invoice_date:idate});if(numberRes.error)return alert(`Could not allocate the shared invoice number. ${numberRes.error.message}`);const ino=numberRes.data;
   const totals=lines.reduce((a,x)=>({qty:a.qty+x.approved_qty,mv:a.mv+x.wood_value,hv:a.hv+x.handling_value,gst:a.gst+x.gst,total:a.total+x.total}),{qty:0,mv:0,hv:0,gst:0,total:0});
@@ -741,9 +791,9 @@ async function finalizeMaterialInvoice(id){
     if(!invoiceActionAllowed('finalize',invoice.status))return alert('You do not have permission to finalize this invoice.');
     if(invoice.status!=='Draft')return alert('Only Draft invoices can be finalized.');
     if(!items.length)return alert('Cannot finalize an invoice with no lines.');
-    const dup=await sb.from('invoice_items').select('load_id,invoice_id').in('load_id',items.map(x=>x.load_id));
-    if(dup.error)return alert(dup.error.message);
-    const conflicts=(dup.data||[]).filter(x=>x.invoice_id!==id);
+    let stateCheck;
+    try{stateCheck=await getMaterialInvoiceStates(items.map(x=>x.load_id))}catch(e){return alert(e.message||String(e))}
+    const conflicts=stateCheck.liveItems.filter(x=>x.invoice_id!==id);
     if(conflicts.length)return alert('One or more loads are already reserved by another invoice. Refresh and resolve the conflict before finalizing.');
     const ok=confirm(`Finalize invoice ${invoice.invoice_number}? ${items.length} load(s) will be marked Billed. This should only be done after the draft is fully checked.`);if(!ok)return;
     const priorStatuses=[];
