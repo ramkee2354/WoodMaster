@@ -74,16 +74,19 @@ async function generatePackage(id){
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'a4',compress:true});
   const PW=595.28,PH=841.89,left=34,right=561,width=right-left;
-  const black=[0,0,0], light=[235,235,235];
+  const BLACK=[0,0,0], LIGHT=[238,238,238];
   const NORMAL=11;
   const safe=v=>String(v??'').replace(/₹/g,'Rs. ').replace(/\u00a0/g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'?');
   const money2=v=>Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const wrap=(str,maxChars)=>{const words=String(str??'').trim().split(/\s+/).filter(Boolean),lines=[];let cur='';for(const wd of words){const t=(cur+' '+wd).trim();if(cur&&t.length>maxChars){lines.push(cur);cur=wd}else cur=t}if(cur)lines.push(cur);return lines;};
-  const set=(size=NORMAL,b=false)=>{doc.setFont('helvetica',b?'bold':'normal');doc.setFontSize(size);doc.setTextColor(...black);};
+  const wrapByWidth=(str,maxWidth,size=NORMAL,bold=false)=>{set(size,bold);const words=String(str??'').trim().split(/\s+/).filter(Boolean);const lines=[];let cur='';for(const word of words){const test=cur?cur+' '+word:word;if(doc.getTextWidth(safe(test))<=maxWidth)cur=test;else{if(cur)lines.push(cur);cur=word;}}if(cur)lines.push(cur);return lines.length?lines:[''];};
+  const set=(size=NORMAL,b=false)=>{doc.setFont('helvetica',b?'bold':'normal');doc.setFontSize(size);doc.setTextColor(...BLACK);};
   const text=(t,x,y,size=NORMAL,b=false,align='left')=>{set(size,b);doc.text(safe(t),x,y,{align});};
-  const line=(x1,y1,x2,y2=y1,w=1)=>{doc.setDrawColor(...black);doc.setLineWidth(w);doc.line(x1,y1,x2,y2);};
-  const rect=(x,y,w,h,fill=null,bw=1)=>{doc.setDrawColor(...black);doc.setLineWidth(bw);if(fill){doc.setFillColor(...fill);doc.rect(x,y,w,h,'FD')}else doc.rect(x,y,w,h,'S');};
-  const section=(title,y)=>{rect(left,y,width,22,light,1.1);text(title,PW/2,y+15,11,true,'center');};
+  const line=(x1,y1,x2,y2=y1,w=1)=>{doc.setDrawColor(...BLACK);doc.setLineWidth(w);doc.line(x1,y1,x2,y2);};
+  const rect=(x,y,w,h,fill=null,bw=1)=>{doc.setDrawColor(...BLACK);doc.setLineWidth(bw);if(fill){doc.setFillColor(...fill);doc.rect(x,y,w,h,'FD')}else doc.rect(x,y,w,h,'S');};
+  const hcenter=(t,x1,x2,y,size=NORMAL,b=false)=>text(t,(x1+x2)/2,y,size,b,'center');
+  const vcenterY=(top,bottom,size=NORMAL)=>top-(top-bottom)/2+(size*0.34);
+  const fitSize=(str,maxWidth,start=NORMAL,min=8,bold=false)=>{let s=start;set(s,bold);while(s>min&&doc.getTextWidth(safe(str))>maxWidth){s-=0.25;set(s,bold)}return s;};
+  const drawFrame=(title)=>{rect(20,20,555,801,null,1.05);text(title,PW/2,53,18,true,'center');line(PW/2-118,70,PW/2+118,70,1.2);};
   const addrRaw=active()?.address||'15-8-539, Rama Devi Nilayam, Rotary Nagar, Srinagar Colony, Khammam District, Telangana - 507002';
   const addr=String(addrRaw).replace(/^\s*\d+(?:[-\/]\d+)*\s*,?\s*/,'').replace(/\s*-\s*539\b/g,'').replace(/\s{2,}/g,' ').trim();
   const fullContractorName=active()?.contractor_name||'SRI VENKATESHWARA TRADERS';
@@ -93,143 +96,126 @@ async function generatePackage(id){
   const networkNet=Number(x.network_net||0), gross=Number(x.network_gross||0), tare=Number(x.network_tare||0);
   const woodRate=Number(p.wood_rate??x.wood_rate??0), handling=Number(p.handling_other_rate??x.handling_other_rate??0);
   const freightRate=Number(x.freight_rate||0), advance=Number(x.advance||0);
-  const challan=x.dc_number||x.load_number||''; const challanDate=fmtDate(x.load_date); const lrNo=x.lr_number||challan;
+  const challan=x.dc_number||x.load_number||''; const challanDate=fmtDate(x.load_date); const lrNo=x.lr_number||challan; const eway=x.eway_bill_no||'';
   const customer='ITC LTD PSPD'; const itcAddress='Unit: Bhadrachalam, Sarapaka, Burgampahad Mandal, Bhadradri Kothagudem Dt, Telangana - 507128';
-  const eway=x.eway_bill_no||'';
-
-  function frame(title){rect(20,20,555,801,null,1);text(title,PW/2,53,18,true,'center');line(PW/2-118,70,PW/2+118,70,1.2);}
 
   function addLR(){
-    frame('LORRY RECEIPT (LR)');
-    const label=11, value=11;
-    text('LR Number',left+8,112,label,true);text(':',left+78,112,label);text(lrNo,left+94,112,value,true);
-    text('LR Date',right-124,112,label,true);text(':',right-54,112,label);text(challanDate,right-40,112,value,true);line(left,126,right,126,1.1);
+   drawFrame('LORRY RECEIPT (LR)');
+   const metaY=112;
+   text('LR Number',left+10,metaY,11,true);text(':',left+82,metaY,11);text(lrNo,left+98,metaY,11,true);
+   text('LR Date',right-140,metaY,11,true);text(':',right-67,metaY,11);text(challanDate,right-51,metaY,11,true);
+   line(left,126,right,126,1.1);
 
-    const top=145,bottom=305,mid=(left+right)/2;rect(left,top,width,bottom-top,null,1.1);line(mid,top,mid,bottom,1.1);
-    text('From',left+10,165,11);text(fullContractorName,left+10,185,13,true);wrap(addr,42).slice(0,4).forEach((ln,i)=>text(ln,left+10,207+i*15,11));
-    text('To',mid+10,165,11);text(customer,mid+10,185,13,true);wrap(itcAddress,42).slice(0,4).forEach((ln,i)=>text(ln,mid+10,207+i*15,11));
+   const boxTop=145,boxBottom=305,mid=(left+right)/2;rect(left,boxTop,width,boxBottom-boxTop,null,1.1);line(mid,boxTop,mid,boxBottom,1.1);
+   text('From',left+10,165,11);text(fullContractorName,left+10,185,13,true);
+   wrapByWidth(addr,mid-left-28,11,false).slice(0,4).forEach((ln,i)=>text(ln,left+10,207+i*15,11));
+   text('To',mid+10,165,11);text(customer,mid+10,185,13,true);
+   wrapByWidth(itcAddress,right-mid-28,11,false).slice(0,4).forEach((ln,i)=>text(ln,mid+10,207+i*15,11));
 
-    const tableTop=325,rowH=30,cols=[118,157,135,117], tableH=4*rowH;rect(left,tableTop,width,tableH,null,1.1);let xx=left;cols.slice(0,-1).forEach(cw=>{xx+=cw;line(xx,tableTop,xx,tableTop+tableH,1.1)});
-    const data=[['PO Number',poNo,'Gross Weight (MTS)',gross.toFixed(3)],['Species',material,'Tare Weight (MTS)',tare.toFixed(3)],['Truck No',vehicle,'Net Weight (MTS)',networkNet.toFixed(3)],['Way Bill No',eway,'','']];
-    data.forEach((r,i)=>{
-      const y=tableTop+i*rowH;if(i)line(left,y,right,y,1.1);const by=y+20;
-      text(r[0],left+8,by,11,true);
-      let fs=11;while(fs>8 && doc.getTextWidth(safe(r[1]))>cols[1]-16){fs-=.25;set(fs,false)}
-      text(r[1],left+cols[0]+8,by,fs,false);
-      text(r[2],left+cols[0]+cols[1]+8,by,11,true);
-      text(r[3],left+cols[0]+cols[1]+cols[2]+8,by,11,false);
-    });
-    text('For Sri Venkateshwara Traders',right-8,tableTop+tableH+32,11,true,'right');
+   const tableTop=325,rowH=30,cols=[118,157,135,117],tableH=rowH*4;rect(left,tableTop,width,tableH,null,1.1);
+   let xx=left;cols.slice(0,-1).forEach(cw=>{xx+=cw;line(xx,tableTop,xx,tableTop+tableH,1.1)});
+   const rows=[['PO Number',poNo,'Gross Weight (MTS)',gross.toFixed(3)],['Species',material,'Tare Weight (MTS)',tare.toFixed(3)],['Truck No',vehicle,'Net Weight (MTS)',networkNet.toFixed(3)],['Way Bill No',eway,'','']];
+   rows.forEach((r,i)=>{
+    const top=tableTop+i*rowH,bottom=top+rowH;if(i)line(left,top,right,top,1.1);
+    const cy=vcenterY(bottom,top,11);
+    text(r[0],left+9,cy,11,true);
+    const valMax=cols[1]-18;const fs=fitSize(r[1],valMax,11,8.5,false);text(r[1],left+cols[0]+9,cy,fs,false);
+    text(r[2],left+cols[0]+cols[1]+9,cy,11,true);
+    const rfs=fitSize(r[3],cols[3]-18,11,9,false);text(r[3],right-cols[3]+9,cy,rfs,false);
+   });
+   text('For Sri Venkateshwara Traders',right-8,tableTop+tableH+32,11,true,'right');
   }
 
   function addDC(){
-    doc.addPage(); frame('DELIVERY CHALLAN (DC)');
-    text('Challan No',right-170,112,11,true);text(':',right-102,112,11);text(challan,right-87,112,11,true);
-    text('Challan Date',right-170,132,11,true);text(':',right-102,132,11);text(challanDate,right-87,132,11,true);line(left,148,right,148,1.1);
+   doc.addPage();drawFrame('DELIVERY CHALLAN (DC)');
+   text('Challan No',right-170,112,11,true);text(':',right-102,112,11);text(challan,right-87,112,11,true);
+   text('Challan Date',right-170,132,11,true);text(':',right-102,132,11);text(challanDate,right-87,132,11,true);
+   line(left,148,right,148,1.1);
 
-    let y=158;
-    // Supplier: no middle divider; left block and right details share the same box.
-    section('SUPPLIER',y);y+=22;const infoH=98;rect(left,y,width,infoH,null,1.15);
-    text('Name & Address',left+10,y+20,11,true);text(fullContractorName,left+10,y+41,11,true);
-    wrap(addr,58).slice(0,3).forEach((ln,i)=>text(ln,left+10,y+61+i*14,11));
-    const rx=left+340, vx=rx+78;
-    text('State Code',rx,y+20,11,true);text(': 36',vx,y+20,11);
-    text('State',rx,y+36,11,true);text(': Telangana (TS)',vx,y+36,11);
-    text('GSTIN No',rx,y+52,11,true);text(': 36TOHPS0526H1ZE',vx,y+52,11);
-    text('PAN',rx,y+70,11,true);text(': TOHPS0526H',vx,y+70,11);
-    text('PO No',rx,y+86,11,true);text(': '+poNo,vx,y+86,11);
+   // Sequential vertical layout: every section starts only after the previous section is finished.
+   let y=158;
+   const sectionH=22, gap=10;
+   const drawSection=(title,top)=>{rect(left,top,width,sectionH,LIGHT,1.1);hcenter(title,left,right,top+15,11,true);return top+sectionH;};
+   const infoH=100;
+   let contentTop=drawSection('SUPPLIER',y);let supplierBottom=contentTop+infoH;rect(left,contentTop,width,infoH,null,1.15);
+   const rx=left+340,vx=rx+78;
+   text('Name & Address',left+10,contentTop+21,11,true);text(fullContractorName,left+10,contentTop+43,11,true);
+   wrapByWidth(addr,300,11,false).slice(0,3).forEach((ln,i)=>text(ln,left+10,contentTop+65+i*15,11));
+   [['State Code',': 36',21],['State',': Telangana (TS)',39],['GSTIN No',': 36TOHPS0526H1ZE',57],['PAN',': TOHPS0526H',75],['PO No',': '+poNo,93]].forEach(([lab,val,dy])=>{text(lab,rx,contentTop+dy,11,true);text(val,vx,contentTop+dy,11)});
 
-    y+=infoH+10;section('CUSTOMER / CONSIGNEE',y);y+=22;rect(left,y,width,98,null,1.15);
-    text('Name & Address',left+10,y+20,11,true);text('ITC Limited-PSPD',left+10,y+41,11,true);
-    ['UNIT: Bhadrachalam, Sarapaka','Bhadradri-Kothagudem District','Telangana State - 507128'].forEach((ln,i)=>text(ln,left+10,y+61+i*14,11));
-    text('State Code',rx,y+20,11,true);text(': 36',vx,y+20,11);
-    text('State',rx,y+36,11,true);text(': Telangana (TS)',vx,y+36,11);
-    text('GSTIN',rx,y+52,11,true);text(': 36AAACI5950L1ZB',vx,y+52,11);
-    text('PAN',rx,y+68,11,true);text(': AAACI5950L',vx,y+68,11);
+   y=supplierBottom+gap;contentTop=drawSection('CUSTOMER / CONSIGNEE',y);const customerBottom=contentTop+100;rect(left,contentTop,width,100,null,1.15);
+   text('Name & Address',left+10,contentTop+21,11,true);text('ITC Limited-PSPD',left+10,contentTop+43,11,true);
+   ['UNIT: Bhadrachalam, Sarapaka','Bhadradri-Kothagudem District','Telangana State - 507128'].forEach((ln,i)=>text(ln,left+10,contentTop+65+i*15,11));
+   [['State Code',': 36',21],['State',': Telangana (TS)',39],['GSTIN',': 36AAACI5950L1ZB',57],['PAN',': AAACI5950L',75]].forEach(([lab,val,dy])=>{text(lab,rx,contentTop+dy,11,true);text(val,vx,contentTop+dy,11)});
 
-    y+=10;section('PLACE OF SUPPLY',y);y+=22;rect(left,y,width,78,null,1.15);
-    text('Destination',left+10,y+20,11,true);text('ITC Limited-PSPD, UNIT: Bhadrachalam, Sarapaka',left+105,y+20,10.5);
-    text('Bhadradri Kothagudem District, Telangana State - 507128',left+105,y+36,10.5);
-    text('Transporter Name',left+10,y+58,11,true);text(': S V Traders',left+130,y+58,11);
-    text('Mode of Transport',left+295,y+58,11,true);text(': By Road',left+430,y+58,11);
-    text('LR Number',left+10,y+74,11,true);text(': '+lrNo,left+130,y+74,11);
-    text('Vehicle No',left+295,y+74,11,true);text(': '+vehicle,left+430,y+74,11);
+   y=customerBottom+gap;contentTop=drawSection('PLACE OF SUPPLY',y);const placeH=78,placeBottom=contentTop+placeH;rect(left,contentTop,width,placeH,null,1.15);
+   text('Destination',left+10,contentTop+21,11,true);
+   const destX=left+105;const dest1='ITC Limited-PSPD, UNIT: Bhadrachalam, Sarapaka';const dest2='Bhadradri Kothagudem District, Telangana State - 507128';
+   text(dest1,destX,contentTop+21,fitSize(dest1,260,10.5,9.5,false));text(dest2,destX,contentTop+37,fitSize(dest2,260,10.5,9.5,false));
+   text('Transporter Name',left+10,contentTop+59,11,true);text(': S V Traders',left+130,contentTop+59,11);
+   text('Mode of Transport',left+295,contentTop+59,11,true);text(': By Road',left+430,contentTop+59,11);
+   text('LR Number',left+10,contentTop+75,11,true);text(': '+lrNo,left+130,contentTop+75,11);
+   text('Vehicle No',left+295,contentTop+75,11,true);text(': '+vehicle,left+430,contentTop+75,11);
 
-    y+=10;section('DESCRIPTION OF GOODS',y);
-    const tTop=y+22, hh=38, rh=42, totalH=30;
-    // Exact fixed A4 table geometry. Total width = 527pt.
-    const cols=[30,105,58,45,40,66,54,54,75];
-    const x=[left];for(const c of cols)x.push(x[x.length-1]+c);
-    const bottom=tTop+hh+3*rh+totalH;rect(left,tTop,width,bottom-tTop,null,1.2);
-    // Vertical borders.
-    for(let i=1;i<x.length-1;i++)line(x[i],tTop,x[i],bottom,1.0);
-    // Header boundary.
-    line(left,tTop+hh,right,tTop+hh,1.0);
-    const heads=['S.No','Material\nDescription','HSN\nCode','Qty','UOM','Taxable\nValue (Rs.)','CGST(9%)\n(Rs.)','SGST(9%)\n(Rs.)','Total Value\n(Rs.)'];
-    heads.forEach((h,i)=>h.split('\n').forEach((s,j)=>text(s,(x[i]+x[i+1])/2,tTop+15+j*10,8.2,true,'center')));
-
-    const taxableMaterial=networkNet*woodRate;
-    const other=networkNet*handling;
-    const cgW=taxableMaterial*.09, sgW=cgW;
-    const cgO=other*.09, sgO=cgO;
-    const totalWood=taxableMaterial+cgW+sgW;
-    const totalOther=other+cgO+sgO;
-    const totalTaxable=taxableMaterial+other, totalCG=cgW+cgO, totalSG=sgW+sgO, totalValue=totalTaxable+totalCG+totalSG;
-    const dataTop=tTop+hh;
-    // Row boundaries ONLY across S.No + Material for rows 1-3.
-    line(left,dataTop+rh,x[2],dataTop+rh,1.0);line(left,dataTop+2*rh,x[2],dataTop+2*rh,1.0);line(left,dataTop+3*rh,right,dataTop+3*rh,1.1);
-    // HSN, Qty and UOM merged vertically across all three item rows. No horizontal lines inside.
-    text(hsn,(x[2]+x[3])/2,dataTop+1.5*rh+4,10.5,false,'center');
-    text(networkNet.toFixed(3),(x[3]+x[4])/2,dataTop+1.5*rh+4,10.5,false,'center');
-    text('MTS',(x[4]+x[5])/2,dataTop+1.5*rh+4,10.5,false,'center');
-    // Material row.
-    text('1',(x[0]+x[1])/2,dataTop+24,10.5,false,'center');
-    wrap(material,18).slice(0,2).forEach((s,i)=>text(s,x[1]+6,dataTop+18+i*13,9.5,true));
-    text(money2(taxableMaterial),x[6]-5,dataTop+24,9.5,false,'right');
-    text(money2(cgW),x[7]-5,dataTop+24,9.5,false,'right');
-    text(money2(sgW),x[8]-5,dataTop+24,9.5,false,'right');
-    text(money2(totalWood),x[9]-5,dataTop+24,9.5,false,'right');
-    // Transportation / Other description rows.
-    text('2',(x[0]+x[1])/2,dataTop+rh+24,10.5,false,'center');wrap('Transportation charges',18).forEach((s,i)=>text(s,x[1]+6,dataTop+rh+18+i*13,9.5));
-    text('3',(x[0]+x[1])/2,dataTop+2*rh+24,10.5,false,'center');wrap('Other charges',18).forEach((s,i)=>text(s,x[1]+6,dataTop+2*rh+18+i*13,9.5));
-    // Financial columns for rows 2+3 are each one merged cell, so the combined amount appears once and in the correct columns.
-    const mergeTop=dataTop+rh, mergeH=2*rh;
-    // Cover only the internal horizontal boundary in financial columns, preserving outer/vertical borders.
-    doc.setFillColor(255,255,255);doc.rect(x[5]+1,mergeTop+1,x[9]-x[5]-2,mergeH-2,'F');
-    for(let i=6;i<=8;i++)line(x[i],mergeTop,x[i],mergeTop+mergeH,1.0);
-    text(money2(other),x[6]-5,mergeTop+mergeH/2+4,9.5,false,'right');
-    text(money2(cgO),x[7]-5,mergeTop+mergeH/2+4,9.5,false,'right');
-    text(money2(sgO),x[8]-5,mergeTop+mergeH/2+4,9.5,false,'right');
-    text(money2(totalOther),x[9]-5,mergeTop+mergeH/2+4,9.5,false,'right');
-    // Total row.
-    const totalTop=dataTop+3*rh;
-    text('TOTAL',x[5]-8,totalTop+20,10.5,true,'right');
-    text(money2(totalTaxable),x[6]-5,totalTop+20,9.5,true,'right');
-    text(money2(totalCG),x[7]-5,totalTop+20,9.5,true,'right');
-    text(money2(totalSG),x[8]-5,totalTop+20,9.5,true,'right');
-    text(money2(totalValue),x[9]-5,totalTop+20,9.5,true,'right');
-    text('For S V TRADERS',right-8,785,11,true,'right');
+   y=placeBottom+gap;const titleTop=drawSection('DESCRIPTION OF GOODS',y);
+   const tTop=titleTop,hh=38,rh=42,totalH=30;const cols=[30,105,58,45,40,66,54,54,75];const x=[left];for(const c of cols)x.push(x[x.length-1]+c);const bottom=tTop+hh+3*rh+totalH;
+   rect(left,tTop,width,bottom-tTop,null,1.2);for(let i=1;i<x.length-1;i++)line(x[i],tTop,x[i],bottom,1.0);line(left,tTop+hh,right,tTop+hh,1.0);
+   const heads=['S.No','Material\nDescription','HSN\nCode','Qty','UOM','Taxable\nValue (Rs.)','CGST(9%)\n(Rs.)','SGST(9%)\n(Rs.)','Total Value\n(Rs.)'];
+   heads.forEach((h,i)=>h.split('\n').forEach((s,j)=>hcenter(s,x[i],x[i+1],tTop+15+j*10,8.2,true)));
+   const taxableMaterial=networkNet*woodRate, other=networkNet*handling, cgW=taxableMaterial*.09, sgW=cgW, cgO=other*.09, sgO=cgO;
+   const totalWood=taxableMaterial+cgW+sgW,totalOther=other+cgO+sgO,totalTaxable=taxableMaterial+other,totalCG=cgW+cgO,totalSG=sgW+sgO,totalValue=totalTaxable+totalCG+totalSG;
+   const dataTop=tTop+hh;
+   line(left,dataTop+rh,x[2],dataTop+rh,1.0);line(left,dataTop+2*rh,x[2],dataTop+2*rh,1.0);line(left,dataTop+3*rh,right,dataTop+3*rh,1.1);
+   hcenter(hsn,x[2],x[3],dataTop+1.5*rh+4,10.5,false);hcenter(networkNet.toFixed(3),x[3],x[4],dataTop+1.5*rh+4,10.5,false);hcenter('MTS',x[4],x[5],dataTop+1.5*rh+4,10.5,false);
+   hcenter('1',x[0],x[1],dataTop+24,10.5,false);wrapByWidth(material,x[2]-x[1]-12,11,true).slice(0,2).forEach((s,i)=>text(s,x[1]+6,dataTop+18+i*13,11,true));
+   text(money2(taxableMaterial),x[6]-5,dataTop+24,10.5,false,'right');text(money2(cgW),x[7]-5,dataTop+24,10.5,false,'right');text(money2(sgW),x[8]-5,dataTop+24,10.5,false,'right');text(money2(totalWood),x[9]-5,dataTop+24,10.5,false,'right');
+   hcenter('2',x[0],x[1],dataTop+rh+24,10.5,false);wrapByWidth('Transportation charges',x[2]-x[1]-12,9.8,false).forEach((s,i)=>text(s,x[1]+6,dataTop+rh+18+i*13,11));
+   hcenter('3',x[0],x[1],dataTop+2*rh+24,10.5,false);wrapByWidth('Other charges',x[2]-x[1]-12,9.8,false).forEach((s,i)=>text(s,x[1]+6,dataTop+2*rh+18+i*13,11));
+   // Financial columns for Transportation + Other are one merged block. The actual amount shown is the PO Other/Handling amount.
+   const mergeTop=dataTop+rh,mergeH=2*rh;doc.setFillColor(255,255,255);doc.rect(x[5]+1,mergeTop+1,x[9]-x[5]-2,mergeH-2,'F');
+   for(let i=6;i<=8;i++)line(x[i],mergeTop,x[i],mergeTop+mergeH,1.0);
+   const mergeCY=mergeTop+mergeH/2+4;text(money2(other),x[6]-5,mergeCY,10.5,false,'right');text(money2(cgO),x[7]-5,mergeCY,10.5,false,'right');text(money2(sgO),x[8]-5,mergeCY,10.5,false,'right');text(money2(totalOther),x[9]-5,mergeCY,10.5,false,'right');
+   const totalTop=dataTop+3*rh;hcenter('TOTAL',x[4],x[5],totalTop+20,10.5,true);text(money2(totalTaxable),x[6]-5,totalTop+20,10,true,'right');text(money2(totalCG),x[7]-5,totalTop+20,10,true,'right');text(money2(totalSG),x[8]-5,totalTop+20,10,true,'right');text(money2(totalValue),x[9]-5,totalTop+20,10,true,'right');
+   // Dedicated signature area: large deliberate gap after the table.
+   text('For S V TRADERS',right-8,785,11,true,'right');
   }
 
   function addInitialFL(){
-    doc.addPage();frame('FREIGHT LETTER');
-    let y=94;text('FROM',left+6,y,11,true);text(shortContractor,left+6,y+22,16,true);wrap(addr,56).slice(0,2).forEach((ln,i)=>text(ln,left+6,y+43+i*15,11));
-    text('Challan No.',405,y-2,11,true);text(':',469,y-2,11);text(challan,483,y-2,11,true);
-    text('Challan Date',405,y+23,11,true);text(':',469,y+23,11);text(challanDate,483,y+23,11,true);line(left,165,right,165,1.1);
-    rect(left,177,width,72,null,1.1);text('TO',left+10,197,11,true);text('Vehicle Number',left+10,217,11);text(vehicle,left+10,238,16,true);
-    const top=266,cols=[42,195,175,115],header=28;const s1=left+42,s2=s1+195,s3=s2+175;
-    const rows=[['1','Freight Rate',money2(freightRate)+' / Ton',''],['2','Network Net Weight','',''],['3','Freight Charges','',''],['4','AMC Charges','',''],['5','Gross Amount','',''],['','Gross Amount in Words','',''],['6','Advance','',money2(advance)],['7','Clerk Commission','',''],['8','Shortage','',''],['9','NET AMOUNT','',''],['','Net Amount in Words','','']];
-    const hs=[30,30,30,30,32,40,30,30,30,32,40], total=hs.reduce((a,b)=>a+b,0);rect(left,top,width,header+total,null,1.2);
-    let xx=left;cols.forEach((cw,i)=>{if(i)line(xx,top,xx,top+header,1.1);text(['S.No.','PARTICULARS','QUANTITY / RATE','AMOUNT (Rs.)'][i],xx+cw/2,top+19,9.2,true,'center');xx+=cw});line(left,top+header,right,top+header,1.1);
-    let yy=top+header;rows.forEach((r,i)=>{const rh=hs[i];let x0=left;cols.slice(0,-1).forEach(cw=>{x0+=cw;line(x0,yy,x0,yy+rh,1)});line(left,yy+rh,right,yy+rh,1);if(r[0])text(r[0],left+21,yy+rh/2+4,10.5,false,'center');text(r[1],s1+8,yy+rh/2+4,11,i===4||i===9);if(r[2])text(r[2],s2+8,yy+rh/2+4,11,false);if(r[3])text(r[3],right-8,yy+rh/2+4,11,false,'right');yy+=rh});text('For S V Traders',right-8,785,11,true,'right');
+   doc.addPage();drawFrame('FREIGHT LETTER');
+   const metaY=94;
+   text('FROM',left+10,metaY,11,true);text(shortContractor,left+10,metaY+22,16,true);
+   wrapByWidth(addr,360,11,false).slice(0,2).forEach((ln,i)=>text(ln,left+10,metaY+43+i*15,11));
+   text('Challan No.',405,metaY-2,11,true);text(':',469,metaY-2,11);text(challan,483,metaY-2,11,true);
+   text('Challan Date',405,metaY+23,11,true);text(':',469,metaY+23,11);text(challanDate,483,metaY+23,11,true);
+   line(left,175,right,175,1.1);
+   rect(left,190,width,84,null,1.1);text('TO',left+10,211,11,true);text('Vehicle Number',left+10,232,11);text(vehicle,left+10,255,16,true);
+   const top=294,cols=[42,195,175,115],header=28;
+   const rows=[['1','Freight Rate',money2(freightRate)+' / Ton',''],['2','Network Net Weight','',''],['3','Freight Charges','',''],['4','AMC Charges','',''],['5','Gross Amount','',''],['','Gross Amount in Words','',''],['6','Advance','',money2(advance)],['7','Clerk Commission','',money2(300)],['8','Shortage','',''],['9','NET AMOUNT','',''],['','Net Amount in Words','','']];
+   const rowH=32,wordsH=38;const heights=rows.map((r,i)=>r[0]===''?wordsH:rowH);const total=heights.reduce((a,b)=>a+b,0);rect(left,top,width,header+total,1.2);
+   const xs=[left,left+cols[0],left+cols[0]+cols[1],left+cols[0]+cols[1]+cols[2],right];
+   for(let i=1;i<xs.length-1;i++)line(xs[i],top,xs[i],top+header,1.1);
+   ['S.No.','PARTICULARS','QUANTITY / RATE','AMOUNT (Rs.)'].forEach((h,i)=>hcenter(h,xs[i],xs[i+1],top+19,9.2,true));line(left,top+header,right,top+header,1.1);
+   let yy=top+header;
+   rows.forEach((r,i)=>{
+    const rh=heights[i],bottom=yy+rh;
+    line(left,yy+rh,right,yy+rh,1.0);
+    if(r[0]){line(xs[1],yy,xs[1],bottom,1.0);line(xs[2],yy,xs[2],bottom,1.0);line(xs[3],yy,xs[3],bottom,1.0);}else{line(xs[1],yy,xs[1],bottom,1.0);line(xs[2],yy,xs[2],bottom,1.0);}
+    const cy=vcenterY(bottom,yy,11);
+    if(r[0])hcenter(r[0],xs[0],xs[1],cy,11,false);
+    text(r[1],xs[1]+10,cy,11,i===4||i===9);
+    if(r[2])hcenter(r[2],xs[2],xs[3],cy,11,false);
+    if(r[3])hcenter(r[3],xs[3],xs[4],cy,11,false);
+    yy=bottom;
+   });
+   text('For S V Traders',right-8,785,11,true,'right');
   }
 
   addLR();
-  if(pkg==='LRDC'||pkg==='LRDCFL'||pkg==='LRDCEWAY'||pkg==='LRDCFLEWAY')addDC();
-  if(pkg==='LRDCFL'||pkg==='LRDCFLEWAY')addInitialFL();
-  if(pkg==='LRDCEWAY'||pkg==='LRDCFLEWAY'){const f=state.ewayFiles[id];if(f)console.warn('E-way PDF attachment is not merged in this jsPDF package generator; WoodMaster pages will still download.');}
+  if(['LRDC','LRDCFL','LRDCEWAY','LRDCFLEWAY'].includes(pkg))addDC();
+  if(['LRDCFL','LRDCFLEWAY'].includes(pkg))addInitialFL();
   const filename=`${challan||x.load_number||id}_Documents.pdf`;doc.save(filename);
-  const statusMap={LRDC:'LR / DC Generated',LRDCFL:'LR / DC / FL Generated',LRDCEWAY:'LR / DC / E-way Bill Generated',LRDCFLEWAY:'LR / DC / FL / E-way Bill Generated'};const newStatus=statusMap[pkg]||'Documents Generated';
+  const statusMap={LRDC:'LR / DC Generated',LRDCFL:'LR / DC / FL Generated',LRDCEWAY:'LR / DC / E-way Bill Generated',LRDCFLEWAY:'LR / DC / FL / E-way Bill Generated'};
+  const newStatus=statusMap[pkg]||'Documents Generated';
   const dr=await sb.from('documents').insert({load_id:id,document_type:'PACKAGE',document_package:pkg,generated_at:new Date().toISOString(),generated_file_reference:filename});if(dr.error)console.warn('Document history save failed:',dr.error.message);
   const sr=await sb.from('loads').update({status:newStatus}).eq('id',id);if(sr.error)console.warn('Load status update failed:',sr.error.message);x.status=newStatus;closeModal();await refreshLoads();if(state.page==='loads')await render();
  }catch(e){alert('Could not generate LR/DC/Initial Freight Letter PDF.\n\n'+(e?.message||e));console.error(e);}
@@ -240,116 +226,77 @@ async function downloadFreightLetter(id){
  const [wr,fr]=await Promise.all([sb.from('itc_weighments').select('*').eq('load_id',id).maybeSingle(),sb.from('freight_settlements').select('*').eq('load_id',id).maybeSingle()]);
  if(wr.error||fr.error)return alert((wr.error||fr.error).message);
  const w=wr.data,f=fr.data;if(!w||!f)return alert('Final Freight Letter data is incomplete.');
- if(!window.PDFLib)return alert('PDF generator is still loading. Please try again.');
+ if(!window.jspdf?.jsPDF)return alert('PDF generator is still loading. Please try again.');
  try{
-  const {PDFDocument,StandardFonts,rgb}=PDFLib;
-  const pdf=await PDFDocument.create();
-  const pageW=595.28,pageH=841.89; const page=pdf.addPage([pageW,pageH]);
-  const font=await pdf.embedFont(StandardFonts.Helvetica),bold=await pdf.embedFont(StandardFonts.HelveticaBold);
-  const contractorName='S V TRADERS';
-  const activeContractor=active();
-  let address=activeContractor?.address||'Rama Devi Nilayam, Rotary Nagar, Srinagar Colony, Khammam District, Telangana - 507002';
-  // Customer-facing freight letter must not print the house number.
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'a4',compress:true});
+  const PW=595.28,left=34,right=561,width=right-left,NORMAL=11,BLACK=[0,0,0],LIGHT=[238,238,238];
+  const safe=v=>String(v??'').replace(/₹/g,'Rs. ').replace(/\u00a0/g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'?');
+  const set=(size=NORMAL,b=false)=>{doc.setFont('helvetica',b?'bold':'normal');doc.setFontSize(size);doc.setTextColor(...BLACK);};
+  const text=(t,x,y,size=NORMAL,b=false,align='left')=>{set(size,b);doc.text(safe(t),x,y,{align});};
+  const line=(x1,y1,x2,y2=y1,w=1)=>{doc.setDrawColor(...BLACK);doc.setLineWidth(w);doc.line(x1,y1,x2,y2);};
+  const rect=(x,y,w,h,fill=null,bw=1)=>{doc.setDrawColor(...BLACK);doc.setLineWidth(bw);if(fill){doc.setFillColor(...fill);doc.rect(x,y,w,h,'FD')}else doc.rect(x,y,w,h,'S');};
+  const hcenter=(t,x1,x2,y,size=NORMAL,b=false)=>text(t,(x1+x2)/2,y,size,b,'center');
+  const vcenter=(top,bottom,size=NORMAL)=>top+(bottom-top)/2+size*.34;
+  const money2=v=>Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const money=v=>'Rs. '+money2(v);
+  const fit=(str,max,start=NORMAL,min=8,b=false)=>{let z=start;set(z,b);while(z>min&&doc.getTextWidth(safe(str))>max){z-=.25;set(z,b)}return z;};
+  const wrap=(str,maxWidth,size=NORMAL,b=false)=>{set(size,b);const words=String(str||'').trim().split(/\s+/).filter(Boolean);const lines=[];let cur='';for(const word of words){const t=cur?cur+' '+word:word;if(doc.getTextWidth(safe(t))<=maxWidth)cur=t;else{if(cur)lines.push(cur);cur=word;}}if(cur)lines.push(cur);return lines.length?lines:[''];};
+  const frame=title=>{rect(20,20,555,801,null,1.05);text(title,PW/2,53,18,true,'center');line(PW/2-118,70,PW/2+118,70,1.2);};
+
+  const activeContractor=active();let address=activeContractor?.address||'15-8-539, Rama Devi Nilayam, Rotary Nagar, Srinagar Colony, Khammam District, Telangana - 507002';
   address=String(address).replace(/^\s*\d+(?:[-\/]\d+)*\s*,?\s*/,'').replace(/\s*-\s*539\b/g,'').replace(/\s{2,}/g,' ').trim();
-  const black=rgb(0,0,0), light=rgb(0.93,0.93,0.93);
-  const left=34,right=561,width=right-left;
-  const pdfSafeText=(value)=>String(value??'').replace(/₹/g,'Rs. ').replace(/ /g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'?');
-  const text=(t,x,yv,size=9,b=false,align='left')=>{
-   const str=pdfSafeText(t),fn=b?bold:font,tw=fn.widthOfTextAtSize(str,size);
-   let xx=x;if(align==='center')xx=x-tw/2;else if(align==='right')xx=x-tw;
-   page.drawText(str,{x:xx,y:yv,size,font:fn,color:black});return tw;
-  };
-  const rect=(x,y,w,h,fill=null,th=.9)=>{page.drawRectangle({x,y,width:w,height:h,borderColor:black,borderWidth:th,color:fill||undefined});};
-  const hline=(x1,y1,x2,th=0.9)=>page.drawLine({start:{x:x1,y:y1},end:{x:x2,y:y1},thickness:th,color:black});
-  const vline=(x1,y1,y2,th=0.9)=>page.drawLine({start:{x:x1,y:y1},end:{x:x1,y:y2},thickness:th,color:black});
-  const wrap=(str,maxChars)=>{const words=String(str||'').split(/\s+/);let lines=[],cur='';words.forEach(wd=>{const t=(cur+' '+wd).trim();if(t.length>maxChars&&cur){lines.push(cur);cur=wd}else cur=t});if(cur)lines.push(cur);return lines};
+  const vehicle=String(x.vehicle_master?.vehicle_number||'').toUpperCase();
+  const challan=x.dc_number||x.load_number||'';const challanDate=fmtDate(x.load_date);const wc=w.wc_number||'';
+  frame('FINAL FREIGHT LETTER');
+  const metaY=94;
+  text('FROM',left+10,metaY,11,true);text('S V TRADERS',left+10,metaY+22,16,true);
+  wrap(address,360,11,false).slice(0,2).forEach((ln,i)=>text(ln,left+10,metaY+43+i*15,11));
+  text('Challan No.',405,metaY-2,11,true);text(':',469,metaY-2,11);text(challan,483,metaY-2,11,true);
+  text('Challan Date',405,metaY+23,11,true);text(':',469,metaY+23,11);text(challanDate,483,metaY+23,11,true);
+  line(left,175,right,175,1.1);
 
-  // Outer A4 border
-  page.drawRectangle({x:20,y:20,width:555,height:801,borderColor:black,borderWidth:1});
+  rect(left,190,width,84,null,1.1);const mid=(left+right)/2;line(mid,190,mid,274,1.1);
+  text('TO',left+10,211,11,true);text('Vehicle Number',left+10,232,11);text(vehicle,left+10,255,16,true);
+  text('REFERENCE',mid+10,211,11,true);text('Weighment Card (WC) Number',mid+10,232,11);text(wc,mid+10,255,14,true);
 
-  // Header
-  text('FINAL FREIGHT LETTER',pageW/2,792,18,true,'center');
-  hline(pageW/2-118,781,pageW/2+118,1.2);
-  let y=758;
-  text('FROM',left+5,y,8.5,true); text(contractorName,left+5,y-18,15.5,true);
-  const addrLines=wrap(address,58).slice(0,2);
-  addrLines.forEach((ln,i)=>text(ln,left+5,y-35-i*12,8.5));
-  const metaX=405;
-  text('Challan No.',metaX,y-2,8.7,true); text(':',metaX+62,y-2,8.7); text(x.dc_number||'',metaX+76,y-2,9,true);
-  text('Challan Date',metaX,y-26,8.7,true); text(':',metaX+62,y-26,8.7); text(fmtDate(x.load_date),metaX+76,y-26,9,true);
-  hline(left,690,right,.9);
+  const xs=[left,left+42,left+237,left+412,right];const drawHeader=(top)=>{rect(left,top,width,24,LIGHT,1.15);for(let i=1;i<4;i++)line(xs[i],top,xs[i],top+26,1.15);['S.No.','PARTICULARS','QUANTITY / RATE','AMOUNT (Rs.)'].forEach((h,i)=>hcenter(h,xs[i],xs[i+1],top+17,9.2,true));};
+  const row=(top,h,no,part,qty,amt,bold=false)=>{rect(left,top,width,h,null,1.05);for(let i=1;i<4;i++)line(xs[i],top,xs[i],top+h,1.05);const cy=top+h/2+4;if(no!==''&&no!=null)hcenter(no,xs[0],xs[1],cy,11,bold);text(part,xs[1]+10,cy,11,bold);if(qty)hcenter(qty,xs[2],xs[3],cy,fit(qty,xs[3]-xs[2]-14,11,8.5,false),false);if(amt)hcenter(amt,xs[3],xs[4],cy,fit(amt,xs[4]-xs[3]-14,11,8.5,false),bold);return top+h;};
+  const words=(top,h,label,value)=>{rect(left,top,width,h,null,1.05);line(xs[1],top,xs[1],top+h,1.05);line(xs[2],top,xs[2],top+h,1.05);const cy=top+h/2+4;text(label,xs[1]+10,cy,11);if(value)hcenter(value,xs[2],right,cy,9.5,true);return top+h;};
+  const totalRow=(top,h,no,label,amount)=>{rect(left,top,width,h,LIGHT,1.25);line(xs[1],top,xs[1],top+h,1.1);const cy=top+h/2+4;hcenter(no,xs[0],xs[1],cy,11,true);text(label,xs[1]+10,cy,11,true);hcenter(amount,xs[3],xs[4],cy,11,true);return top+h;};
 
-  // Vehicle / WC reference box
-  let top=678,boxH=67,mid=(left+right)/2;
-  rect(left,top-boxH,width,boxH,null,1);
-  vline(mid,top,top-boxH,1);
-  text('TO',left+10,top-16,9,true); text('Vehicle Number',left+10,top-33,8.2); text(x.vehicle_master?.vehicle_number||'',left+10,top-54,15,true);
-  text('REFERENCE',mid+10,top-16,9,true); text('Weighment Card (WC) Number',mid+10,top-33,8.2); text(w.wc_number||'',mid+10,top-54,13,true);
+  // Section 1: through Gross Amount in Words
+  let top=294;drawHeader(top);top+=24;
+  top=row(top,25,'1','Freight Rate',money2(f.freight_rate)+' / Ton','');
+  top=row(top,25,'2','Freightable / Approved Weight',fmt(f.applicable_weight)+' MT','');
+  top=row(top,25,'3','Freight Charges','',money(f.freight_charges));
+  top=row(top,25,'4','AMC Charges','',money(f.amc_charges));
+  top=totalRow(top,26,'5','Gross Amount',money(f.gross_amount));
+  top=words(top,30,'Gross Amount in Words',numberWordsIndian(f.gross_amount));
 
-  // Common table columns. Strong borders everywhere.
-  const tL=left,tR=right,snoW=42,partW=195,qtyW=175;
-  const s1=tL+snoW,s2=s1+partW,s3=s2+qtyW;
-  const drawHeader=(topY)=>{
-    rect(tL,topY-25,width,25,light,1.25);vline(s1,topY,topY-25,1.25);vline(s2,topY,topY-25,1.25);vline(s3,topY,topY-25,1.25);
-    text('S.No.',(tL+s1)/2,topY-17,8.5,true,'center');text('PARTICULARS',(s1+s2)/2,topY-17,8.5,true,'center');text('QUANTITY / RATE',(s2+s3)/2,topY-17,8.5,true,'center');text('AMOUNT (Rs.)',(s3+tR)/2,topY-17,8.5,true,'center');
-  };
-  const drawNormalRow=(topY,h,no,part,qty,amt,highlight=false)=>{
-    if(highlight){page.drawRectangle({x:tL,y:topY-h,width:width,height:h,color:light,borderColor:black,borderWidth:1.25});}
-    else{rect(tL,topY-h,width,h,null,1.05);}
-    vline(s1,topY,topY-h,1.05);vline(s2,topY,topY-h,1.05);vline(s3,topY,topY-h,1.05);
-    text(no,(tL+s1)/2,topY-h/2-3,8.4,highlight,'center');text(part,s1+9,topY-h/2-3,8.5,highlight);if(qty){let qSize=8.5;while(qSize>6.8&&font.widthOfTextAtSize(pdfSafeText(qty),qSize)>qtyW-14)qSize-=.2;text(qty,(s2+s3)/2,topY-h/2-3,qSize,false,'center');}if(amt)text(amt,tR-9,topY-h/2-3,8.5,highlight,'right');
-    return topY-h;
-  };
-  const drawWordsRow=(topY,h,label,value)=>{
-    rect(tL,topY-h,width,h,null,1.05);vline(s1,topY,topY-h,1.05);vline(s2,topY,topY-h,1.05);
-    // Merge Quantity + Amount into ONE cell. No s3 border here.
-    text('',s2,topY-h/2,8);text(label,s1+9,topY-h/2-3,8.5);text(value,(s2+tR)/2,topY-h/2-3,8.4,true,'center');
-    return topY-h;
-  };
-  const drawTotalRow=(topY,h,no,label,amount)=>{
-    page.drawRectangle({x:tL,y:topY-h,width:width,height:h,color:light,borderColor:black,borderWidth:1.35});
-    vline(s1,topY,topY-h,1.1);
-    text(no,(tL+s1)/2,topY-h/2-3,8.5,true,'center');
-    text(label,s1+9,topY-h/2-3,9,true);
-    text(amount,tR-9,topY-h/2-3,9,true,'right');
-    return topY-h;
-  };
+  // Section 2: settlement
+  top+=14;drawHeader(top);top+=24;
+  top=row(top,25,'6','Advance','',money(f.advance));
+  top=row(top,25,'7','Clerk Commission','',money(f.clerk_commission));
+  top=row(top,25,'8','Shortage','',money(f.shortage));
+  top=totalRow(top,26,'9','NET AMOUNT',money(f.net_amount));
+  top=words(top,30,'Net Amount in Words',numberWordsIndian(f.net_amount));
 
-  // SECTION 1: up to Gross Amount in Words
-  // Start below the complete TO / REFERENCE box; never overlap its values.
-  top=585;drawHeader(top);top-=25;
-  top=drawNormalRow(top,25,'1','Freight Rate',money(f.freight_rate)+'/ Ton','');
-  top=drawNormalRow(top,25,'2','Freightable / Approved Weight',fmt(f.applicable_weight)+' MT','');
-  top=drawNormalRow(top,25,'3','Freight Charges','',money(f.freight_charges));
-  top=drawNormalRow(top,25,'4','AMC Charges','',money(f.amc_charges));
-  top=drawTotalRow(top,27,'5','Gross Amount',money(f.gross_amount));
-  top=drawWordsRow(top,31,'Gross Amount in Words',numberWordsIndian(f.gross_amount));
+  // Payment details
+  top+=14;const payTop=top,payHeader=22,payRow=20,payH=payHeader+payRow*3,payBottom=payTop+payH;
+  rect(left,payTop,width,payH,null,1.15);rect(left,payTop,width,payHeader,LIGHT,1.15);line(left,payTop+payHeader,right,payTop+payHeader,1.1);
+  const payMid=left+235;line(payMid,payTop+payHeader,payMid,payBottom,1.05);for(let i=1;i<3;i++)line(left,payTop+payHeader+payRow*i,right,payTop+payHeader+payRow*i,1);
+  text('PAYMENT DETAILS',left+10,payTop+16,10.5,true);text('(FOR FINAL PAYMENT)',left+117,payTop+16,8.5);
+  const payVals=[['Account Number / UPI Number',f.account_number||f.upi_number||''],['Account Holder Name',f.account_holder_name||''],['Paid Date',fmtDate(f.paid_date)||'']];
+  payVals.forEach((r,i)=>{const cy=payTop+payHeader+payRow*i+15;text(r[0],left+10,cy,10.5,true);text(':',payMid+10,cy,10.5);if(r[1])text(r[1],payMid+25,cy,10.5);});
 
-  // SECTION 2: settlement through Net Amount in Words
-  top-=13;drawHeader(top);top-=25;
-  top=drawNormalRow(top,25,'6','Advance','',money(f.advance));
-  top=drawNormalRow(top,25,'7','Clerk Commission','',money(f.clerk_commission));
-  top=drawNormalRow(top,25,'8','Shortage','',money(f.shortage));
-  top=drawTotalRow(top,27,'9','NET AMOUNT',money(f.net_amount));
-  top=drawWordsRow(top,31,'Net Amount in Words',numberWordsIndian(f.net_amount));
+  // Signature area at the bottom with a real reserved gap.
+  const sigY=790;line(left+10,sigY,right/2-10, sigY,.9);line(PW/2+10,sigY,right-10,sigY,.9);
+  try{if(FREIGHT_SIGNATURE_DATA)doc.addImage(FREIGHT_SIGNATURE_DATA,'PNG',left+30,766,105,22);}catch(e){}
+  text('For S V Traders',(left+right/2)/2,801,11,true,'center');text('Driver Signature',(right/2+right)/2,801,11,true,'center');
 
-  // Payment section with equal-height rows and stronger borders
-  top-=13;const payTop=top,payHeader=25,payRow=27,payH=payHeader+payRow*3,payBottom=payTop-payH,payMid=left+205;
-  rect(left,payBottom,width,payH,null,1.2);page.drawRectangle({x:left,y:payTop-payHeader,width:width,height:payHeader,color:light,borderColor:black,borderWidth:1.2});
-  text('PAYMENT DETAILS',left+10,payTop-17,9.2,true);text('(FOR FINAL PAYMENT)',left+111,payTop-17,7.8);
-  hline(left,payTop-payHeader,right,1.1);vline(payMid,payTop-payHeader,payBottom,1.1);
-  for(let i=1;i<3;i++)hline(left,payTop-payHeader-payRow*i,right,1.0);
-  [['Account Number / UPI Number',0],['Account Holder Name',1],['Paid Date',2]].forEach(([lab,i])=>{const cy=payTop-payHeader-payRow*i-payRow/2-3;text(lab,left+9,cy,8.5,true);text(':',payMid+9,cy,8.5);});
-
-  // Signature area, balanced to use remaining A4 space
-  const sigTop=payBottom-16,sigBase=58;
-  hline(left+8,sigBase,right/2-8,.9);hline(pageW/2+8,sigBase,right-8,.9);
-  try{const png=await pdf.embedPng(FREIGHT_SIGNATURE_DATA);const scale=Math.min(115/png.width,42/png.height);page.drawImage(png,{x:left+22,y:sigBase+4,width:png.width*scale,height:png.height*scale});}catch{}
-  text('For S V Traders',(left+pageW/2)/2,sigBase-14,8.7,true,'center');text('Driver Signature',(pageW/2+right)/2,sigBase-14,8.7,true,'center');
-
-  const bytes=await pdf.save();
-  const blob=new Blob([bytes],{type:'application/pdf'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`Final_Freight_Letter_${String(x.dc_number||x.load_number||id).replace(/[^A-Za-z0-9_-]/g,'_')}.pdf`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
- }catch(e){alert('Could not generate Freight Letter PDF.\n\n'+(e?.message||e));}
+  const filename=`Final_Freight_Letter_${String(challan||id).replace(/[^A-Za-z0-9_-]/g,'_')}.pdf`;doc.save(filename);
+ }catch(e){alert('Could not generate Freight Letter PDF.\n\n'+(e?.message||e));console.error(e);}
 }
 async function billingPage(){
   const ids=state.loads.map(x=>x.id).filter(Boolean);
