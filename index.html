@@ -741,7 +741,7 @@ async function buildMaterialInvoiceDraft(modeOverride){
 
   const poLoads=loadRes.data||[];
   if(!poLoads.length){
-    return alert(`No loads are linked to PO ${selectedPO.po_number||'—'}.\n\nPlease check that the correct PO was selected when the loads were created.`);
+    return alert(`No loads are linked to PO ${selectedPO.po_number||'—'}.\n\nThe Purchase Order exists, but no load row has this PO ID. Please check the PO selected while creating the load.`);
   }
 
   const loadIds=poLoads.map(x=>x.id).filter(Boolean);
@@ -750,6 +750,13 @@ async function buildMaterialInvoiceDraft(modeOverride){
   const wr=await sb.from('itc_weighments').select('*').in('load_id',loadIds);
   if(wr.error)return alert(`Could not read Final Weighments.\n\n${wr.error.message}`);
   const allW=wr.data||[];
+
+  // Give a precise diagnostic when loads exist but Final Weighments have not
+  // yet been entered. Billing must never silently bill from Load Net Weight.
+  if(!allW.length){
+    const loadList=poLoads.map((l,i)=>`${i+1}. ${l.dc_number||l.load_number||'—'} | ${fmtDate(l.load_date)} | ${String(l.vehicle_master?.vehicle_number||l.vehicle_number||'').toUpperCase()} | Net ${fmt(l.net_weight)} MT`).join('\n');
+    return alert(`PO ${selectedPO.po_number||'—'} has ${poLoads.length} load(s), but no Final Weighment is saved for any of them.\n\nBilling requires a Final Weighment with Approved Weight. Open Final Weighments and save the ITC WC details first.\n\nLoads linked to this PO:\n${loadList}`);
+  }
 
   // A load is unavailable for a new draft if it is already reserved in any invoice.
   const invR=await sb.from('invoice_items').select('load_id,invoice_id').in('load_id',loadIds);
@@ -797,7 +804,15 @@ async function buildMaterialInvoiceDraft(modeOverride){
   }
 
   if(!unique.length&&!pendingBeforeFrom.length){
-    return alert(`No billable Final Weighments found for PO ${selectedPO.po_number||'—'} between ${fmtDate(fd)} and ${fmtDate(td)}.`);
+    const finalCount=allW.length;
+    const approvedCount=allW.filter(w=>num(w.approved_weight)>0).length;
+    const inPeriodCount=allW.filter(w=>{const d=String(w.wc_date||'');return d>=fd&&d<=td&&num(w.approved_weight)>0;}).length;
+    const reservedCount=allW.filter(w=>billedOrDraftIds.has(w.load_id)).length;
+    return alert(
+      `No billable Final Weighments found for PO ${selectedPO.po_number||'—'} between ${fmtDate(fd)} and ${fmtDate(td)}.\n\n`+
+      `Diagnostic: ${poLoads.length} load(s) linked to this PO; ${finalCount} Final Weighment(s) found; ${approvedCount} with Approved Weight > 0; ${inPeriodCount} with WC Date inside the selected period; ${reservedCount} already reserved/billed.\n\n`+
+      `Billing uses WC Date (not Load Date) and Approved Weight. If the Final Weighment exists but its WC Date is outside ${fmtDate(fd)}–${fmtDate(td)}, change the billing period to the actual WC Date.`
+    );
   }
 
   const preview=await sb.rpc('peek_shared_invoice_number',{p_invoice_date:idate});
@@ -842,7 +857,15 @@ async function prepareManualMaterialDraft(){
   if(!poId||!fd||!td||!idate)return alert('Purchase Order, billing period and invoice date are required.');
   const ids=lines.map(x=>x.load_id);const dup=await sb.from('invoice_items').select('load_id').in('load_id',ids);if(dup.error)return alert(dup.error.message);if(dup.data?.length)return alert('One or more loads are already reserved in a billing draft/invoice. Please refresh the billing screen.');
   const itc=state.itcs.find(x=>x.is_default)||state.itcs[0];if(!itc)return alert('No default ITC Master record is configured.');
-  const numberRes=await sb.rpc('allocate_shared_invoice_number',{p_invoice_date:idate});if(numberRes.error)return alert(`Could not allocate the shared invoice number. ${numberRes.error.message}`);const ino=numberRes.data;
+  const numberRes=await sb.rpc('allocate_shared_invoice_number',{p_invoice_date:idate});
+  if(numberRes.error){
+    const msg=String(numberRes.error.message||'');
+    if(msg.toLowerCase().includes('duplicate key')||msg.toLowerCase().includes('invoice_number')){
+      return alert(`Shared invoice numbering is not repaired in Supabase yet.\n\nThe database rejected the generated invoice number as already existing.\n\nPlease run the latest WoodMaster shared invoice-number SQL migration in Supabase SQL Editor, then hard-refresh WoodMaster and try again.\n\nDatabase message: ${msg}`);
+    }
+    return alert(`Could not allocate the shared invoice number. ${msg}`);
+  }
+  const ino=numberRes.data;
   const totals=lines.reduce((a,x)=>({qty:a.qty+x.approved_qty,mv:a.mv+x.wood_value,hv:a.hv+x.handling_value,gst:a.gst+x.gst,total:a.total+x.total}),{qty:0,mv:0,hv:0,gst:0,total:0});
   const inv={invoice_number:ino,invoice_date:idate,from_date:fd,to_date:td,po_id:poId,itc_id:itc.id,total_qty:totals.qty,material_value:totals.mv,handling_value:totals.hv,gst:totals.gst,invoice_total:totals.total,status:'Draft',billing_method:'Manual Date Selection',created_by:state.session.user.id};
   const ir=await sb.from('material_invoices').insert(inv).select().single();if(ir.error)return alert(`Draft bill was not created: ${ir.error.message}`);
