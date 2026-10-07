@@ -657,7 +657,7 @@ async function billingPage(){
   if(ids.length){
     const [w,ii,mi,rr]=await Promise.all([
       sb.from('itc_weighments').select('*').in('load_id',ids),
-      sb.from('invoice_items').select('*').in('load_id',ids),
+      sb.from('invoice_items').select('load_id,invoice_id,material_invoices(id,invoice_number,status)').in('load_id',ids),
       sb.from('material_invoices').select('*').order('created_at',{ascending:false}).limit(50),
       sb.from('itc_receipts').select('*').order('created_at',{ascending:false}).limit(50)
     ]);
@@ -665,9 +665,15 @@ async function billingPage(){
     finalRows=w.data||[];invRows=ii.data||[];invoices=mi.data||[];receipts=rr.data||[];
   }
   const byLoad=new Map(state.loads.map(x=>[x.id,x]));
-  const invoiceByLoad=new Map(invRows.filter(x=>['Draft','Verified','Finalized'].includes(String(x.material_invoices?.status||''))).map(x=>[x.load_id,x]));
+  const invoiceByLoad=new Map(invRows
+    .filter(x=>['Draft','Verified','Finalized'].includes(String(x.material_invoices?.status||'')))
+    .map(x=>[x.load_id,x]));
   const eligible=finalRows.filter(w=>byLoad.has(w.load_id)).map(w=>({w,l:byLoad.get(w.load_id),ii:invoiceByLoad.get(w.load_id)}));
-  const billed=eligible.filter(x=>x.ii||x.l.status==='Billed');
+  // Dashboard billing status must come from a LIVE Material Invoice reservation.
+  // A stale loads.status='Billed' left behind by a cancelled invoice must never
+  // inflate the Billed Loads count. Finalized invoice_items are the authoritative
+  // billing record; cancelled invoice_items are deliberately excluded above.
+  const billed=eligible.filter(x=>!!x.ii);
   const waiting=state.loads.filter(x=>x.billing_waiting_next_cycle===true);
   const receiptDraft=loadForm('billingReceipt')||{};
   const invoiceDraft=loadForm('billingInvoice')||{};
