@@ -657,7 +657,7 @@ async function billingPage(){
   if(ids.length){
     const [w,ii,mi,rr]=await Promise.all([
       sb.from('itc_weighments').select('*').in('load_id',ids),
-      sb.from('invoice_items').select('load_id,invoice_id,material_invoices(id,invoice_number,status)').in('load_id',ids),
+      sb.from('invoice_items').select('load_id,invoice_id,is_active,material_invoices(id,invoice_number,status)').in('load_id',ids),
       sb.from('material_invoices').select('*').order('created_at',{ascending:false}).limit(50),
       sb.from('itc_receipts').select('*').order('created_at',{ascending:false}).limit(50)
     ]);
@@ -666,7 +666,7 @@ async function billingPage(){
   }
   const byLoad=new Map(state.loads.map(x=>[x.id,x]));
   const invoiceByLoad=new Map(invRows
-    .filter(x=>['Draft','Verified','Finalized'].includes(String(x.material_invoices?.status||'')))
+    .filter(x=>x.is_active!==false&&['Draft','Verified','Finalized'].includes(String(x.material_invoices?.status||'')))
     .map(x=>[x.load_id,x]));
   const eligible=finalRows.filter(w=>byLoad.has(w.load_id)).map(w=>({w,l:byLoad.get(w.load_id),ii:invoiceByLoad.get(w.load_id)}));
   // Dashboard billing status must come from a LIVE Material Invoice reservation.
@@ -771,7 +771,7 @@ async function buildMaterialInvoiceDraft(modeOverride){
   // loads can still have invoice_items belonging to an older cancelled invoice.
   const invR=await sb.from('invoice_items').select('load_id,invoice_id,material_invoices(id,invoice_number,status)').in('load_id',loadIds);
   if(invR.error)return alert(`Could not check existing Material Invoice reservations.\n\n${invR.error.message}`);
-  const activeReservationRows=(invR.data||[]).filter(x=>['Draft','Verified','Finalized'].includes(String(x.material_invoices?.status||'')));
+  const activeReservationRows=(invR.data||[]).filter(x=>x.is_active!==false&&['Draft','Verified','Finalized'].includes(String(x.material_invoices?.status||'')));
   const billedOrDraftIds=new Set(activeReservationRows.map(x=>x.load_id));
 
   const loadMap=new Map(poLoads.map(x=>[x.id,x]));
@@ -780,7 +780,7 @@ async function buildMaterialInvoiceDraft(modeOverride){
   const valid=[];
   for(const x of source){
     const {w,l}=x;
-    if(billedOrDraftIds.has(l.id)||l.status==='Billed')continue;
+    if(billedOrDraftIds.has(l.id))continue;
 
     const d=String(w.wc_date||l.load_date||'');
     const carry=Boolean(l.billing_waiting_next_cycle);
@@ -801,7 +801,7 @@ async function buildMaterialInvoiceDraft(modeOverride){
   const pendingBeforeFrom=[];
   for(const l of poLoads){
     if(!l?.id)continue;
-    if(billedOrDraftIds.has(l.id)||l.status==='Billed'||l.billing_waiting_next_cycle===true)continue;
+    if(billedOrDraftIds.has(l.id)||l.billing_waiting_next_cycle===true)continue;
 
     const w=allW.find(x=>x.load_id===l.id);
     const businessDate=String(w?.wc_date||l.load_date||'');
@@ -862,32 +862,49 @@ async function markBillingWaitingAndRefresh(loadId){
   if($('biManualFrom')){await buildMaterialInvoiceDraft('manual');}
 }
 async function prepareManualMaterialDraft(){
-  const d=loadForm('billingInvoice')||{},lines=d.confirmationLines||[];if(!lines.length)return alert('No confirmed billing lines are available.');
-  // Manual Date Selection bills the selected period and also enforces the earlier-load completeness control before the draft is prepared.
+  const d=loadForm('billingInvoice')||{},lines=d.confirmationLines||[];
+  if(!lines.length)return alert('No confirmed billing lines are available.');
 
   const poId=d.poId,fd=d.manualFromDate,td=d.manualToDate,idate=d.invoiceDate;
   if(!poId||!fd||!td||!idate)return alert('Purchase Order, billing period and invoice date are required.');
-  const ids=lines.map(x=>x.load_id).filter(Boolean);
-  const dup=await sb.from('invoice_items').select('load_id,invoice_id,material_invoices(id,status,invoice_number)').in('load_id',ids);
-  if(dup.error)return alert(`Could not check existing Material Invoice reservations: ${dup.error.message}`);
-  const activeDup=(dup.data||[]).filter(x=>['Draft','Verified','Finalized'].includes(String(x.material_invoices?.status||'')));
-  if(activeDup.length)return alert('One or more loads are already reserved in a LIVE billing draft/invoice. Cancelled invoices do not block billing. Refresh the billing screen and try again.');
-  const itc=state.itcs.find(x=>x.is_default)||state.itcs[0];if(!itc)return alert('No default ITC Master record is configured.');
-  const numberRes=await sb.rpc('allocate_shared_invoice_number',{p_invoice_date:idate});
-  if(numberRes.error){
-    const msg=String(numberRes.error.message||'');
-    if(msg.toLowerCase().includes('duplicate key')||msg.toLowerCase().includes('invoice_number')){
-      return alert(`Shared invoice numbering is not repaired in Supabase yet.\n\nThe database rejected the generated invoice number as already existing.\n\nPlease run the latest WoodMaster shared invoice-number SQL migration in Supabase SQL Editor, then hard-refresh WoodMaster and try again.\n\nDatabase message: ${msg}`);
-    }
-    return alert(`Could not allocate the shared invoice number. ${msg}`);
+
+  const loadIds=[...new Set(lines.map(x=>x.load_id).filter(Boolean))];
+  if(!loadIds.length)return alert('No loads were selected for this draft.');
+
+  const itc=state.itcs.find(x=>x.is_default)||state.itcs[0];
+  if(!itc)return alert('No default ITC Master record is configured.');
+
+  /*
+   * 360-DEGREE RULE:
+   * Draft creation is one database transaction. The database re-checks the PO,
+   * Final Weighment, Approved Weight, live reservations and invoice sequence.
+   * The browser never creates the invoice header first and the lines afterwards.
+   * Therefore a failed line insert can never leave a half-created invoice or
+   * consume a sequence number accidentally.
+   */
+  const r=await sb.rpc('wm_create_material_invoice_draft',{
+    p_po_id:poId,
+    p_from_date:fd,
+    p_to_date:td,
+    p_invoice_date:idate,
+    p_itc_id:itc.id,
+    p_load_ids:loadIds,
+    p_user_id:state.session.user.id
+  });
+
+  if(r.error){
+    const msg=String(r.error.message||'');
+    return alert(`Draft Material Invoice was not created.\n\n${msg}\n\nNo partial invoice was created.`);
   }
-  const ino=numberRes.data;
-  const totals=lines.reduce((a,x)=>({qty:a.qty+x.approved_qty,mv:a.mv+x.wood_value,hv:a.hv+x.handling_value,gst:a.gst+x.gst,total:a.total+x.total}),{qty:0,mv:0,hv:0,gst:0,total:0});
-  const inv={invoice_number:ino,invoice_date:idate,from_date:fd,to_date:td,po_id:poId,itc_id:itc.id,total_qty:totals.qty,material_value:totals.mv,handling_value:totals.hv,gst:totals.gst,invoice_total:totals.total,status:'Draft',billing_method:'Manual Date Selection',created_by:state.session.user.id};
-  const ir=await sb.from('material_invoices').insert(inv).select().single();if(ir.error)return alert(`Draft bill was not created: ${ir.error.message}`);
-  const rows=lines.map(x=>({...x,invoice_id:ir.data.id}));const rr=await sb.from('invoice_items').insert(rows);if(rr.error){await sb.from('material_invoices').delete().eq('id',ir.data.id);return alert(`Draft bill lines were not saved: ${rr.error.message}`)}
-  clearForm('billingInvoice');closeModal();alert(`Material Draft Bill ${ino} prepared for ${fmt(totals.qty)} MT.`);await refreshLoads();await render();
+
+  const result=r.data||{};
+  clearForm('billingInvoice');
+  closeModal();
+  alert(`Material Draft Bill ${result.invoice_number||'created'} prepared for ${fmt(num(result.total_qty))} MT.`);
+  await refreshLoads();
+  await render();
 }
+
 function invoiceActionAllowed(action,status){
   // Central permission hook. For now all authenticated users may act; later role-based
   // permissions can be enforced here without changing invoice screens/workflows.
@@ -964,7 +981,7 @@ async function finalizeMaterialInvoice(id){
     }
     const dup=await sb.from('invoice_items').select('load_id,invoice_id,material_invoices(id,invoice_number,status)').in('load_id',items.map(x=>x.load_id));
     if(dup.error)return alert(dup.error.message);
-    const conflicts=(dup.data||[]).filter(x=>x.invoice_id!==id&&['Draft','Verified','Finalized'].includes(String(x.material_invoices?.status||'')));
+    const conflicts=(dup.data||[]).filter(x=>x.invoice_id!==id&&x.is_active!==false&&['Draft','Verified','Finalized'].includes(String(x.material_invoices?.status||'')));
     if(conflicts.length)return alert('One or more loads are already reserved by another invoice. Refresh and resolve the conflict before finalizing.');
     const ok=confirm(`Finalize invoice ${invoice.invoice_number}? ${items.length} load(s) will be marked Billed. This should only be done after the draft is fully checked.`);if(!ok)return;
     const priorStatuses=[];
@@ -1018,21 +1035,31 @@ async function deleteMaterialInvoice(id){
   try{
     const {invoice}=await getMaterialInvoiceBundle(id);
     if(!invoiceActionAllowed('delete',invoice.status))return alert('You do not have permission to delete this invoice.');
-     const isFinal=invoice.status==='Finalized';
-     const msg=`⚠️ WARNING — DELETE INVOICE\n\nYou are about to delete ${isFinal?'FINAL':'DRAFT'} invoice ${invoice.invoice_number}.\n\nThis action affects the invoice and its associated loads.\n\n• If this is the LAST invoice number, the invoice will be deleted, its number can be reused, and its loads will be released for billing again.\n• If this is an IN-BETWEEN invoice number, it will be CANCELLED instead; its number will remain permanently blocked and its loads will remain reserved.\n\nDo you want to continue?`;
-     if(!confirm(msg))return;
-     const confirmText=window.prompt(`FINAL DELETE CONFIRMATION\n\nInvoice: ${invoice.invoice_number}\n\nTo confirm this deletion, type DELETE exactly.`);
-     if(confirmText!=='DELETE')return alert('Deletion cancelled. The invoice was not changed.');
+    if(!['Draft','Finalized'].includes(invoice.status))return alert(`Invoice ${invoice.invoice_number} cannot be deleted in status ${invoice.status}.`);
+
+    const isFinal=invoice.status==='Finalized';
+    const msg=`DELETE ${isFinal?'FINAL':'DRAFT'} INVOICE ${invoice.invoice_number}?\n\n`+
+      `WoodMaster will apply the shared Material + AMC sequence rule:\n`+
+      `• If this is the highest LIVE invoice number, it will be deleted and that number becomes reusable.\n`+
+      `• If a higher LIVE invoice exists, this invoice becomes Cancelled; its number stays blocked, but its loads are released and can be billed again.\n`+
+      `• Cancelled invoice history is retained when the number is blocked.\n\nContinue?`;
+    if(!confirm(msg))return;
+
+    const confirmText=window.prompt(`FINAL DELETE CONFIRMATION\n\nInvoice: ${invoice.invoice_number}\n\nType DELETE exactly to continue.`);
+    if(confirmText!=='DELETE')return alert('Deletion cancelled. The invoice was not changed.');
+
     const r=await sb.rpc('delete_material_invoice_with_shared_sequence',{p_invoice_id:id,p_user_id:state.session.user.id});
-    if(r.error)return alert(`Invoice could not be processed: ${r.error.message}`);
+    if(r.error)return alert(`Invoice could not be processed.\n\n${r.error.message}`);
+
     const result=r.data||{};
     if(result.reusable){
       alert(`Invoice ${invoice.invoice_number} was deleted. Its number is reusable and its loads are available for billing again.`);
     }else{
       alert(`Invoice ${invoice.invoice_number} was cancelled because a higher live invoice exists. Its number remains blocked, but its loads are available for billing again.`);
     }
-    await refreshLoads();await render();
-  }catch(e){alert(`Could not delete invoice: ${e.message||e}`)}
+    await refreshLoads();
+    await render();
+  }catch(e){alert(`Could not process invoice deletion: ${e.message||e}`)}
 }
 
 async function amcPage(){
