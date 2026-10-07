@@ -222,6 +222,131 @@ async function generatePackage(id){
  }catch(e){alert('Could not generate LR/DC/Initial Freight Letter PDF.\n\n'+(e?.message||e));console.error(e);}
 }
 
+function startItc(id){state.selectedLoad=state.loads.find(x=>x.id===id)||null;state.page='itcdetail';render()}
+
+function getItcDrafts(){try{return JSON.parse(localStorage.getItem('wm360:draft:itcDrafts')||'{}')}catch(e){return {}}}
+
+function saveItcDraft(){const loadId=state.selectedLoad?.id||$('itcLoad')?.value;if(!loadId)return;const d=getItcDrafts();d[loadId]={wc:(($('wc')?.value||'').toUpperCase()),wcDate:$('wcDate')?.value||'',vehicle:(($('itcVehicle')?.value||'').toUpperCase()),gross:$('itcGross')?.value||'',tare:$('itcTare')?.value||'',net:$('itcNet')?.value||'',approved:$('itcApproved')?.value||'',approvedAuto:$('itcApproved')?.dataset.auto!=='0',savedAt:Date.now()};localStorage.setItem('wm360:draft:itcDrafts',JSON.stringify(d))}
+
+function clearItcDraft(loadId){const d=getItcDrafts();delete d[loadId];localStorage.setItem('wm360:draft:itcDrafts',JSON.stringify(d))}
+
+function clearAllItcDrafts(){localStorage.removeItem('wm360:draft:itcDrafts')}
+
+function calcItcNet(){const g=$('itcGross'),t=$('itcTare'),n=$('itcNet'),a=$('itcApproved');if(!g||!t||!n||!a)return;const gv=g.value===''?null:num(g.value),tv=t.value===''?null:num(t.value);if(gv===null||tv===null){n.value='';if(a.dataset.auto!=='0')a.value='';saveItcDraft();return}const net=gv-tv;n.value=net.toFixed(3);if(a.dataset.auto!=='0'||a.value===''){a.value=net.toFixed(3);a.dataset.auto='1'}saveItcDraft()}
+
+function bindItcForm(){const ids=['wc','wcDate','itcVehicle','itcGross','itcTare','itcNet','itcApproved'];ids.forEach(id=>{const el=$(id);if(!el)return;el.addEventListener('input',()=>{if(id==='itcVehicle')el.value=el.value.toUpperCase();if(id==='itcApproved')el.dataset.auto='0';if(id==='itcGross'||id==='itcTare')calcItcNet();else saveItcDraft()});el.addEventListener('change',()=>{if(id==='itcVehicle')el.value=el.value.toUpperCase();if(id==='itcApproved')el.dataset.auto='0';saveItcDraft()})});calcItcNet();saveItcDraft()}
+
+async function itcPage(){
+  const ids=state.loads.map(x=>x.id).filter(Boolean);
+  let rows=[];
+  if(ids.length){
+    const r=await sb.from('itc_weighments').select('*').in('load_id',ids);
+    if(r.error)throw r.error;
+    rows=r.data||[];
+  }
+  const byLoad=new Map(rows.map(w=>[w.load_id,w]));
+  return `<div class="context">Active Contractor: <b>${esc(active()?.contractor_name)}</b></div>
+  <div class="topbar"><div><h1>Final Weighments</h1><div class="sub">All loads for ${esc(active()?.contractor_name)}. Open a DC to enter, verify or edit its final weighment.</div></div></div>
+  <div class="tablewrap"><table><thead><tr><th>DC Number</th><th>DC Date</th><th>Vehicle</th><th>Material</th><th>Network Net MT</th><th>WC Number</th><th>Approved MT</th><th>Status</th><th>Action</th></tr></thead><tbody>
+  ${state.loads.length?state.loads.map(x=>{const w=byLoad.get(x.id);const status=w?'Final Weighment Received':'Pending Final Weighment';const action=w?`<button class="btn secondary mini" onclick="startItc('${x.id}')">View / Edit</button>`:`<button class="btn primary mini" onclick="startItc('${x.id}')">Enter Final Weighment</button>`;return `<tr><td><button class="btn secondary mini" onclick="startItc('${x.id}')">${esc(x.dc_number||x.load_number||'—')}</button></td><td>${fmtDate(x.load_date)}</td><td>${esc(x.vehicle_master?.vehicle_number||'')}</td><td>${esc(x.species_name||x.po_master?.species_name||'')}</td><td>${fmt(x.network_net)}</td><td>${esc(w?.wc_number||'—')}</td><td>${w?fmt(w.approved_weight):'—'}</td><td><span class="badge">${status}</span></td><td>${action}</td></tr>`}).join(''):`<tr><td colspan="9" class="empty">No loads available for final weighment.</td></tr>`}</tbody></table></div>`;
+}
+
+async function itcDetailPage(){const pre=state.selectedLoad;const w=pre?((await sb.from('itc_weighments').select('*').eq('load_id',pre.id).maybeSingle()).data):null;const x=pre||{};const draft=x.id?getItcDrafts()[x.id]:null;const base={wc:w?.wc_number||'',wcDate:w?.wc_date||'',vehicle:w?.vehicle_number||x.vehicle_master?.vehicle_number||'',gross:w?.gross_weight??'',tare:w?.tare_weight??'',net:w?.net_weight??'',approved:w?.approved_weight??''};const d=draft?{...base,...Object.fromEntries(Object.entries(draft).filter(([k,v])=>k==='approvedAuto'||(v!==''&&v!=null)))}:base;const autoApproved=draft?draft.approvedAuto:(w?.approved_weight==null);return `<div class="context">Active Contractor: <b>${esc(active()?.contractor_name)}</b></div><div class="back" onclick="go('itc')">← Back to Final Weighment</div><div class="topbar"><div><h1>Final Weighment — ${esc(x.dc_number||x.load_number||'')}</h1><div class="sub">Enter and verify the final weighment card for this load.</div></div><div class="card" style="min-width:260px"><div class="label">Load / DC</div><div style="font-weight:700;margin-top:5px">${esc(x.dc_number||x.load_number||'')}</div><div class="small" style="margin-top:4px">${esc(x.vehicle_master?.vehicle_number||'')} · ${esc(x.species_name||x.po_master?.species_name||'')}</div></div></div><div class="form"><div class="sectionhead">Final Weighment Details</div><div class="formgrid"><div class="field"><label>WC Number *</label><input id="wc" value="${esc(d.wc)}" oninput="this.value=this.value.toUpperCase()"></div><div class="field"><label>WC Date *</label><input id="wcDate" type="date" value="${esc(d.wcDate)}"></div><div class="field"><label>Vehicle Number *</label><input id="itcVehicle" value="${esc(d.vehicle)}"></div><div class="field"><label>DC Number</label><input id="itcDc" class="readonly" readonly value="${esc(w?.dc_number||x.dc_number||'')}"></div><div class="field"><label>DC Date</label><input id="itcDcDate" class="readonly" readonly value="${fmtDate(w?.dc_date||x.load_date||'')}"></div><div class="field"><label>Material Description</label><input id="itcMaterial" value="${esc(w?.material_description||x.species_name||x.po_master?.species_name||'')}"></div><div class="field"><label>Gross Weight (MT)</label><input id="itcGross" type="number" step="0.001" value="${d.gross}"></div><div class="field"><label>Tare Weight (MT)</label><input id="itcTare" type="number" step="0.001" value="${d.tare}"></div><div class="field"><label>Net Weight (MT)</label><input id="itcNet" class="readonly" readonly type="number" step="0.001" value="${d.net}"></div><div class="field"><label>Approved Weight (MT) *</label><input id="itcApproved" type="number" step="0.001" value="${d.approved}" data-auto="${autoApproved?'1':'0'}"><div class="small">Defaults to Net Weight. Change it only if ITC has approved a different quantity.</div></div></div><div class="actions"><button class="btn primary" onclick="compareItc()">Compare & Verify</button><button class="btn secondary" onclick="cancelItc()">Cancel</button></div></div>`}
+
+function selectItcLoad(){const previous=$('itcLoad')?.dataset.previousLoadId;if(previous&&previous!==$('itcLoad').value)saveItcDraft();const x=state.loads.find(v=>v.id===$('itcLoad').value);if(!x)return;state.selectedLoad=x;$('itcLoad').dataset.previousLoadId=x.id;const drafts=getItcDrafts();if(!drafts[x.id]){drafts[x.id]={wc:'',wcDate:'',vehicle:x.vehicle_master?.vehicle_number||'',gross:'',tare:'',net:'',approved:'',approvedAuto:true,savedAt:Date.now()};localStorage.setItem('wm360:draft:itcDrafts',JSON.stringify(drafts))}else if(!drafts[x.id].vehicle){drafts[x.id].vehicle=x.vehicle_master?.vehicle_number||'';localStorage.setItem('wm360:draft:itcDrafts',JSON.stringify(drafts))}render()}
+
+function cancelItc(){const id=state.selectedLoad?.id||$('itcLoad')?.value;if(id)clearItcDraft(id);state.selectedLoad=null;go('itc')}
+
+function cancelNewLoad(){clearForm('newload');state.editLoad=null;state.selectedLoad=null;go('loads')}
+
+async function compareItc(){
+const x=state.selectedLoad||state.loads.find(v=>v.id===state.selectedLoad?.id);
+if(!x)return alert('Select a load/DC.');
+const wc=$('wc').value.trim().toUpperCase(); $('wc').value=wc; const wcDate=$('wcDate').value, approved=$('itcApproved').value;
+if(!wc||!wcDate||!approved)return alert('WC Number, WC Date and Approved Weight are required.');
+const fields=[
+['WC Number','',wc,'text'],
+['WC Date','',wcDate,'date'],
+['Vehicle Number',x.vehicle_master?.vehicle_number||'', $('itcVehicle').value,'text'],
+['DC Number',x.dc_number||'', $('itcDc').value,'text'],
+['Material',x.species_name||x.po_master?.species_name||'', $('itcMaterial').value,'text'],
+['Gross Weight',fmt(x.network_gross),$('itcGross').value,'number'],
+['Tare Weight',fmt(x.network_tare),$('itcTare').value,'number'],
+['Net Weight',fmt(x.network_net),$('itcNet').value,'number'],
+['Approved Weight','',approved,'number']
+];
+const body=`<div class="compare"><div class="head">WoodMaster existing data</div><div class="head">ITC card / user verified data</div>${fields.map(([n,a,b,type])=>{
+const hasExisting=a!=='';
+const diff=hasExisting&&String(a)!==String(b);
+const id='cmp_'+n.replace(/\\W/g,'_');
+const readonly=n==='Net Weight';
+const extra=n==='WC Number'||n==='Vehicle Number'?'oninput="this.value=this.value.toUpperCase()"':'';
+return `<div><b>${esc(n)}</b><br>${hasExisting?esc(a):'<span class="small">Entered by user</span>'}</div><div class="${diff?'diff':''}"><b>${esc(n)}</b><br><input id="${id}" data-cmp="${esc(n)}" type="${type}" value="${esc(b)}" ${type==='number'?'step="0.001"':''} ${extra} ${readonly?'readonly class="readonly"':''} style="width:100%;padding:8px;border:1px solid #d0d5dd;border-radius:7px"></div>`;
+}).join('')}</div><div class="notice" style="margin-top:14px">Review the complete comparison before saving. WC Number, WC Date and Approved Weight come directly from your first Final Weighment screen entry; you do not need to type them again. Differences from WoodMaster data are highlighted. You may correct any value here before confirming.</div>`;
+showModal('Final Weighment Comparison',body,`saveComparedItc('${x.id}')`,'Confirm & Save Final Weighment')}
+
+function showModal(title,body,saveFn,saveLabel='Save'){closeModal();document.body.insertAdjacentHTML('beforeend',`<div class="modal" id="wmModal"><div class="modalbox"><div class="modalhead"><h2>${esc(title)}</h2><button class="modalclose" onclick="closeModal()">✕</button></div>${body}<div class="actions"><button class="btn primary" onclick="${saveFn}">${esc(saveLabel)}</button><button class="btn secondary" onclick="closeModal()">Cancel</button></div></div></div>`)}
+
+async function saveComparedItc(loadId){
+  const x=state.loads.find(v=>v.id===loadId)||state.selectedLoad;
+  if(!x)return alert('Load/DC context is missing. Please close this window, select the DC again, and retry.');
+  const modal=document.getElementById('wmModal');
+  const cmp=(name)=>modal?.querySelector('[data-cmp="'+name.replace(/"/g,'\\"')+'"]');
+  const wcEl=cmp('WC Number'),dateEl=cmp('WC Date'),apEl=cmp('Approved Weight');
+  if(!modal||!wcEl||!dateEl||!apEl)return alert('The comparison data could not be read. Please close the comparison and try again.');
+  const wc=wcEl.value.trim().toUpperCase(),d=dateEl.value,ap=num(apEl.value); wcEl.value=wc;
+  if(!wc||!d||ap<=0)return alert('WC Number, WC Date and Approved Weight are required.');
+  const g=num(cmp('Gross Weight')?.value),t=num(cmp('Tare Weight')?.value);
+  if(g<0||t<0||g<t)return alert('Please verify Gross and Tare Weight. Gross Weight cannot be less than Tare Weight.');
+  const n=Number((g-t).toFixed(3));
+  const netEl=cmp('Net Weight'); if(netEl)netEl.value=n.toFixed(3);
+  const vehicle=cmp('Vehicle Number')?.value.trim().toUpperCase()||'';
+  const material=cmp('Material')?.value.trim()||'';
+  const dc=cmp('DC Number')?.value.trim()||x.dc_number||'';
+  const row={load_id:loadId,wc_number:wc,wc_date:d,vehicle_number:vehicle,dc_number:dc,dc_date:x.load_date,material_description:material,gross_weight:g,tare_weight:t,net_weight:n,approved_weight:ap,ocr_verified:true,source:'Manual',created_by:state.session?.user?.id||null};
+  const saveBtn=document.querySelector('#wmModal .actions .primary:last-of-type, #wmModal .actions .primary');
+  if(saveBtn){saveBtn.disabled=true;saveBtn.textContent='Saving…';}
+  try{
+    // Update an existing ITC record for this load; otherwise insert a new one.
+    // This avoids ambiguous upsert behavior when WC Number is globally unique.
+    const existing=await sb.from('itc_weighments').select('id').eq('load_id',loadId).maybeSingle();
+    if(existing.error)throw existing.error;
+    let r;
+    if(existing.data){
+      r=await sb.from('itc_weighments').update(row).eq('id',existing.data.id).select().single();
+    }else{
+      r=await sb.from('itc_weighments').insert(row).select().single();
+    }
+    if(r.error){
+      if(String(r.error.message||'').toLowerCase().includes('duplicate')||String(r.error.message||'').toLowerCase().includes('unique')){
+        throw new Error(`WC Number '${wc}' already exists for another load. Please verify the WC Number before saving.`);
+      }
+      throw r.error;
+    }
+    const sr=await sb.from('loads').update({status:'ITC Weighment Received'}).eq('id',loadId);
+    if(sr.error)throw sr.error;
+    if(vehicle){
+      let v=state.vehicles.find(z=>z.vehicle_number.toUpperCase()===vehicle);
+      if(v){
+        const vr=await sb.from('vehicle_master').update({current_tare:t,last_itc_tare_date:d}).eq('id',v.id);
+        if(vr.error)throw vr.error;
+      }
+    }
+    clearItcDraft(loadId);
+    closeModal();
+    state.selectedLoad=state.loads.find(v=>v.id===loadId)||x;
+    alert('Final Weighment saved successfully.');
+    await refreshLoads();
+    state.selectedLoad=state.loads.find(v=>v.id===loadId)||null;
+    state.page='itc';
+    await render();
+  }catch(err){
+    console.error('ITC save failed',err);
+    alert('Final Weighment was not saved.\n\n'+(err?.message||String(err)));
+    if(saveBtn){saveBtn.disabled=false;saveBtn.textContent='Confirm & Save Final Weighment';}
+  }
+}
+
 function openFreight(id){
  state.selectedLoad=state.loads.find(x=>x.id===id)||null;
  state.page='freightdetail';
