@@ -166,7 +166,7 @@ async function generatePackage(id){
    const taxableMaterial=networkNet*woodRate, other=networkNet*handling, cgW=taxableMaterial*.09, sgW=cgW, cgO=other*.09, sgO=cgO;
    const totalWood=taxableMaterial+cgW+sgW,totalOther=other+cgO+sgO,totalTaxable=taxableMaterial+other,totalCG=cgW+cgO,totalSG=sgW+sgO,totalValue=totalTaxable+totalCG+totalSG;
    const dataTop=tTop+hh;
-   line(left,dataTop+rh,x[2],dataTop+rh,1.0);line(left,dataTop+2*rh,x[2],dataTop+2*rh,1.0);line(left,dataTop+3*rh,right,dataTop+3*rh,1.1);
+   line(left,dataTop+rh,x[2],dataTop+rh,1.0);line(x[5],dataTop+rh,right,dataTop+rh,1.0);line(left,dataTop+2*rh,x[2],dataTop+2*rh,1.0);line(left,dataTop+3*rh,right,dataTop+3*rh,1.1);
    hcenter(hsn,x[2],x[3],dataTop+1.5*rh+4,10.5,false);hcenter(networkNet.toFixed(3),x[3],x[4],dataTop+1.5*rh+4,10.5,false);hcenter('MTS',x[4],x[5],dataTop+1.5*rh+4,10.5,false);
    hcenter('1',x[0],x[1],dataTop+24,10.5,false);wrapByWidth(material,x[2]-x[1]-12,11,true).slice(0,2).forEach((s,i)=>text(s,x[1]+6,dataTop+18+i*13,11,true));
    text(money2(taxableMaterial),x[6]-5,dataTop+24,10.5,false,'right');text(money2(cgW),x[7]-5,dataTop+24,10.5,false,'right');text(money2(sgW),x[8]-5,dataTop+24,10.5,false,'right');text(money2(totalWood),x[9]-5,dataTop+24,10.5,false,'right');
