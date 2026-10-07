@@ -764,47 +764,201 @@ async function finalizeMaterialInvoice(id){
 }
 async function printMaterialInvoice(id){
   try{
+    if(!window.jspdf?.jsPDF)return alert('PDF generator is still loading. Please try again.');
     const {invoice,items}=await getMaterialInvoiceBundle(id);
     if(!invoice)return;
+
     const contractor=active()||{};
-    const itc=state.itcs.find(x=>x.id===invoice.itc_id)||state.itcs.find(x=>x.is_default)||state.itcs[0]||{};
-    let customer={};
-    const poIds=items.map(x=>x.po_id).filter(Boolean);
-    if(poIds.length){
-      const pr=await sb.from('po_master').select('customer_id,customer_master(*)').in('id',poIds).limit(1);
-      if(!pr.error&&pr.data?.[0]?.customer_master)customer=pr.data[0].customer_master;
+    const loadIds=items.map(x=>x.load_id).filter(Boolean);
+    let loads=[];
+    if(loadIds.length){
+      const lr=await sb.from('loads').select(`
+        id,po_id,species_name,
+        po_master(po_number,area_name,species_name,wood_rate,handling_other_rate,hsn_code,customer_id,customer_master(*))
+      `).in('id',loadIds);
+      if(lr.error)throw lr.error;
+      loads=lr.data||[];
     }
-    if(!customer.gstin)customer={customer_name:itc.company_name||'ITC LTD - PSPD',gstin:itc.gstin||'',pan:itc.pan||'',address:itc.address||''};
-    const totalQty=num(invoice.total_qty), mv=num(invoice.material_value), hv=num(invoice.handling_value), gst=num(invoice.gst), total=num(invoice.invoice_total);
-    const rows=items.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(fmtDate(x.wc_date))}</td><td>${esc(x.wc_number||'')}</td><td>${esc(String(x.vehicle_number||'').toUpperCase())}</td><td class="num">${fmt(x.approved_qty)}</td><td>MT</td></tr>`).join('');
-    const rate=items.length?num(items[0].wood_rate):0, handlingRate=items.length?num(items[0].handling_rate):0;
-    const html=`<!doctype html><html><head><meta charset="utf-8"><title>Tax Invoice ${esc(invoice.invoice_number)}</title><style>
-      @page{size:A4;margin:12mm}body{font-family:Arial,Helvetica,sans-serif;color:#111;font-size:11px;margin:0}.sheet{width:100%}h1{text-align:center;font-size:18px;margin:0 0 4px}.subtitle{text-align:center;font-weight:bold;font-size:13px;margin-bottom:10px}.top{display:grid;grid-template-columns:1fr 1fr;border:1px solid #111}.box{padding:7px;border-right:1px solid #111;min-height:85px}.box:last-child{border-right:0}.label{font-weight:bold}.meta{margin:8px 0}.meta table,.lines,.summary{width:100%;border-collapse:collapse}.meta td{padding:3px 5px}.lines th,.lines td,.summary th,.summary td{border:1px solid #111;padding:5px}.lines th{background:#f2f2f2}.num{text-align:right}.summary{margin-top:8px}.summary td:first-child{font-weight:bold}.footer{margin-top:18px;display:flex;justify-content:space-between}.draft{position:fixed;top:45%;left:20%;font-size:60px;color:#bbb;transform:rotate(-25deg);opacity:.25;z-index:-1}
-      @media print{button{display:none}}
-    </style></head><body><div class="sheet">${invoice.status==='Draft'?'<div class="draft">DRAFT</div>':''}<h1>TAX INVOICE</h1><div class="subtitle">Invoice No: ${esc(invoice.invoice_number)} &nbsp;&nbsp; Date: ${esc(fmtDate(invoice.invoice_date))}</div>
-      <div class="top"><div class="box"><div class="label">To</div><b>${esc(customer.customer_name||'ITC LTD - PSPD')}</b><br>${esc(customer.address||'')}<br>PAN: ${esc(customer.pan||'')}<br>GSTIN: ${esc(customer.gstin||'')}</div><div class="box"><div class="label">From</div><b>${esc(contractor.contractor_name||'')}</b><br>${esc(contractor.address||'')}<br>PAN: ${esc(contractor.pan||'')}<br>GSTIN: ${esc(contractor.gstin||'')}<br>Vendor Code: ${esc(contractor.contractor_code||'')}</div></div>
-      <div class="meta"><table><tr><td><b>1. Period From</b> ${esc(fmtDate(invoice.from_date))} To ${esc(fmtDate(invoice.to_date))}</td><td><b>2. HSN Code</b> ${esc(items[0]?.hsn_code||'44039800')}</td></tr><tr><td><b>3. Material</b> Eucalyptus Debarked Wood</td><td><b>4. Place of Supply</b> ITC Ltd - PSPD, Sarapaka (Telangana State)</td></tr><tr><td colspan="2"><b>5. Payment</b> E-Payment</td></tr></table></div>
-      <table class="lines"><thead><tr><th>S.No</th><th>Date</th><th>WC Number</th><th>Truck Number</th><th>Qty</th><th>UOM</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><th colspan="4" class="num">Total Quantity</th><th>${fmt(totalQty)}</th><th>MT</th></tr></tfoot></table>
-      <table class="summary"><tr><th>Particulars</th><th>Quantity</th><th>Rate</th><th>Amount</th></tr><tr><td>Material Cost</td><td class="num">${fmt(totalQty)}</td><td class="num">${money(rate)}</td><td class="num">${money(mv)}</td></tr><tr><td>Handling and Other Charges Cost</td><td class="num">${fmt(totalQty)}</td><td class="num">${money(handlingRate)}</td><td class="num">${money(hv)}</td></tr><tr><th>Total</th><th class="num">${fmt(totalQty)}</th><th class="num">${money(rate+handlingRate)}</th><th class="num">${money(mv+hv)}</th></tr><tr><td colspan="3">CGST 9%</td><td class="num">${money(gst/2)}</td></tr><tr><td colspan="3">SGST 9%</td><td class="num">${money(gst/2)}</td></tr><tr><th colspan="3">Total Invoice Value</th><th class="num">${money(total)}</th></tr></table>
-      <div class="meta"><b>Ref: Agreement / PO No:</b> ${esc(items[0]?.po_number||'')}</div><div class="meta"><b>Total Qty:</b> ${fmt(totalQty)} MT</div><div class="footer"><div>Yours faithfully<br><br>For ${esc(contractor.contractor_name||'')}</div><div><b>${invoice.status==='Draft'?'DRAFT INVOICE':'TAX INVOICE'}</b></div></div>
-      </div></body></html>`;
-    if(!window.html2pdf)return alert('PDF download library is still loading. Please try again.');
-    const parsed=new DOMParser().parseFromString(html,'text/html');
-    const sheet=parsed.querySelector('.sheet');
-    if(!sheet)throw new Error('Invoice layout could not be prepared.');
-    const holder=document.createElement('div');
-    holder.className='wm-invoice-export';
-    holder.style.cssText='position:fixed;left:-10000px;top:0;width:794px;background:white;color:#111;z-index:-1;';
-    const style=document.createElement('style');
-    style.textContent=(parsed.querySelector('style')?.textContent||'').replace(/@page\s*\{[^}]*\}/g,'').replace(/@media print\s*\{[^}]*\}/g,'').replace(/(^|})\s*body\s*\{/g,'$1 .wm-invoice-export {');
-    holder.appendChild(style);
-    holder.appendChild(document.importNode(sheet,true));
-    document.body.appendChild(holder);
-    try{
-      const filename=(invoice.status==='Draft'?'Draft_Material_Invoice_':'Material_Invoice_')+String(invoice.invoice_number||id).replace(/[^a-zA-Z0-9_-]/g,'_')+'.pdf';
-      await window.html2pdf().set({margin:12,filename,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,backgroundColor:'#ffffff',useCORS:true,scrollX:0,scrollY:0},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(holder).save();
-    }finally{holder.remove();}
-  }catch(e){alert(`Could not download invoice PDF: ${e.message||e}`)}
+    const loadMap=new Map(loads.map(x=>[x.id,x]));
+    const enriched=items.map(x=>({...x,load:loadMap.get(x.load_id)||null}));
+    const firstLoad=enriched.find(x=>x.load)||{};
+    const po=firstLoad.load?.po_master||{};
+
+    let customer=po.customer_master||{};
+    if(!customer?.customer_name && po.customer_id){
+      const cr=await sb.from('customer_master').select('*').eq('id',po.customer_id).maybeSingle();
+      if(!cr.error&&cr.data)customer=cr.data;
+    }
+    if(!customer?.customer_name){
+      const itc=state.itcs.find(x=>x.id===invoice.itc_id)||state.itcs.find(x=>x.is_default)||state.itcs[0]||{};
+      customer={customer_name:itc.company_name||'ITC LTD - PSPD',gstin:itc.gstin||'',pan:itc.pan||'',address:itc.address||''};
+    }
+
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'a4',compress:true});
+    const PW=595.28, PH=841.89;
+    const left=42, right=553, width=right-left;
+    const black=[0,0,0];
+    const safe=v=>String(v??'').replace(/₹/g,'Rs. ').replace(/\u00a0/g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...');
+    const moneyPlain=v=>Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const qty3=v=>Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:3,maximumFractionDigits:3});
+    const set=(size=9,bold=false)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(...black);};
+    const text=(t,x,y,size=9,bold=false,align='left')=>{set(size,bold);doc.text(safe(t),x,y,{align});};
+    const line=(x1,y1,x2,y2,w=0.8)=>{doc.setLineWidth(w);doc.setDrawColor(...black);doc.line(x1,y1,x2,y2);};
+    const rect=(x,y,w,h,lw=0.8)=>{doc.setLineWidth(lw);doc.setDrawColor(...black);doc.rect(x,y,w,h);};
+    const center=(t,x1,x2,y,size=8,bold=false)=>text(t,(x1+x2)/2,y,size,bold,'center');
+    const wrap=(t,max,size=8,bold=false)=>{set(size,bold);return doc.splitTextToSize(safe(t),max);};
+
+    // The invoice is intentionally drawn to match the uploaded one-page reference:
+    // plain black/white, compact A4 portrait, no coloured boxes, same section order,
+    // same four-column quantity/rate/amount table and the same tax summary structure.
+    text('TAX INVOICE',PW/2,39,13,true,'center');
+    text('Tax Invoice NO:',left,60,9.5,true);text(invoice.invoice_number||'',left+105,60,10,true);
+    text('Date:',right,60,9.5,true,'right');text(fmtDate(invoice.invoice_date),right,60,10,true,'right');
+
+    text('To',left,88,9.5,false);
+    text('From',310,88,9.5,false);
+
+    const customerLines=[
+      customer.customer_name||'ITC LTD - PSPD',
+      ...(String(customer.address||'').split(/\n|,/).map(x=>x.trim()).filter(Boolean)),
+      `PAN No: ${customer.pan||''}`,
+      `GST NO: ${customer.gstin||''}`
+    ];
+    const supplierLines=[
+      contractor.contractor_name||'SRI VENKATESHWARA TRADERS',
+      ...(String(contractor.address||'').split(/\n|,/).map(x=>x.trim()).filter(Boolean)),
+      `Telangana State (Code 36)`,
+      `Cell : ${contractor.phone||contractor.mobile||''}`,
+      `Vendor Code: ${contractor.contractor_code||''}`,
+      `PAN NO: ${contractor.pan||''}`,
+      `GST NO: ${contractor.gstin||''}`
+    ];
+    customerLines.forEach((v,i)=>text(v,left,106+i*14,8.8,i===0,true));
+    supplierLines.forEach((v,i)=>text(v,310,106+i*14,8.8,i===0,true));
+
+    let y=193;
+    const poNo=po.po_number||'';
+    const material=po.species_name||firstLoad.load?.species_name||'Eucalyptus Debarked Wood';
+    const hsn=po.hsn_code||'44039800';
+    const place=customer.address ? `${customer.customer_name||'ITC Ltd - PSPD'}` : 'ITC Ltd - PSPD, Sarapaka (Telangana State)';
+    const meta=[
+      ['1','Period From',`${fmtDate(invoice.from_date)} To ${fmtDate(invoice.to_date)}`],
+      ['2','HSN Code',hsn],
+      ['3','Material',material],
+      ['4','Place of Supply',place],
+      ['5','Payment','E-Payment']
+    ];
+    meta.forEach((m,i)=>{text(m[0],left,y,8.8);text(m[1],left+17,y,8.8);text(m[2],left+105,y,8.8);y+=17;});
+    text(`Ref: Agreement No: PO No: ${poNo}`,PW/2,y+1,8.8,true,'center');
+    text(`Direct supply to ${place}`,PW/2,y+19,8.8,true,'center');
+    y+=39;
+
+    const tableTop=y, headerH=22, rowH=19;
+    const cols=[left,left+42,left+112,left+222,left+326,right];
+    rect(left,tableTop,width,headerH,0.8);
+    for(let i=1;i<cols.length-1;i++)line(cols[i],tableTop,cols[i],tableTop+headerH,0.8);
+    center('S.No',cols[0],cols[1],tableTop+15,8,true);
+    center('Date',cols[1],cols[2],tableTop+15,8,true);
+    center('WC Number',cols[2],cols[3],tableTop+15,8,true);
+    center('Truck Number',cols[3],cols[4],tableTop+15,8,true);
+    center('Qty',cols[4],cols[5],tableTop+15,8,true);
+    center('UOM',cols[5],cols[6],tableTop+15,8,true);
+
+    let rowY=tableTop+headerH;
+    const maxRows=8;
+    const invoiceRows=enriched.slice(0,maxRows);
+    invoiceRows.forEach((x,i)=>{
+      rect(left,rowY,width,rowH,0.8);
+      for(let c=1;c<cols.length-1;c++)line(cols[c],rowY,cols[c],rowY+rowH,0.8);
+      center(String(i+1),cols[0],cols[1],rowY+13,7.8);
+      center(fmtDate(x.wc_date||x.load?.load_date),cols[1],cols[2],rowY+13,7.6);
+      center(x.wc_number||'',cols[2],cols[3],rowY+13,7.5);
+      center(String(x.vehicle_number||x.load?.vehicle_number||'').toUpperCase(),cols[3],cols[4],rowY+13,7.5);
+      center(qty3(x.approved_qty),cols[4],cols[5],rowY+13,7.8);
+      center('MT',cols[5],cols[6],rowY+13,7.8);
+      rowY+=rowH;
+    });
+    // Blank rows keep the reference table visually stable while allowing up to 8 loads.
+    for(let i=invoiceRows.length;i<maxRows;i++){
+      rect(left,rowY,width,rowH,0.8);
+      for(let c=1;c<cols.length-1;c++)line(cols[c],rowY,cols[c],rowY+rowH,0.8);
+      rowY+=rowH;
+    }
+    rect(left,rowY,width,rowH,0.8);
+    line(cols[4],rowY,cols[4],rowY+rowH,0.8);line(cols[5],rowY,cols[5],rowY+rowH,0.8);
+    text('Total Qty',cols[4]-6,rowY+13,8,true,'right');
+    text(qty3(invoice.total_qty),cols[5]-6,rowY+13,8,true,'right');
+    text('MT',cols[5]+8,rowY+13,8,true);
+    rowY+=rowH+10;
+
+    const summaryTop=rowY;
+    const sc=[left,left+205,left+335,right];
+    const sh=20;
+    const sumRows=[
+      ['Particulars','Quantity','Rate','Amount'],
+      ['Material Cost (Price as determined by AMC)',qty3(invoice.total_qty),moneyPlain(enriched[0]?.wood_rate||po.wood_rate||0),moneyPlain(invoice.material_value)],
+      ['Handling and Other Charges Cost',qty3(invoice.total_qty),moneyPlain(enriched[0]?.handling_rate||po.handling_other_rate||0),moneyPlain(invoice.handling_value)],
+      ['FSC Premium','', '-', '-'],
+      ['Total',qty3(invoice.total_qty),moneyPlain((num(enriched[0]?.wood_rate||po.wood_rate)+num(enriched[0]?.handling_rate||po.handling_other_rate))),moneyPlain(num(invoice.material_value)+num(invoice.handling_value))],
+      ['Deduction','','','-'],
+      ['Gross Amount','','',moneyPlain(num(invoice.material_value)+num(invoice.handling_value))],
+      ['SGST','', '9%', moneyPlain(num(invoice.gst)/2)],
+      ['CGST','', '9%', moneyPlain(num(invoice.gst)/2)],
+      ['Total Tax Amount','','',moneyPlain(invoice.gst)],
+      ['Total Invoice Value','','',moneyPlain(invoice.invoice_total)]
+    ];
+    sumRows.forEach((r,ri)=>{
+      const h=(ri===0?21:20);
+      rect(left,rowY,width,h,0.8);
+      for(let c=1;c<sc.length-1;c++)line(sc[c],rowY,sc[c],rowY+h,0.8);
+      const bold=ri===0||[4,6,9,10].includes(ri);
+      center(r[0],sc[0],sc[1],rowY+(ri===0?14:13),7.8,bold);
+      center(r[1],sc[1],sc[2],rowY+(ri===0?14:13),7.8,bold);
+      center(r[2],sc[2],sc[3],rowY+(ri===0?14:13),7.8,bold);
+      text(r[3],sc[3]-6,rowY+(ri===0?14:13),7.8,bold,'right');
+      rowY+=h;
+    });
+
+    const qtyWords=n=>{
+      const s=Number(n||0).toFixed(3),[a,b]=s.split('.');
+      const base=numberWordsIndian(Number(a)).replace(/ Rupees Only$/i,'');
+      const digits=b.split('').map(d=>['ZERO','ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE'][Number(d)]).join(' ');
+      return `${base.toUpperCase()} POINT ${digits} (MT)`;
+    };
+    const amountWords=n=>{
+      const v=Number(n||0);const rupees=Math.floor(v+1e-9);const paise=Math.round((v-rupees)*100);
+      let s=numberWordsIndian(rupees).replace(/ Rupees Only$/i,'').toUpperCase();
+      if(paise>0){const pw=numberWordsIndian(paise).replace(/ Rupees Only$/i,'').toUpperCase();s+=` RUPEES AND ${pw} PAISA ONLY`;}else s+=' RUPEES ONLY';
+      return s;
+    };
+    rowY+=15;
+    text('Qty:',left,rowY,8.5);text(qtyWords(invoice.total_qty),left+45,rowY,8.5,true);rowY+=23;
+    text('Amount:',left,rowY,8.5);const aw=wrap(amountWords(invoice.invoice_total),right-left-58,8.5,true);aw.forEach((ln,i)=>text(ln,left+58,rowY+i*13,8.5,true));rowY+=aw.length*13+28;
+    text('Yours faithfully',left,rowY,8.5);rowY+=50;
+    text(`For ${contractor.contractor_name||'Sri Venkateshwara Traders'}`,left,rowY,8.5,true);
+
+    // If more than eight invoice lines exist, append a continuation page rather than
+    // changing the reference page design or squeezing unreadable rows into it.
+    if(enriched.length>maxRows){
+      doc.addPage();
+      text('TAX INVOICE - CONTINUATION',PW/2,45,12,true,'center');
+      text(`Invoice No: ${invoice.invoice_number}`,left,67,9,true);
+      text(`Date: ${fmtDate(invoice.invoice_date)}`,right,67,9,true,'right');
+      const ct=90, ch=22;
+      const cc=[left,left+42,left+112,left+222,left+326,right];
+      rect(left,ct,width,ch,0.8);for(let c=1;c<cc.length-1;c++)line(cc[c],ct,cc[c],ct+ch,0.8);
+      ['S.No','Date','WC Number','Truck Number','Qty','UOM'].forEach((v,i)=>center(v,cc[i],cc[i+1],ct+15,8,true));
+      let cy=ct+ch;
+      enriched.slice(maxRows).forEach((x,j)=>{
+        rect(left,cy,width,rowH,0.8);for(let c=1;c<cc.length-1;c++)line(cc[c],cy,cc[c],cy+rowH,0.8);
+        center(String(j+maxRows+1),cc[0],cc[1],cy+13,7.8);center(fmtDate(x.wc_date||x.load?.load_date),cc[1],cc[2],cy+13,7.6);center(x.wc_number||'',cc[2],cc[3],cy+13,7.5);center(String(x.vehicle_number||'').toUpperCase(),cc[3],cc[4],cy+13,7.5);center(qty3(x.approved_qty),cc[4],cc[5],cy+13,7.8);center('MT',cc[5],cc[6],cy+13,7.8);cy+=rowH;
+      });
+    }
+
+    const filename=(invoice.status==='Draft'?'Draft_Material_Invoice_':'Material_Invoice_')+String(invoice.invoice_number||id).replace(/[^a-zA-Z0-9_-]/g,'_')+'.pdf';
+    doc.save(filename);
+  }catch(e){console.error(e);alert(`Could not download invoice PDF: ${e.message||e}`)}
 }
 async function deleteMaterialInvoice(id){
   try{
