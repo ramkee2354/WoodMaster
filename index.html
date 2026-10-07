@@ -5,6 +5,7 @@
 <title>WoodMaster 360</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;--line:#e4e7ec;--primary:#1769aa;--primary2:#0f5d93;--success:#16845b;--danger:#c62828;--warn:#b26a00;--info:#eef7ff}
 *{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text)}button,input,select,textarea{font:inherit}header{height:64px;background:#123b5d;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:10}.brand{font-size:21px;font-weight:700}.user{font-size:13px;opacity:.9}.layout{display:flex;min-height:calc(100vh - 64px)}nav{width:215px;background:#fff;border-right:1px solid var(--line);padding:14px;flex:none}nav button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:11px 12px;border-radius:8px;margin:3px 0;color:#344054;cursor:pointer;font-size:14px}nav button:hover,nav button.active{background:#eaf3fb;color:#125a8d;font-weight:600}main{flex:1;padding:25px;max-width:1550px;margin:auto;width:100%}h1{font-size:25px;margin:0 0 6px}h2{font-size:19px;margin:0 0 14px}.sub{color:var(--muted);font-size:13px;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.card,.form{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:0 1px 2px #00000008}.metric{font-size:27px;font-weight:700;margin-top:7px}.label{font-size:12px;color:var(--muted)}.section{margin-top:18px}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff}table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:10px 11px;border-bottom:1px solid var(--line);text-align:left;font-size:13px;vertical-align:top}th{color:#475467;background:#fafafa}.empty{text-align:center;padding:28px;color:var(--muted)}.formgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.field label{display:block;font-size:12px;font-weight:600;color:#475467;margin-bottom:6px}.field input,.field select,.field textarea{width:100%;padding:10px 11px;border:1px solid #d0d5dd;border-radius:8px;background:#fff;outline:none}.field textarea{min-height:75px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px #1769aa18}.field.full{grid-column:1/-1}.readonly{background:#f2f4f7!important}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.btn{border:0;border-radius:8px;padding:10px 15px;cursor:pointer;font-weight:600}.primary{background:var(--primary);color:#fff}.primary:hover{background:var(--primary2)}.secondary{background:#eef2f6;color:#344054}.danger{background:#fff0f0!important;color:var(--danger)!important;border:1px solid #f3c3c3!important}.success{background:#effaf5!important;color:#11633f!important;border:1px solid #bde8d1!important}.notice{padding:12px 14px;border-radius:8px;background:#eef7ff;border:1px solid #cfe7fb;color:#17527c;font-size:13px;margin-bottom:15px}.notice.error{background:#fff1f1;border-color:#f3c3c3;color:#9d1c1c}.notice.success{background:#effaf5;border-color:#bde8d1;color:#11633f}.small{font-size:12px;color:var(--muted)}.badge{display:inline-block;padding:4px 8px;border-radius:99px;background:#eef4f8;font-size:11px;color:#355b73}.topbar{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;flex-wrap:wrap}.context{background:#eaf3fb;border:1px solid #c9e1f3;border-radius:9px;padding:10px 13px;margin-bottom:18px;color:#15527c;font-size:13px}.contractor-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.contractor-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;cursor:pointer}.contractor-card:hover{box-shadow:0 7px 22px #00000010;border-color:#9fc9e6}.contractor-name{font-size:18px;font-weight:700;margin-top:8px}.contractor-meta{font-size:12px;color:var(--muted);margin-top:5px}.quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.quick button{text-align:left;background:#fff;border:1px solid var(--line);border-radius:10px;padding:15px;cursor:pointer}.quick button:hover{border-color:#9fc9e6;background:#fafdff}.quick b{display:block;margin-bottom:4px}.login{min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#edf5fb,#f7fafc);padding:20px}.loginbox{width:min(440px,100%);background:#fff;border:1px solid var(--line);border-radius:15px;padding:28px;box-shadow:0 10px 30px #00000010}.loginbox h1{text-align:center;margin-bottom:4px}.loginbox .sub{text-align:center}.modal{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;padding:18px;z-index:100}.modalbox{width:min(950px,100%);max-height:94vh;overflow:auto;background:#fff;border-radius:14px;padding:20px;box-shadow:0 20px 60px #00000030}.modalhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px}.modalclose{border:0;background:#eef2f6;border-radius:8px;padding:8px 12px;cursor:pointer}.rowactions{display:flex;gap:6px;flex-wrap:wrap}.mini{padding:6px 9px;font-size:12px;border-radius:7px}.sectionhead{background:#eaf3fb;border:1px solid #c9e1f3;border-radius:10px;padding:11px 13px;font-weight:700;color:#15527c;margin-top:15px}.docgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.doccard{border:1px solid var(--line);background:#fff;border-radius:10px;padding:14px}.compare{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}.compare>div{padding:10px;border-bottom:1px solid var(--line)}.compare .head{font-weight:700;background:#f7f9fb}.compare .diff{background:#fff6e6}.statusbar{padding:10px;border-radius:8px;background:#f7f9fb;border:1px solid var(--line);font-size:12px}.sticky-actions{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);padding:12px 0;margin-top:15px}.hidden{display:none!important}
@@ -68,374 +69,82 @@ function openDocsModal(id){documentModal(id)}
 async function generatePackage(id){
  const x=state.loads.find(v=>v.id===id); if(!x)return;
  const pkg=$('docPackage')?.value||'LRDC'; const p=x.po_master||{};
- if(!window.PDFLib)return alert('PDF generator is still loading. Please try again.');
+ if(!window.jspdf?.jsPDF)return alert('PDF generator is still loading. Please try again.');
  try{
-  const {PDFDocument,StandardFonts,rgb}=PDFLib;
-  const out=await PDFDocument.create();
-  const font=await out.embedFont(StandardFonts.Helvetica);
-  const bold=await out.embedFont(StandardFonts.HelveticaBold);
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'a4',compress:true});
   const PW=595.28,PH=841.89,left=34,right=561,width=right-left;
-  const black=rgb(0,0,0),light=rgb(.93,.93,.93),white=rgb(1,1,1);
+  const black=[0,0,0], light=[235,235,235];
   const safe=v=>String(v??'').replace(/₹/g,'Rs. ').replace(/\u00a0/g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'?');
-  const txt=(pg,t,x,y,size=9,b=false,align='left')=>{const str=safe(t),fn=b?bold:font,tw=fn.widthOfTextAtSize(str,size);let xx=x;if(align==='center')xx=x-tw/2;else if(align==='right')xx=x-tw;pg.drawText(str,{x:xx,y,size,font:fn,color:black});};
-  const line=(pg,x1,y1,x2,y2=y1,bw=1)=>{
-    if(typeof pg?.drawLine==='function'){pg.drawLine({start:{x:x1,y:y1},end:{x:x2,y:y2},thickness:bw,color:black});return;}
-    if(typeof pg?.drawRectangle==='function'){
-      const t=Math.max(bw,0.5);
-      if(Math.abs(y2-y1)<0.01) pg.drawRectangle({x:Math.min(x1,x2),y:y1-t/2,width:Math.abs(x2-x1),height:t,color:black,borderWidth:0});
-      else if(Math.abs(x2-x1)<0.01) pg.drawRectangle({x:x1-t/2,y:Math.min(y1,y2),width:t,height:Math.abs(y2-y1),color:black,borderWidth:0});
-      return;
-    }
-    if(typeof pg?.drawSvgPath==='function'){
-      pg.drawSvgPath(`M ${x1} ${y1} L ${x2} ${y2}`,{borderColor:black,borderWidth:bw}); return;
-    }
-    // Last-resort compatibility fallback for unusual PDF page implementations.
-    const horizontal=Math.abs(y2-y1)<0.01;
-    const len=Math.max(1,Math.round(Math.hypot(x2-x1,y2-y1)/3));
-    pg.drawText(horizontal?'-'.repeat(len):'|',{x:x1,y:y1-2,size:4,font, color:black});
-  };
-  const vline=(pg,x,y1,y2,bw=1)=>line(pg,x,y1,x,y2,bw);
-  const rect=(pg,x,y,w,h,fill=null,bw=1)=>{if(typeof pg.drawRectangle==='function'){const o={x,y,width:w,height:h,borderColor:black,borderWidth:bw};if(fill)o.color=fill;pg.drawRectangle(o);}else{line(pg,x,y,x+w,y,bw);line(pg,x,y,x,y+h,bw);line(pg,x+w,y,x+w,y+h,bw);line(pg,x,y+h,x+w,y+h,bw);}};
-  const wrap=(str,max)=>{const words=String(str||'').split(/\s+/).filter(Boolean),lines=[];let cur='';for(const wd of words){const t=(cur+' '+wd).trim();if(cur&&t.length>max){lines.push(cur);cur=wd}else cur=t}if(cur)lines.push(cur);return lines;};
-
+  const money2=v=>Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const wrap=(str,maxChars)=>{const words=String(str??'').trim().split(/\s+/).filter(Boolean),lines=[];let cur='';for(const wd of words){const t=(cur+' '+wd).trim();if(cur&&t.length>maxChars){lines.push(cur);cur=wd}else cur=t}if(cur)lines.push(cur);return lines;};
+  const set=(size=9,b=false)=>{doc.setFont('helvetica',b?'bold':'normal');doc.setFontSize(size);doc.setTextColor(...black);};
+  const text=(t,x,y,size=9,b=false,align='left')=>{set(size,b);doc.text(safe(t),x,y,{align});};
+  const line=(x1,y1,x2,y2=y1,w=1)=>{doc.setDrawColor(...black);doc.setLineWidth(w);doc.line(x1,y1,x2,y2);};
+  const rect=(x,y,w,h,fill=null,bw=1)=>{doc.setDrawColor(...black);doc.setLineWidth(bw);if(fill){doc.setFillColor(...fill);doc.rect(x,y,w,h,'FD')}else doc.rect(x,y,w,h,'S');};
+  const section=(title,y)=>{rect(left,y,width,20,light,1.1);text(title,PW/2,y+14,9.5,true,'center');};
+  const addrRaw=active()?.address||'15-8-539, Rama Devi Nilayam, Rotary Nagar, Srinagar Colony, Khammam District, Telangana - 507002';
+  const addr=String(addrRaw).replace(/^\s*\d+(?:[-\/]\d+)*\s*,?\s*/,'').replace(/\s*-\s*539\b/g,'').replace(/\s{2,}/g,' ').trim();
   const fullContractorName=active()?.contractor_name||'SRI VENKATESHWARA TRADERS';
   const shortContractor='S V TRADERS';
-  let addr=active()?.address||'Rama Devi Nilayam, Rotary Nagar, Srinagar Colony, Khammam District, Telangana - 507002';
-  addr=String(addr).replace(/^\s*\d+(?:[-\/]\d+)*\s*,?\s*/,'').replace(/\s*-\s*539\b/g,'').replace(/\s{2,}/g,' ').trim();
   const vehicle=String(x.vehicle_master?.vehicle_number||'').toUpperCase();
-  const poNo=p.po_number||'';
-  const material=x.species_name||p.species_name||'Eucalyptus Debarked Wood';
-  const hsn=p.hsn_code||'44039800';
-  // DC quantity MUST be the Network Weighbridge/New Load quantity.
-  const networkNet=num(x.network_net||0), gross=num(x.network_gross||0), tare=num(x.network_tare||0);
-  const woodRate=num(p.wood_rate??x.wood_rate??0), handling=num(p.handling_other_rate??x.handling_other_rate??0);
-  const freightRate=num(x.freight_rate||0), advance=num(x.advance||0), amc=num(p.amc_rate??x.amc_rate??0);
-  const challan=x.dc_number||x.load_number||''; const challanDate=fmtDate(x.load_date);
-  const customer='ITC LTD PSPD';
-  const itcAddress='Unit: Bhadrachalam, Sarapaka, Burgampahad Mandal, Bhadradri Kothagudem Dt, Telangana - 507128';
+  const poNo=p.po_number||''; const material=x.species_name||p.species_name||'Eucalyptus Debarked Wood'; const hsn=p.hsn_code||'44039800';
+  const networkNet=Number(x.network_net||0), gross=Number(x.network_gross||0), tare=Number(x.network_tare||0);
+  const woodRate=Number(p.wood_rate??x.wood_rate??0), handling=Number(p.handling_other_rate??x.handling_other_rate??0);
+  const freightRate=Number(x.freight_rate||0), advance=Number(x.advance||0), amc=Number(p.amc_rate??x.amc_rate??0);
+  const challan=x.dc_number||x.load_number||''; const challanDate=fmtDate(x.load_date); const lrNo=x.lr_number||challan;
+  const customer='ITC LTD PSPD'; const itcAddress='Unit: Bhadrachalam, Sarapaka, Burgampahad Mandal, Bhadradri Kothagudem Dt, Telangana - 507128';
   const eway=x.eway_bill_no||'';
 
-  function frame(pg,title){rect(pg,20,20,555,801,null,1);txt(pg,title,PW/2,792,18,true,'center');line(pg,PW/2-118,781,PW/2+118,781,1.2);}
-  function sectionBar(pg,title,top,h=20){rect(pg,left,top-h,width,h,light,1.2);txt(pg,title,PW/2,top-14,9.5,true,'center');}
-
-  // ---------------- LR ----------------
-  function makeLR(){
-    const pg=out.addPage([PW,PH]); frame(pg,'LORRY RECEIPT (LR)');
-    // Only one heading: LORRY RECEIPT (LR). No separate "LR" heading.
-    line(pg,left,748,right,748,1);
-    txt(pg,'LR Number',left+7,727,9,true);txt(pg,':',left+72,727,9);txt(pg,x.lr_number||challan,left+86,727,10,true);
-    txt(pg,'LR Date',right-112,727,9,true);txt(pg,':',right-48,727,9);txt(pg,challanDate,right-36,727,10,true);
-
-    const top=708,bh=138,bottom=top-bh,mid=(left+right)/2;
-    rect(pg,left,bottom,width,bh,null,1.15);vline(pg,mid,bottom,top,1.15);
-    txt(pg,'From',left+10,top-18,9);
-    txt(pg,fullContractorName,left+10,top-36,12,true);
-    wrap(addr,43).slice(0,4).forEach((ln,i)=>txt(pg,ln,left+10,top-53-i*13,9));
-    txt(pg,'To',mid+10,top-18,9);
-    txt(pg,customer,mid+10,top-36,12,true);
-    wrap(itcAddress,43).slice(0,4).forEach((ln,i)=>txt(pg,ln,mid+10,top-53-i*13,9));
-
-    let y=bottom-12;
-    const cols=[120,100,120,187],rowH=26,tableTop=y,tableH=4*rowH;
-    rect(pg,left,tableTop-tableH,width,tableH,null,1.1);
-    [left+cols[0],left+cols[0]+cols[1],left+cols[0]+cols[1]+cols[2]].forEach(xx=>vline(pg,xx,tableTop-tableH,tableTop,1.1));
-    const data=[['PO Number',poNo,'Gross Weight (MTS)',fmt(gross)],['Species',material,'Tare Weight (MTS)',fmt(tare)],['Truck No',vehicle,'Net Weight (MTS)',fmt(networkNet)],['Way Bill No',eway,'','']];
-    data.forEach((r,i)=>{const yy=tableTop-i*rowH;if(i)line(pg,left,yy,right,yy,1.1);const base=yy-rowH/2-3;txt(pg,r[0],left+7,base,8.8,true);if(i===1){const maxW=cols[1]-14;let fs=8.8;while(fs>6.5&&font.widthOfTextAtSize(safe(r[1]),fs)>maxW)fs-=.25;txt(pg,r[1],left+cols[0]+7,base,fs);}else txt(pg,r[1],left+cols[0]+7,base,8.7);txt(pg,r[2],left+cols[0]+cols[1]+7,base,8.8,true);txt(pg,r[3],left+cols[0]+cols[1]+cols[2]+7,base,8.7);});
-    txt(pg,'For Sri Venkateshwara Traders',right-8,tableTop-tableH-30,9.5,true,'right');
+  function frame(title){rect(20,20,555,801,null,1);text(title,PW/2,53,18,true,'center');line(PW/2-118,70,PW/2+118,70,1.2);}
+  function addLR(){
+    frame('LORRY RECEIPT (LR)');
+    text('LR Number',left+7,112,9,true);text(':',left+72,112,9);text(lrNo,left+86,112,10,true);
+    text('LR Date',right-112,112,9,true);text(':',right-48,112,9);text(challanDate,right-36,112,10,true);line(left,126,right,126,1);
+    const top=145,bottom=305,mid=(left+right)/2;rect(left,top,width,bottom-top,null,1.1);line(mid,top,mid,bottom,1.1);
+    text('From',left+10,163,9);text(fullContractorName,left+10,182,12,true);wrap(addr,43).slice(0,4).forEach((ln,i)=>text(ln,left+10,203+i*13,9));
+    text('To',mid+10,163,9);text(customer,mid+10,182,12,true);wrap(itcAddress,43).slice(0,4).forEach((ln,i)=>text(ln,mid+10,203+i*13,9));
+    const tableTop=325,rowH=28,cols=[112,165,125,125], tableH=4*rowH;rect(left,tableTop,width,tableH,null,1.1);let xx=left;cols.slice(0,-1).forEach(cw=>{xx+=cw;line(xx,tableTop,xx,tableTop+tableH,1.1)});
+    const data=[['PO Number',poNo,'Gross Weight (MTS)',gross.toFixed(3)],['Species',material,'Tare Weight (MTS)',tare.toFixed(3)],['Truck No',vehicle,'Net Weight (MTS)',networkNet.toFixed(3)],['Way Bill No',eway,'','']];
+    data.forEach((r,i)=>{const y=tableTop+i*rowH;if(i)line(left,y,right,y,1.1);const by=y+18;text(r[0],left+7,by,8.8,true);let fs=8.8;while(fs>6.5&&doc.getTextWidth(safe(r[1]))>cols[1]-14){fs-=.2;set(fs,false)}text(r[1],left+cols[0]+7,by,fs);text(r[2],left+cols[0]+cols[1]+7,by,8.8,true);text(r[3],left+cols[0]+cols[1]+cols[2]+7,by,8.8)});
+    text('For Sri Venkateshwara Traders',right-8,tableTop+tableH+30,9.5,true,'right');
   }
-
-  // ---------------- DC ----------------
-  function makeDC(){
-    const pg=out.addPage([PW,PH]); frame(pg,'DELIVERY CHALLAN (DC)');
-    txt(pg,'DELIVERY CHALLAN (DC)',PW/2,760,16,true,'center');
-    txt(pg,'Challan No',right-165,737,9,true);txt(pg,':',right-101,737,9);txt(pg,challan,right-86,737,9.5,true);
-    txt(pg,'Challan Date',right-165,718,9,true);txt(pg,':',right-101,718,9);txt(pg,challanDate,right-86,718,9.5,true);
-    line(pg,left,704,right,704,1.1);
-    let y=695;
-
-    // Supplier: no middle vertical divider. Name & Address is the heading above the contractor details.
-    sectionBar(pg,'SUPPLIER',y);y-=20;
-    const supH=86,supTop=y,supBottom=supTop-supH;
-    rect(pg,left,supBottom,width,supH,null,1.15);
-    txt(pg,'Name & Address',left+10,supTop-17,8.8,true);
-    txt(pg,fullContractorName,left+10,supTop-36,11,true);
-    const saddr=wrap(addr,66).slice(0,2);saddr.forEach((ln,i)=>txt(pg,ln,left+10,supTop-51-i*12,8.6));
-    txt(pg,'State Code',left+335,supTop-17,8.5,true);txt(pg,': 36',left+410,supTop-17,8.5);
-    txt(pg,'State',left+335,supTop-31,8.5,true);txt(pg,': Telangana (TS)',left+410,supTop-31,8.5);
-    txt(pg,'GSTIN No',left+335,supTop-45,8.5,true);txt(pg,': 36TOHPS0526H1ZE',left+410,supTop-45,8.5);
-    txt(pg,'PAN',left+335,supTop-59,8.5,true);txt(pg,': TOHPS0526H',left+410,supTop-59,8.5);
-    txt(pg,'PO No',left+335,supTop-73,8.5,true);txt(pg,': '+poNo,left+410,supTop-73,8.5);
-    y=supBottom-10;
-
-    // Customer: no middle vertical divider.
-    sectionBar(pg,'CUSTOMER / CONSIGNEE',y);y-=20;
-    const custH=86,custTop=y,custBottom=custTop-custH;
-    rect(pg,left,custBottom,width,custH,null,1.15);
-    txt(pg,'Name & Address',left+10,custTop-17,8.8,true);
-    txt(pg,'ITC Limited-PSPD',left+10,custTop-36,11,true);
-    ['UNIT: Bhadrachalam, Sarapaka','Bhadradri-Kothagudem District','Telangana State - 507128'].forEach((ln,i)=>txt(pg,ln,left+10,custTop-51-i*12,8.6));
-    txt(pg,'State Code',left+335,custTop-17,8.5,true);txt(pg,': 36',left+410,custTop-17,8.5);
-    txt(pg,'State',left+335,custTop-31,8.5,true);txt(pg,': Telangana (TS)',left+410,custTop-31,8.5);
-    txt(pg,'GSTIN',left+335,custTop-45,8.5,true);txt(pg,': 36AAACI5950L1ZB',left+410,custTop-45,8.5);
-    txt(pg,'PAN',left+335,custTop-59,8.5,true);txt(pg,': AAACI5950L',left+410,custTop-59,8.5);
-    y=custBottom-10;
-
-    // Place of supply: no middle vertical divider.
-    sectionBar(pg,'PLACE OF SUPPLY',y);y-=20;
-    const posH=82,posTop=y,posBottom=posTop-posH;
-    rect(pg,left,posBottom,width,posH,null,1.15);
-    txt(pg,'Destination',left+10,posTop-17,8.8,true);
-    txt(pg,'ITC Limited-PSPD, UNIT: Bhadrachalam, Sarapaka',left+95,posTop-17,8.1);
-    txt(pg,'Bhadradri Kothagudem District, Telangana State - 507128',left+95,posTop-31,7.8);
-    txt(pg,'Transporter Name',left+10,posTop-51,8.5,true);txt(pg,': S V Traders',left+105,posTop-51,8.5);
-    txt(pg,'Mode of Transport',left+250,posTop-51,8.5,true);txt(pg,': By Road',left+360,posTop-51,8.5);
-    txt(pg,'LR Number',left+10,posTop-66,8.5,true);txt(pg,': '+(x.lr_number||challan),left+105,posTop-66,8.5);
-    txt(pg,'Vehicle No',left+250,posTop-66,8.5,true);txt(pg,': '+vehicle,left+360,posTop-66,8.5);
-    y=posBottom-10;
-
-    sectionBar(pg,'DESCRIPTION OF GOODS',y);y-=20;
-    const tTop=y,headerH=34,rowH=32,totalH=28;
-    const dcCols=[30,112,55,45,38,68,60,60,59];
-    const heads=[['S.No'],['Material','Description'],['HSN','Code'],['Qty'],['UOM'],['Taxable','Value (Rs.)'],['CGST(9%)','(Rs.)'],['SGST(9%)','(Rs.)'],['Total Value','(Rs.)']];
-    const tableH=headerH+rowH*3+totalH,tableBottom=tTop-tableH;
-    rect(pg,left,tableBottom,width,tableH,white,1.2);
-    let xx=left;dcCols.forEach((cw,i)=>{if(i)vline(pg,xx,tableBottom,tTop,1.1);heads[i].forEach((h,j)=>txt(pg,h,xx+cw/2,tTop-12-j*9,6.2,true,'center'));xx+=cw;});
-    line(pg,left,tTop-headerH,right,tTop-headerH,1.1);
-
-    const taxableMaterial=networkNet*woodRate;
-    // Transportation + Other Charges are both shown as descriptions, but their financial columns contain ONE combined amount.
-    const combinedOther=networkNet*handling;
-    const cgOther=combinedOther*.09,sgOther=cgOther,totalOther=combinedOther+cgOther+sgOther;
-    const cgWood=taxableMaterial*.09,sgWood=cgWood,totalWood=taxableMaterial+cgWood+sgWood;
-    const totalTaxable=taxableMaterial+combinedOther,totalCG=cgWood+cgOther,totalSG=sgWood+sgOther,totalValue=totalWood+totalOther;
-    const dataTop=tTop-headerH;
-
-    // Row 1: material.
-    const row1Bottom=dataTop-rowH;
-    txt(pg,'1',left+15,row1Bottom+12,7.3,false,'center');
-    wrap(material,18).slice(0,2).forEach((s,i)=>txt(pg,s,left+33,row1Bottom+19-i*9,7.0,true));
-    txt(pg,hsn,left+dcCols[0]+dcCols[1]+dcCols[2]/2,dataTop-rowH/2-3,7.0,false,'center');
-    txt(pg,fmt(networkNet),left+dcCols[0]+dcCols[1]+dcCols[2]+dcCols[3]/2,dataTop-rowH/2-3,7.1,false,'center');
-    txt(pg,'MTS',left+dcCols[0]+dcCols[1]+dcCols[2]+dcCols[3]+dcCols[4]/2,dataTop-rowH/2-3,7.0,false,'center');
-    let ax=left+dcCols.slice(0,5).reduce((a,b)=>a+b,0);
-    [money(taxableMaterial),money(cgWood),money(sgWood),money(totalWood)].forEach((v,i)=>{const cw=dcCols[5+i];txt(pg,v,ax+cw-3,dataTop-rowH/2-3,6.8,false,'right');ax+=cw;});
-    line(pg,left,row1Bottom,right,row1Bottom,1.0);
-
-    // Rows 2 & 3: separate descriptions, but financial columns are ONE vertically merged combined amount.
-    const row2Top=row1Bottom,row2Bottom=row2Top-rowH,row3Top=row2Bottom,row3Bottom=row3Top-rowH;
-    txt(pg,'2',left+15,row2Bottom+12,7.2,false,'center');wrap('Transportation charges',18).forEach((s,i)=>txt(pg,s,left+33,row2Bottom+19-i*9,7.0));
-    txt(pg,'3',left+15,row3Bottom+12,7.2,false,'center');wrap('Other charges',18).forEach((s,i)=>txt(pg,s,left+33,row3Bottom+19-i*9,7.0));
-    // Description/S.No horizontal lines only; merged financial columns have no line between rows 2 and 3.
-    line(pg,left,row2Bottom,left+dcCols[0]+dcCols[1],row2Bottom,1.0);
-    // vertical financial cell boundaries already exist; cover the internal horizontal split in financial area with white, then redraw outer boundaries.
-    const finStart=left+dcCols.slice(0,5).reduce((a,b)=>a+b,0),finW=right-finStart;
-    rect(pg,finStart,row3Bottom,finW,2*rowH,white,0);
-    vline(pg,finStart,row3Bottom,row2Top,1.0);vline(pg,right,row3Bottom,row2Top,1.0);
-    // Recreate the financial column vertical lines through the merged cell.
-    let fx=finStart;dcCols.slice(5,-1).forEach(cw=>{fx+=cw;vline(pg,fx,row3Bottom,row2Top,1.0);});
-    // One combined amount centered across rows 2+3.
-    let cx=finStart;[money(combinedOther),money(cgOther),money(sgOther),money(totalOther)].forEach((v,i)=>{const cw=dcCols[5+i];txt(pg,v,cx+cw-3,(row2Top+row3Bottom)/2-3,6.8,false,'right');cx+=cw;});
-    line(pg,left,row3Bottom,right,row3Bottom,1.0);
-
-    // Total row.
-    const totalTop=row3Bottom,totalBottom=totalTop-totalH;
-    let totalLabelX=left+dcCols.slice(0,5).reduce((a,b)=>a+b,0);
-    line(pg,left,totalTop,right,totalTop,1.1);
-    txt(pg,'TOTAL',totalLabelX-7,totalTop-totalH/2-3,7.2,true,'right');
-    ax=totalLabelX;[money(totalTaxable),money(totalCG),money(totalSG),money(totalValue)].forEach((v,i)=>{const cw=dcCols[5+i];txt(pg,v,ax+cw-3,totalTop-totalH/2-3,6.6,true,'right');ax+=cw;});
-    line(pg,left,totalBottom,right,totalBottom,1.1);
-    txt(pg,'For S V TRADERS',right-8,totalBottom-31,8.8,true,'right');
+  function addDC(){
+    doc.addPage(); frame('DELIVERY CHALLAN (DC)');
+    text('Challan No',right-165,112,9,true);text(':',right-101,112,9);text(challan,right-86,112,9.5,true);text('Challan Date',right-165,131,9,true);text(':',right-101,131,9);text(challanDate,right-86,131,9.5,true);line(left,145,right,145,1.1);
+    let y=155;section('SUPPLIER',y);y+=20;rect(left,y,width,76,null,1.15);text('Name & Address',left+10,y+18,8.8,true);text(fullContractorName,left+10,y+37,11,true);wrap(addr,64).slice(0,2).forEach((ln,i)=>text(ln,left+10,y+54+i*12,8.6));text('State Code',left+335,y+18,8.5,true);text(': 36',left+410,y+18,8.5);text('State',left+335,y+32,8.5,true);text(': Telangana (TS)',left+410,y+32,8.5);text('GSTIN No',left+335,y+46,8.5,true);text(': 36TOHPS0526H1ZE',left+410,y+46,8.5);text('PAN',left+335,y+60,8.5,true);text(': TOHPS0526H',left+410,y+60,8.5);text('PO No',left+335,y+74,8.5,true);text(': '+poNo,left+410,y+74,8.5);
+    y+=86;section('CUSTOMER / CONSIGNEE',y);y+=20;rect(left,y,width,76,null,1.15);text('Name & Address',left+10,y+18,8.8,true);text('ITC Limited-PSPD',left+10,y+37,11,true);['UNIT: Bhadrachalam, Sarapaka','Bhadradri-Kothagudem District','Telangana State - 507128'].forEach((ln,i)=>text(ln,left+10,y+54+i*12,8.6));text('State Code',left+335,y+18,8.5,true);text(': 36',left+410,y+18,8.5);text('State',left+335,y+32,8.5,true);text(': Telangana (TS)',left+410,y+32,8.5);text('GSTIN',left+335,y+46,8.5,true);text(': 36AAACI5950L1ZB',left+410,y+46,8.5);text('PAN',left+335,y+60,8.5,true);text(': AAACI5950L',left+410,y+60,8.5);
+    y+=86;section('PLACE OF SUPPLY',y);y+=20;rect(left,y,width,76,null,1.15);text('Destination',left+10,y+18,8.8,true);text('ITC Limited-PSPD, UNIT: Bhadrachalam, Sarapaka',left+95,y+18,8.1);text('Bhadradri Kothagudem District, Telangana State - 507128',left+95,y+32,7.8);text('Transporter Name',left+10,y+52,8.5,true);text(': S V Traders',left+105,y+52,8.5);text('Mode of Transport',left+250,y+52,8.5,true);text(': By Road',left+360,y+52,8.5);text('LR Number',left+10,y+67,8.5,true);text(': '+lrNo,left+105,y+67,8.5);text('Vehicle No',left+250,y+67,8.5,true);text(': '+vehicle,left+360,y+67,8.5);
+    y+=86;section('DESCRIPTION OF GOODS',y);const tTop=y+20;const hh=34,rh=42,totalH=28;const cols=[30,105,58,45,40,66,54,54,75];const heads=['S.No','Material\nDescription','HSN\nCode','Qty','UOM','Taxable\nValue (Rs.)','CGST(9%)\n(Rs.)','SGST(9%)\n(Rs.)','Total Value\n(Rs.)'];const tableH=hh+3*rh+totalH;const bottom=tTop+tableH;rect(left,tTop,width,tableH,null,1.2);let xx=left;cols.forEach((cw,i)=>{if(i)line(xx,tTop,xx,bottom,1.0);heads[i].split('\n').forEach((h,j)=>text(h,xx+cw/2,tTop+14+j*8,6.2,true,'center'));xx+=cw});line(left,tTop+hh,right,tTop+hh,1.0);
+    const taxableMaterial=networkNet*woodRate, other=networkNet*handling, cgW=taxableMaterial*.09,sgW=cgW,cgO=other*.09,sgO=cgO,totalWood=taxableMaterial+cgW+sgW,totalOther=other+cgO+sgO,totalTaxable=taxableMaterial+other,totalCG=cgW+cgO,totalSG=sgW+sgO,totalValue=totalTaxable+totalCG+totalSG;
+    const dataY=tTop+hh; line(left,dataY+rh,right,dataY+rh,1);line(left,dataY+2*rh,right,dataY+2*rh,1);line(left,dataY+3*rh,right,dataY+3*rh,1);
+    text('1',left+15,dataY+25,7.3,false,'center');wrap(material,18).slice(0,2).forEach((s,i)=>text(s,left+33,dataY+17+i*9,7.0,true));
+    text(hsn,left+30+105+58/2,dataY+rh*1.5+4,7.0,false,'center');text(networkNet.toFixed(3),left+30+105+58+45/2,dataY+rh*1.5+4,7.1,false,'center');text('MTS',left+30+105+58+45+40/2,dataY+rh*1.5+4,7.0,false,'center');
+    let ax=left+30+105+58+45+40;[money2(taxableMaterial),money2(cgW),money2(sgW),money2(totalWood)].forEach((v,i)=>{text(v,ax+cols[5+i]-3,dataY+rh/2+4,6.8,false,'right');ax+=cols[5+i]});
+    text('2',left+15,dataY+rh+25,7.2,false,'center');wrap('Transportation charges',18).forEach((s,i)=>text(s,left+33,dataY+rh+17+i*9,7.0));
+    text('3',left+15,dataY+2*rh+25,7.2,false,'center');wrap('Other charges',18).forEach((s,i)=>text(s,left+33,dataY+2*rh+17+i*9,7.0));
+    // Combined Transportation + Other Charges financial cells, shown once across both rows.
+    const finX=left+30+105;const finW=width-(30+105);rect(finX,dataY+rh,finW,2*rh,[255,255,255],0);let fx=finX;[66,54,54,75].forEach(cw=>{fx+=cw;line(fx,dataY+rh,fx,dataY+3*rh,1.0)});let cx=finX;[money2(other),money2(cgO),money2(sgO),money2(totalOther)].forEach((v,i)=>{text(v,cx+[66,54,54,75][i]-3,dataY+1.5*rh+4,6.8,false,'right');cx+=[66,54,54,75][i]});
+    const totalTop=dataY+3*rh;line(left,totalTop,right,totalTop,1.1);text('TOTAL',left+30+105+58+45+40-7,totalTop+18,7.2,true,'right');let tx=left+30+105+58+45+40;[money2(totalTaxable),money2(totalCG),money2(totalSG),money2(totalValue)].forEach((v,i)=>{text(v,tx+cols[5+i]-3,totalTop+18,6.6,true,'right');tx+=cols[5+i]});
+    text('For S V TRADERS',right-8,bottom+31,8.8,true,'right');
   }
-
-  // ---------------- INITIAL FREIGHT LETTER ----------------
-  function makeInitialFL(){
-    const pg=out.addPage([PW,PH]); frame(pg,'FREIGHT LETTER');
-    let y=758;
-    txt(pg,'FROM',left+5,y,8.8,true);txt(pg,shortContractor,left+5,y-19,16,true);
-    wrap(addr,58).slice(0,2).forEach((ln,i)=>txt(pg,ln,left+5,y-37-i*13,8.7));
-    const mx=405;txt(pg,'Challan No.',mx,y-2,8.8,true);txt(pg,':',mx+62,y-2,8.8);txt(pg,challan,mx+76,y-2,9.2,true);
-    txt(pg,'Challan Date',mx,y-27,8.8,true);txt(pg,':',mx+62,y-27,8.8);txt(pg,challanDate,mx+76,y-27,9.2,true);
-    line(pg,left,688,right,688,1);
-    const toTop=676,toH=66,toBottom=toTop-toH;rect(pg,left,toBottom,width,toH,null,1.1);
-    txt(pg,'TO',left+10,toTop-17,9.2,true);txt(pg,'Vehicle Number',left+10,toTop-35,8.3);txt(pg,vehicle,left+10,toTop-55,15.5,true);
-
-    let top=toBottom-12;
-    const tL=left,tR=right,snoW=42,partW=205,qtyW=162,s1=tL+snoW,s2=s1+partW,s3=s2+qtyW;
-    const drawHeader=(topY)=>{rect(pg,tL,topY-25,width,25,light,1.25);vline(s1,topY,topY-25,1.25);vline(s2,topY,topY-25,1.25);vline(s3,topY,topY-25,1.25);txt(pg,'S.No.',(tL+s1)/2,topY-17,8.5,true,'center');txt(pg,'PARTICULARS',(s1+s2)/2,topY-17,8.5,true,'center');txt(pg,'QUANTITY / RATE',(s2+s3)/2,topY-17,8.5,true,'center');txt(pg,'AMOUNT (Rs.)',(s3+tR)/2,topY-17,8.5,true,'center');};
-    const normal=(topY,h,no,part,qty,amt,hi=false)=>{rect(pg,tL,topY-h,width,h,hi?light:null,hi?1.3:1.05);vline(s1,topY,topY-h,1.05);vline(s2,topY,topY-h,1.05);vline(s3,topY,topY-h,1.05);txt(pg,no,(tL+s1)/2,topY-h/2-3,8.5,hi,'center');txt(pg,part,s1+9,topY-h/2-3,8.6,hi);if(qty)txt(pg,qty,(s2+s3)/2,topY-h/2-3,8.6,false,'center');if(amt)txt(pg,amt,tR-9,topY-h/2-3,8.6,hi,'right');return topY-h;};
-    const total=(topY,h,no,label,amt)=>{rect(pg,tL,topY-h,width,h,light,1.35);vline(s1,topY,topY-h,1.1);txt(pg,no,(tL+s1)/2,topY-h/2-3,8.6,true,'center');txt(pg,label,s1+9,topY-h/2-3,9,true);if(amt)txt(pg,amt,tR-9,topY-h/2-3,9,true,'right');return topY-h;};
-    const words=(topY,h,label,value)=>{rect(pg,tL,topY-h,width,h,null,1.05);vline(s1,topY,topY-h,1.05);vline(s2,topY,topY-h,1.05);txt(pg,label,s1+9,topY-h/2-3,8.6);if(value)txt(pg,value,(s2+tR)/2,topY-h/2-3,8.4,true,'center');return topY-h;};
-    drawHeader(top);top-=25;
-    // At initial stage only Freight Rate, Advance and Clerk Commission are populated. All other values remain blank.
-    top=normal(top,25,'1','Freight Rate',freightRate?money(freightRate)+' / Ton':'','');
-    top=normal(top,25,'2','Network Net Weight','','');
-    top=normal(top,25,'3','Freight Charges','','');
-    top=normal(top,25,'4','AMC Charges','','');
-    top=total(top,27,'5','Gross Amount','');
-    top=words(top,31,'Gross Amount in Words','');
-    top-=13;drawHeader(top);top-=25;
-    top=normal(top,25,'6','Advance','',advance?money(advance):'');
-    top=normal(top,25,'7','Clerk Commission','',money(300));
-    top=normal(top,25,'8','Shortage','','');
-    top=total(top,27,'9','NET AMOUNT','');
-    top=words(top,31,'Net Amount in Words','');
-    top-=13;
-    const payTop=top,payHeader=25,payRow=27,payH=payHeader+payRow*3,payBottom=payTop-payH,payMid=left+205;
-    rect(pg,left,payBottom,width,payH,null,1.2);rect(pg,left,payTop-payHeader,width,payHeader,light,1.2);
-    txt(pg,'PAYMENT DETAILS',left+10,payTop-17,9.2,true);txt(pg,'(FOR FINAL PAYMENT)',left+111,payTop-17,7.8);
-    line(pg,left,payTop-payHeader,right,payTop-payHeader,1.1);vline(pg,payMid,payTop-payHeader,payBottom,1.1);
-    for(let i=1;i<3;i++)line(pg,left,payTop-payHeader-payRow*i,right,payTop-payHeader-payRow*i,1.0);
-    [['Account Number / UPI Number',0],['Account Holder Name',1],['Paid Date',2]].forEach(([lab,i])=>{const cy=payTop-payHeader-payRow*i-payRow/2-3;txt(pg,lab,left+9,cy,8.5,true);txt(pg,':',payMid+9,cy,8.5);});
-    txt(pg,'For S V Traders',right-8,43,9.2,true,'right');
+  function addInitialFL(){
+    doc.addPage();frame('FREIGHT LETTER');
+    let y=94;text('FROM',left+5,y,8.8,true);text(shortContractor,left+5,y+20,16,true);wrap(addr,58).slice(0,2).forEach((ln,i)=>text(ln,left+5,y+40+i*13,8.7));
+    text('Challan No.',405,y-2,8.8,true);text(':',467,y-2,8.8);text(challan,481,y-2,9.2,true);text('Challan Date',405,y+23,8.8,true);text(':',467,y+23,8.8);text(challanDate,481,y+23,9.2,true);line(left,150,right,150,1);
+    rect(left,162,width,66,null,1.1);text('TO',left+10,181,9.2,true);text('Vehicle Number',left+10,199,8.3);text(vehicle,left+10,219,15.5,true);
+    let top=242;const cols=[42,195,175,115],s1=left+42,s2=s1+195,s3=s2+175;const header=25;const rows=[['1','Freight Rate',money2(freightRate)+' / Ton',''],['2','Network Net Weight','',''],['3','Freight Charges','',''],['4','AMC Charges','',''],['5','Gross Amount','',''],['','Gross Amount in Words','',''],['6','Advance','',money2(advance)],['7','Clerk Commission','',''],['8','Shortage','',''],['9','NET AMOUNT','',''],['','Net Amount in Words','','']];const hs=[28,28,28,28,30,38,28,28,28,30,38];const total=hs.reduce((a,b)=>a+b,0);rect(left,top,width,header+total,null,1.2);let xx=left;cols.forEach((cw,i)=>{if(i)line(xx,top,xx,top+header,1.1);text(['S.No.','PARTICULARS','QUANTITY / RATE','AMOUNT (Rs.)'][i],xx+cw/2,top+17,7.5,true,'center');xx+=cw});line(left,top+header,right,top+header,1.1);let yy=top+header;rows.forEach((r,i)=>{const rh=hs[i];line(left,yy+rh,right,yy+rh,1);let x0=left;cols.slice(0,-1).forEach(cw=>{x0+=cw;line(x0,yy,x0,yy+rh,1)});if(r[0])text(r[0],left+21,yy+rh/2+3,7.3,false,'center');text(r[1],s1+8,yy+rh/2+3,8.0,i===4||i===9);if(r[2])text(r[2],s2+8,yy+rh/2+3,8.0,false);if(r[3])text(r[3],right-8,yy+rh/2+3,8.0,false,'right');yy+=rh});text('For S V Traders',right-8,top+header+total+30,9,true,'right');
   }
-
-  if(pkg==='LRDC'||pkg==='LRDCFL'||pkg==='LRDCEWAY'||pkg==='LRDCFLEWAY'){makeLR();makeDC();}
-  if(pkg==='LRDCFL'||pkg==='LRDCFLEWAY'){makeInitialFL();}
-  if(pkg==='LRDCEWAY'||pkg==='LRDCFLEWAY'){const f=state.ewayFiles[id];if(f){const bytes=await f.arrayBuffer();const src=await PDFDocument.load(bytes);const pages=await out.copyPages(src,src.getPageIndices());pages.forEach(pg=>out.addPage(pg));}}
-  const bytes=await out.save();const blob=new Blob([bytes],{type:'application/pdf'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`${challan||x.load_number||id}_Documents.pdf`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
-  const statusMap={LRDC:'LR / DC Generated',LRDCFL:'LR / DC / FL Generated',LRDCEWAY:'LR / DC / E-way Bill Generated',LRDCFLEWAY:'LR / DC / FL / E-way Bill Generated'};
-  const newStatus=statusMap[pkg]||'Documents Generated';
-  const dr=await sb.from('documents').insert({load_id:id,document_type:'PACKAGE',document_package:pkg,generated_at:new Date().toISOString(),generated_file_reference:`${challan||x.load_number||id}_Documents.pdf`});if(dr.error)console.warn('Document history save failed:',dr.error.message);
-  const sr=await sb.from('loads').update({status:newStatus}).eq('id',id);if(sr.error)console.warn('Load status update failed:',sr.error.message);
-  x.status=newStatus;closeModal();await refreshLoads();if(state.page==='loads')await render();
+  addLR(); if(pkg==='LRDC'||pkg==='LRDCFL'||pkg==='LRDCEWAY'||pkg==='LRDCFLEWAY')addDC(); if(pkg==='LRDCFL'||pkg==='LRDCFLEWAY')addInitialFL();
+  if(pkg==='LRDCEWAY'||pkg==='LRDCFLEWAY'){
+    // Keep E-way package handling on pdf-lib only when explicitly requested. If unavailable, download WoodMaster pages and warn.
+    const f=state.ewayFiles[id]; if(f) console.warn('E-way PDF attachment is not merged in this jsPDF package generator; WoodMaster pages will still download.');
+  }
+  const filename=`${challan||x.load_number||id}_Documents.pdf`;doc.save(filename);
+  const statusMap={LRDC:'LR / DC Generated',LRDCFL:'LR / DC / FL Generated',LRDCEWAY:'LR / DC / E-way Bill Generated',LRDCFLEWAY:'LR / DC / FL / E-way Bill Generated'};const newStatus=statusMap[pkg]||'Documents Generated';
+  const dr=await sb.from('documents').insert({load_id:id,document_type:'PACKAGE',document_package:pkg,generated_at:new Date().toISOString(),generated_file_reference:filename});if(dr.error)console.warn('Document history save failed:',dr.error.message);
+  const sr=await sb.from('loads').update({status:newStatus}).eq('id',id);if(sr.error)console.warn('Load status update failed:',sr.error.message);x.status=newStatus;closeModal();await refreshLoads();if(state.page==='loads')await render();
  }catch(e){alert('Could not generate LR/DC/Initial Freight Letter PDF.\n\n'+(e?.message||e));console.error(e);}
-}
-function startItc(id){state.selectedLoad=state.loads.find(x=>x.id===id)||null;state.page='itcdetail';render()}
-function getItcDrafts(){try{return JSON.parse(localStorage.getItem('wm360:draft:itcDrafts')||'{}')}catch(e){return {}}}
-function saveItcDraft(){const loadId=state.selectedLoad?.id||$('itcLoad')?.value;if(!loadId)return;const d=getItcDrafts();d[loadId]={wc:(($('wc')?.value||'').toUpperCase()),wcDate:$('wcDate')?.value||'',vehicle:(($('itcVehicle')?.value||'').toUpperCase()),gross:$('itcGross')?.value||'',tare:$('itcTare')?.value||'',net:$('itcNet')?.value||'',approved:$('itcApproved')?.value||'',approvedAuto:$('itcApproved')?.dataset.auto!=='0',savedAt:Date.now()};localStorage.setItem('wm360:draft:itcDrafts',JSON.stringify(d))}
-function clearItcDraft(loadId){const d=getItcDrafts();delete d[loadId];localStorage.setItem('wm360:draft:itcDrafts',JSON.stringify(d))}
-function clearAllItcDrafts(){localStorage.removeItem('wm360:draft:itcDrafts')}
-function calcItcNet(){const g=$('itcGross'),t=$('itcTare'),n=$('itcNet'),a=$('itcApproved');if(!g||!t||!n||!a)return;const gv=g.value===''?null:num(g.value),tv=t.value===''?null:num(t.value);if(gv===null||tv===null){n.value='';if(a.dataset.auto!=='0')a.value='';saveItcDraft();return}const net=gv-tv;n.value=net.toFixed(3);if(a.dataset.auto!=='0'||a.value===''){a.value=net.toFixed(3);a.dataset.auto='1'}saveItcDraft()}
-function bindItcForm(){const ids=['wc','wcDate','itcVehicle','itcGross','itcTare','itcNet','itcApproved'];ids.forEach(id=>{const el=$(id);if(!el)return;el.addEventListener('input',()=>{if(id==='itcVehicle')el.value=el.value.toUpperCase();if(id==='itcApproved')el.dataset.auto='0';if(id==='itcGross'||id==='itcTare')calcItcNet();else saveItcDraft()});el.addEventListener('change',()=>{if(id==='itcVehicle')el.value=el.value.toUpperCase();if(id==='itcApproved')el.dataset.auto='0';saveItcDraft()})});calcItcNet();saveItcDraft()}
-async function itcPage(){
-  const ids=state.loads.map(x=>x.id).filter(Boolean);
-  let rows=[];
-  if(ids.length){
-    const r=await sb.from('itc_weighments').select('*').in('load_id',ids);
-    if(r.error)throw r.error;
-    rows=r.data||[];
-  }
-  const byLoad=new Map(rows.map(w=>[w.load_id,w]));
-  return `<div class="context">Active Contractor: <b>${esc(active()?.contractor_name)}</b></div>
-  <div class="topbar"><div><h1>Final Weighments</h1><div class="sub">All loads for ${esc(active()?.contractor_name)}. Open a DC to enter, verify or edit its final weighment.</div></div></div>
-  <div class="tablewrap"><table><thead><tr><th>DC Number</th><th>DC Date</th><th>Vehicle</th><th>Material</th><th>Network Net MT</th><th>WC Number</th><th>Approved MT</th><th>Status</th><th>Action</th></tr></thead><tbody>
-  ${state.loads.length?state.loads.map(x=>{const w=byLoad.get(x.id);const status=w?'Final Weighment Received':'Pending Final Weighment';const action=w?`<button class="btn secondary mini" onclick="startItc('${x.id}')">View / Edit</button>`:`<button class="btn primary mini" onclick="startItc('${x.id}')">Enter Final Weighment</button>`;return `<tr><td><button class="btn secondary mini" onclick="startItc('${x.id}')">${esc(x.dc_number||x.load_number||'—')}</button></td><td>${fmtDate(x.load_date)}</td><td>${esc(x.vehicle_master?.vehicle_number||'')}</td><td>${esc(x.species_name||x.po_master?.species_name||'')}</td><td>${fmt(x.network_net)}</td><td>${esc(w?.wc_number||'—')}</td><td>${w?fmt(w.approved_weight):'—'}</td><td><span class="badge">${status}</span></td><td>${action}</td></tr>`}).join(''):`<tr><td colspan="9" class="empty">No loads available for final weighment.</td></tr>`}</tbody></table></div>`;
-}
-async function itcDetailPage(){const pre=state.selectedLoad;const w=pre?((await sb.from('itc_weighments').select('*').eq('load_id',pre.id).maybeSingle()).data):null;const x=pre||{};const draft=x.id?getItcDrafts()[x.id]:null;const base={wc:w?.wc_number||'',wcDate:w?.wc_date||'',vehicle:w?.vehicle_number||x.vehicle_master?.vehicle_number||'',gross:w?.gross_weight??'',tare:w?.tare_weight??'',net:w?.net_weight??'',approved:w?.approved_weight??''};const d=draft?{...base,...Object.fromEntries(Object.entries(draft).filter(([k,v])=>k==='approvedAuto'||(v!==''&&v!=null)))}:base;const autoApproved=draft?draft.approvedAuto:(w?.approved_weight==null);return `<div class="context">Active Contractor: <b>${esc(active()?.contractor_name)}</b></div><div class="back" onclick="go('itc')">← Back to Final Weighment</div><div class="topbar"><div><h1>Final Weighment — ${esc(x.dc_number||x.load_number||'')}</h1><div class="sub">Enter and verify the final weighment card for this load.</div></div><div class="card" style="min-width:260px"><div class="label">Load / DC</div><div style="font-weight:700;margin-top:5px">${esc(x.dc_number||x.load_number||'')}</div><div class="small" style="margin-top:4px">${esc(x.vehicle_master?.vehicle_number||'')} · ${esc(x.species_name||x.po_master?.species_name||'')}</div></div></div><div class="form"><div class="sectionhead">Final Weighment Details</div><div class="formgrid"><div class="field"><label>WC Number *</label><input id="wc" value="${esc(d.wc)}" oninput="this.value=this.value.toUpperCase()"></div><div class="field"><label>WC Date *</label><input id="wcDate" type="date" value="${esc(d.wcDate)}"></div><div class="field"><label>Vehicle Number *</label><input id="itcVehicle" value="${esc(d.vehicle)}"></div><div class="field"><label>DC Number</label><input id="itcDc" class="readonly" readonly value="${esc(w?.dc_number||x.dc_number||'')}"></div><div class="field"><label>DC Date</label><input id="itcDcDate" class="readonly" readonly value="${fmtDate(w?.dc_date||x.load_date||'')}"></div><div class="field"><label>Material Description</label><input id="itcMaterial" value="${esc(w?.material_description||x.species_name||x.po_master?.species_name||'')}"></div><div class="field"><label>Gross Weight (MT)</label><input id="itcGross" type="number" step="0.001" value="${d.gross}"></div><div class="field"><label>Tare Weight (MT)</label><input id="itcTare" type="number" step="0.001" value="${d.tare}"></div><div class="field"><label>Net Weight (MT)</label><input id="itcNet" class="readonly" readonly type="number" step="0.001" value="${d.net}"></div><div class="field"><label>Approved Weight (MT) *</label><input id="itcApproved" type="number" step="0.001" value="${d.approved}" data-auto="${autoApproved?'1':'0'}"><div class="small">Defaults to Net Weight. Change it only if ITC has approved a different quantity.</div></div></div><div class="actions"><button class="btn primary" onclick="compareItc()">Compare & Verify</button><button class="btn secondary" onclick="cancelItc()">Cancel</button></div></div>`}
-function selectItcLoad(){const previous=$('itcLoad')?.dataset.previousLoadId;if(previous&&previous!==$('itcLoad').value)saveItcDraft();const x=state.loads.find(v=>v.id===$('itcLoad').value);if(!x)return;state.selectedLoad=x;$('itcLoad').dataset.previousLoadId=x.id;const drafts=getItcDrafts();if(!drafts[x.id]){drafts[x.id]={wc:'',wcDate:'',vehicle:x.vehicle_master?.vehicle_number||'',gross:'',tare:'',net:'',approved:'',approvedAuto:true,savedAt:Date.now()};localStorage.setItem('wm360:draft:itcDrafts',JSON.stringify(drafts))}else if(!drafts[x.id].vehicle){drafts[x.id].vehicle=x.vehicle_master?.vehicle_number||'';localStorage.setItem('wm360:draft:itcDrafts',JSON.stringify(drafts))}render()}
-function cancelItc(){const id=state.selectedLoad?.id||$('itcLoad')?.value;if(id)clearItcDraft(id);state.selectedLoad=null;go('itc')}
-function cancelNewLoad(){clearForm('newload');state.editLoad=null;state.selectedLoad=null;go('loads')}
-async function compareItc(){
-const x=state.selectedLoad||state.loads.find(v=>v.id===state.selectedLoad?.id);
-if(!x)return alert('Select a load/DC.');
-const wc=$('wc').value.trim().toUpperCase(); $('wc').value=wc; const wcDate=$('wcDate').value, approved=$('itcApproved').value;
-if(!wc||!wcDate||!approved)return alert('WC Number, WC Date and Approved Weight are required.');
-const fields=[
-['WC Number','',wc,'text'],
-['WC Date','',wcDate,'date'],
-['Vehicle Number',x.vehicle_master?.vehicle_number||'', $('itcVehicle').value,'text'],
-['DC Number',x.dc_number||'', $('itcDc').value,'text'],
-['Material',x.species_name||x.po_master?.species_name||'', $('itcMaterial').value,'text'],
-['Gross Weight',fmt(x.network_gross),$('itcGross').value,'number'],
-['Tare Weight',fmt(x.network_tare),$('itcTare').value,'number'],
-['Net Weight',fmt(x.network_net),$('itcNet').value,'number'],
-['Approved Weight','',approved,'number']
-];
-const body=`<div class="compare"><div class="head">WoodMaster existing data</div><div class="head">ITC card / user verified data</div>${fields.map(([n,a,b,type])=>{
-const hasExisting=a!=='';
-const diff=hasExisting&&String(a)!==String(b);
-const id='cmp_'+n.replace(/\\W/g,'_');
-const readonly=n==='Net Weight';
-const extra=n==='WC Number'||n==='Vehicle Number'?'oninput="this.value=this.value.toUpperCase()"':'';
-return `<div><b>${esc(n)}</b><br>${hasExisting?esc(a):'<span class="small">Entered by user</span>'}</div><div class="${diff?'diff':''}"><b>${esc(n)}</b><br><input id="${id}" data-cmp="${esc(n)}" type="${type}" value="${esc(b)}" ${type==='number'?'step="0.001"':''} ${extra} ${readonly?'readonly class="readonly"':''} style="width:100%;padding:8px;border:1px solid #d0d5dd;border-radius:7px"></div>`;
-}).join('')}</div><div class="notice" style="margin-top:14px">Review the complete comparison before saving. WC Number, WC Date and Approved Weight come directly from your first Final Weighment screen entry; you do not need to type them again. Differences from WoodMaster data are highlighted. You may correct any value here before confirming.</div>`;
-showModal('Final Weighment Comparison',body,`saveComparedItc('${x.id}')`,'Confirm & Save Final Weighment')}
-function showModal(title,body,saveFn,saveLabel='Save'){closeModal();document.body.insertAdjacentHTML('beforeend',`<div class="modal" id="wmModal"><div class="modalbox"><div class="modalhead"><h2>${esc(title)}</h2><button class="modalclose" onclick="closeModal()">✕</button></div>${body}<div class="actions"><button class="btn primary" onclick="${saveFn}">${esc(saveLabel)}</button><button class="btn secondary" onclick="closeModal()">Cancel</button></div></div></div>`)}
-async function saveComparedItc(loadId){
-  const x=state.loads.find(v=>v.id===loadId)||state.selectedLoad;
-  if(!x)return alert('Load/DC context is missing. Please close this window, select the DC again, and retry.');
-  const modal=document.getElementById('wmModal');
-  const cmp=(name)=>modal?.querySelector('[data-cmp="'+name.replace(/"/g,'\\"')+'"]');
-  const wcEl=cmp('WC Number'),dateEl=cmp('WC Date'),apEl=cmp('Approved Weight');
-  if(!modal||!wcEl||!dateEl||!apEl)return alert('The comparison data could not be read. Please close the comparison and try again.');
-  const wc=wcEl.value.trim().toUpperCase(),d=dateEl.value,ap=num(apEl.value); wcEl.value=wc;
-  if(!wc||!d||ap<=0)return alert('WC Number, WC Date and Approved Weight are required.');
-  const g=num(cmp('Gross Weight')?.value),t=num(cmp('Tare Weight')?.value);
-  if(g<0||t<0||g<t)return alert('Please verify Gross and Tare Weight. Gross Weight cannot be less than Tare Weight.');
-  const n=Number((g-t).toFixed(3));
-  const netEl=cmp('Net Weight'); if(netEl)netEl.value=n.toFixed(3);
-  const vehicle=cmp('Vehicle Number')?.value.trim().toUpperCase()||'';
-  const material=cmp('Material')?.value.trim()||'';
-  const dc=cmp('DC Number')?.value.trim()||x.dc_number||'';
-  const row={load_id:loadId,wc_number:wc,wc_date:d,vehicle_number:vehicle,dc_number:dc,dc_date:x.load_date,material_description:material,gross_weight:g,tare_weight:t,net_weight:n,approved_weight:ap,ocr_verified:true,source:'Manual',created_by:state.session?.user?.id||null};
-  const saveBtn=document.querySelector('#wmModal .actions .primary:last-of-type, #wmModal .actions .primary');
-  if(saveBtn){saveBtn.disabled=true;saveBtn.textContent='Saving…';}
-  try{
-    // Update an existing ITC record for this load; otherwise insert a new one.
-    // This avoids ambiguous upsert behavior when WC Number is globally unique.
-    const existing=await sb.from('itc_weighments').select('id').eq('load_id',loadId).maybeSingle();
-    if(existing.error)throw existing.error;
-    let r;
-    if(existing.data){
-      r=await sb.from('itc_weighments').update(row).eq('id',existing.data.id).select().single();
-    }else{
-      r=await sb.from('itc_weighments').insert(row).select().single();
-    }
-    if(r.error){
-      if(String(r.error.message||'').toLowerCase().includes('duplicate')||String(r.error.message||'').toLowerCase().includes('unique')){
-        throw new Error(`WC Number '${wc}' already exists for another load. Please verify the WC Number before saving.`);
-      }
-      throw r.error;
-    }
-    const sr=await sb.from('loads').update({status:'ITC Weighment Received'}).eq('id',loadId);
-    if(sr.error)throw sr.error;
-    if(vehicle){
-      let v=state.vehicles.find(z=>z.vehicle_number.toUpperCase()===vehicle);
-      if(v){
-        const vr=await sb.from('vehicle_master').update({current_tare:t,last_itc_tare_date:d}).eq('id',v.id);
-        if(vr.error)throw vr.error;
-      }
-    }
-    clearItcDraft(loadId);
-    closeModal();
-    state.selectedLoad=state.loads.find(v=>v.id===loadId)||x;
-    alert('Final Weighment saved successfully.');
-    await refreshLoads();
-    state.selectedLoad=state.loads.find(v=>v.id===loadId)||null;
-    state.page='itc';
-    await render();
-  }catch(err){
-    console.error('ITC save failed',err);
-    alert('Final Weighment was not saved.\n\n'+(err?.message||String(err)));
-    if(saveBtn){saveBtn.disabled=false;saveBtn.textContent='Confirm & Save Final Weighment';}
-  }
-}
-function openFreight(id){
- state.selectedLoad=state.loads.find(x=>x.id===id)||null;
- state.page='freightdetail';
- render();
-}
-function numberWordsIndian(n){
- const ones=['Zero','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
- const tens=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
- function under1000(x){let a=[];if(x>=100){a.push(ones[Math.floor(x/100)]+' Hundred');x%=100;if(x)a.push('and')}if(x>=20){a.push(tens[Math.floor(x/10)]);if(x%10)a[a.length-1]+='-'+ones[x%10]}else if(x>0)a.push(ones[x]);return a.join(' ')}
- n=Math.max(0,Math.round(Number(n)||0));if(n===0)return 'Zero Rupees Only';let parts=[];const crore=Math.floor(n/10000000);n%=10000000;const lakh=Math.floor(n/100000);n%=100000;const thousand=Math.floor(n/1000);n%=1000;if(crore)parts.push(under1000(crore)+' Crore');if(lakh)parts.push(under1000(lakh)+' Lakh');if(thousand)parts.push(under1000(thousand)+' Thousand');if(n)parts.push(under1000(n));return parts.join(' ')+' Rupees Only';
-}
-function freightDraftKey(id){return 'freight:'+id}
-function freightDraftSnapshot(){return {challan:document.getElementById('frChallan')?.value||'',date:document.getElementById('frDate')?.value||'',rate:document.getElementById('frRate')?.value||'',qty:document.getElementById('frQty')?.value||'',amc:document.getElementById('frAmc')?.value||'',advance:document.getElementById('frAdvance')?.value||'',clerk:document.getElementById('frClerk')?.value||'',shortage:document.getElementById('frShortage')?.value||'',account:document.getElementById('frAccount')?.value||'',holder:document.getElementById('frHolder')?.value||'',paid:document.getElementById('frPaid')?.value||'',paymentBy:document.getElementById('frPaymentBy')?.value||'Ramkee',sig:document.getElementById('frSig')?.value||''}}
-function saveFreightDraft(id){saveForm(freightDraftKey(id),freightDraftSnapshot())}
-function bindFreightForm(id){['frRate','frQty','frAmc','frAdvance','frClerk','frShortage','frAccount','frHolder','frPaid','frPaymentBy','frSig'].forEach(k=>{const e=$(k);if(e)e.addEventListener('input',()=>{saveFreightDraft(id);calcFreightForm()});});const d=$("frDate");if(d)d.addEventListener('change',()=>saveFreightDraft(id));calcFreightForm()}
-function calcFreightForm(){const w=num($('frApproved')?.value),rate=num($('frRate')?.value),q=$('frQty')?.value?num($('frQty').value):w,charges=rate*q,amc=num($('frAmc')?.value),gross=charges+amc,adv=num($('frAdvance')?.value),clerk=num($('frClerk')?.value||300),shortage=num($('frShortage')?.value),net=gross-adv-clerk-shortage;if($('frCharges'))$('frCharges').value=money(charges);if($('frGross'))$('frGross').value=money(gross);if($('frGrossWords'))$('frGrossWords').value=numberWordsIndian(gross);if($('frNet'))$('frNet').value=money(net);if($('frNetWords'))$('frNetWords').value=numberWordsIndian(net)}
-async function freightPage(){
- const ids=state.loads.map(x=>x.id).filter(Boolean);if(!ids.length)return `${contractorContext()}<div class="topbar"><div><h1>Final Freight Letters</h1><div class="sub">Final freight letters are prepared only after the Final Weighment is saved.</div></div></div><div class="card empty">No loads available.</div>`;
- const [wr,fr]=await Promise.all([sb.from('itc_weighments').select('*').in('load_id',ids),sb.from('freight_settlements').select('*').in('load_id',ids)]);if(wr.error)throw wr.error;if(fr.error)throw fr.error;const wm=new Map((wr.data||[]).map(v=>[v.load_id,v]));const fm=new Map((fr.data||[]).map(v=>[v.load_id,v]));const rows=state.loads.filter(x=>wm.has(x.id)).map(x=>{const w=wm.get(x.id),f=fm.get(x.id);return {x,w,f}});
- return `${contractorContext()}<div class="topbar"><div><h1>Final Freight Letters</h1><div class="sub">Prepare and manage final freight letters using ITC Approved Weight.</div></div></div><div class="notice">Final Freight = ITC Approved Weight × Freight Rate, unless a Freightable Quantity is entered. AMC is included in the freight letter but is reimbursed separately through AMC Billing.</div><div class="card">${rows.length?`<div class="tablewrap"><table><thead><tr><th>DC Number</th><th>Date</th><th>Vehicle</th><th>WC Number</th><th>Approved MT</th><th>Freight Rate</th><th>Net Amount</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows.map(({x,w,f})=>`<tr><td>${esc(x.dc_number||'—')}</td><td>${fmtDate(x.load_date)}</td><td>${esc(x.vehicle_master?.vehicle_number||'')}</td><td>${esc(w.wc_number||'')}</td><td>${fmt(w.approved_weight)}</td><td>${money(f?.freight_rate??x.freight_rate??0)}</td><td>${f?money(f.net_amount):'—'}</td><td><span class="badge">${f?'Final Freight Letter Generated':'Ready for Final Freight Letter'}</span></td><td><div class="rowactions"><button class="btn ${f?'secondary':'primary'} mini" onclick="openFreight('${x.id}')">${f?'View / Edit':'Prepare Final Freight Letter'}</button>${f?`<button class="btn secondary mini" onclick="downloadFreightLetter('${x.id}')">Download PDF</button>`:''}</div></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No Final Weighments are available for Final Freight Letter preparation.</div>'}</div>`;
-}
-async function freightDetailPage(){
- const x=state.selectedLoad;if(!x)return `<div class="card empty">No load selected.</div>`;const [wr,fr]=await Promise.all([sb.from('itc_weighments').select('*').eq('load_id',x.id).maybeSingle(),sb.from('freight_settlements').select('*').eq('load_id',x.id).maybeSingle()]);if(wr.error)throw wr.error;if(fr.error)throw fr.error;const w=wr.data,f=fr.data;if(!w)return `${contractorContext()}<div class="notice error">Final Weighment is required before preparing the Final Freight Letter.</div><button class="btn secondary" onclick="go('freight')">← Back to Final Freight Letters</button>`;const d=loadForm('freight:'+x.id)||{};const v=(key,db,def='')=>esc(d[key]??db??def);return `${contractorContext()}<div class="back" onclick="go('freight')">← Back to Final Freight Letters</div><div class="topbar"><div><h1>Final Freight Letter</h1><div class="sub">DC ${esc(x.dc_number||'—')} · ${esc(x.vehicle_master?.vehicle_number||'')} · WC ${esc(w.wc_number||'')}</div></div>${f?`<button class="btn secondary" onclick="downloadFreightLetter('${x.id}')">Download Final Freight Letter PDF</button>`:''}</div><div class="notice">Challan Number and Challan Date are taken from the original LR/DC and cannot be changed here. Final freight uses the ITC Approved Weight unless Freightable Quantity is entered.</div><div class="form"><div class="sectionhead">1. Load / Final Weighment</div><div class="formgrid"><div class="field"><label>Challan Number</label><input class="readonly" readonly value="${esc(x.dc_number||'')}"></div><div class="field"><label>Challan Date</label><input class="readonly" readonly value="${fmtDate(x.load_date)}"></div><div class="field"><label>Vehicle Number</label><input class="readonly" readonly value="${esc(x.vehicle_master?.vehicle_number||'')}"></div><div class="field"><label>WC Number</label><input class="readonly" readonly value="${esc(w.wc_number||'')}"></div><div class="field"><label>ITC Approved Weight / MT</label><input id="frApproved" class="readonly" readonly value="${fmt(w.approved_weight)}"></div><div class="field"><label>Freight Rate / MT *</label><input id="frRate" type="number" step="0.01" min="0" value="${v('rate',f?.freight_rate,x.freight_rate||0)}"></div><div class="field"><label>Freightable Quantity / MT</label><input id="frQty" type="number" step="0.001" min="0" value="${v('qty',f?.freightable_qty,'')}"><div class="small">Optional. If blank, Approved Weight is used.</div></div><div class="field"><label>Freight Charges</label><input id="frCharges" class="readonly" readonly></div><div class="field"><label>AMC Charges</label><input id="frAmc" type="number" step="0.01" min="0" value="${v('amc',f?.amc_charges,0)}"></div><div class="field"><label>Gross Amount</label><input id="frGross" class="readonly" readonly></div><div class="field full"><label>Gross Amount in Words</label><input id="frGrossWords" class="readonly" readonly></div></div><div class="sectionhead">2. Settlement Details</div><div class="formgrid"><div class="field"><label>Advance</label><input id="frAdvance" type="number" step="0.01" min="0" value="${v('advance',f?.advance,x.advance||0)}"></div><div class="field"><label>Clerk Commission</label><input id="frClerk" type="number" step="0.01" min="0" value="${v('clerk',f?.clerk_commission,300)}"></div><div class="field"><label>Shortage</label><input id="frShortage" type="number" step="0.01" min="0" placeholder="Leave blank if none" value="${v('shortage',f?.shortage,'')}"></div><div class="field"><label>Net Amount</label><input id="frNet" class="readonly" readonly></div><div class="field full"><label>Net Amount in Words</label><input id="frNetWords" class="readonly" readonly></div><div class="field"><label>Account Number / UPI Number</label><input id="frAccount" value="${v('account',f?.account_number,'')}" placeholder="Enter account number or UPI number"></div><div class="field"><label>Account Holder Name</label><input id="frHolder" value="${v('holder',f?.account_holder,'')}"></div><div class="field"><label>Paid Date</label><input id="frPaid" type="date" value="${v('paid',f?.paid_date,'')}"></div><div class="field"><label>Final Payment Paid By</label><select id="frPaymentBy"><option value="Ramkee" ${(d.paymentBy??f?.final_payment_paid_by??'Ramkee')==='Ramkee'?'selected':''}>Ramkee</option><option value="Venkat" ${(d.paymentBy??f?.final_payment_paid_by)==='Venkat'?'selected':''}>Venkat</option><option value="Others" ${(d.paymentBy??f?.final_payment_paid_by)==='Others'?'selected':''}>Others</option></select></div><div class="field"><label>Driver Signature</label><input id="frSig" value="${v('sig',f?.driver_signature_reference,'')}"></div></div><div class="actions"><button class="btn primary" onclick="saveFreight('${x.id}')">${f?'Update Final Freight Letter':'Save Final Freight Letter'}</button><button class="btn secondary" onclick="clearForm('freight:${x.id}');state.page='freight';render()">Cancel</button></div></div>`;
-}
-async function saveFreight(id){
- const x=state.loads.find(v=>v.id===id);const w=(await sb.from('itc_weighments').select('*').eq('load_id',id).maybeSingle()).data;if(!x||!w)return alert('Final Weighment with Approved Weight is required first.');const rate=num($('frRate').value),qty=$('frQty').value?num($('frQty').value):num(w.approved_weight);if(rate<0||qty<=0)return alert('Freight Rate and applicable quantity must be valid.');const charges=rate*qty,amc=num($('frAmc').value),gross=charges+amc,advance=num($('frAdvance').value),clerk=num($('frClerk').value||300),short=num($('frShortage').value),net=gross-advance-clerk-short;if(net<0&&!confirm('Net Amount is negative. Do you want to save this Final Freight Letter anyway?'))return;const row={load_id:id,wc_number:w.wc_number,challan_number:x.dc_number,challan_date:x.load_date,freight_rate:rate,applicable_weight:qty,freightable_qty:$('frQty').value?qty:null,freight_charges:charges,amc_charges:amc,gross_amount:gross,advance,clerk_commission:clerk,shortage:short,net_amount:net,account_number:$('frAccount').value.trim()||null,account_holder:$('frHolder').value.trim()||null,paid_date:$('frPaid').value||null,final_payment_paid_by:$('frPaymentBy').value||'Ramkee',driver_signature_reference:$('frSig').value.trim()||null,finalized:true,created_by:state.session.user.id};const r=await sb.from('freight_settlements').upsert(row,{onConflict:'load_id'});if(r.error)return alert('Final Freight Letter was not saved.\n\n'+r.error.message);const sr=await sb.from('loads').update({status:'Final Freight Letter Generated'}).eq('id',id);if(sr.error)return alert('Final Freight Letter was saved, but the load status could not be updated.\n\n'+sr.error.message);clearForm(freightDraftKey(id));alert('Final Freight Letter saved successfully.');await refreshLoads();state.page='freight';state.selectedLoad=null;await render();
 }
 async function downloadFreightLetter(id){
  const x=state.loads.find(v=>v.id===id);if(!x)return alert('Load not found.');
