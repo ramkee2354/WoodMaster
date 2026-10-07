@@ -85,7 +85,7 @@ async function generatePackage(id){
   const wrapByWidth=(str,maxWidth,size=NORMAL,bold=false)=>{set(size,bold);const words=String(str??'').trim().split(/\s+/).filter(Boolean);const lines=[];let cur='';for(const word of words){const test=cur?cur+' '+word:word;if(doc.getTextWidth(safe(test))<=maxWidth)cur=test;else{if(cur)lines.push(cur);cur=word;}}if(cur)lines.push(cur);return lines.length?lines:[''];};
   const finite=(v,d=0)=>{const n=Number(v);return Number.isFinite(n)?n:d;};
   const set=(size=NORMAL,b=false)=>{const fs=finite(size,NORMAL);doc.setFont('helvetica',b?'bold':'normal');doc.setFontSize(fs);doc.setTextColor(0,0,0);};
-  const text=(t,x,y,size=NORMAL,b=false,align='left')=>{const xx=finite(x,0),yy=finite(y,0);set(size,b);doc.text(safe(t),xx,yy,{align});};
+  const text=(t,x,y,size=NORMAL,b=false,align='left')=>{const xx=finite(x,0),yy=finite(y,0);const a=['left','center','right','justify'].includes(String(align))?String(align):'left';set(size,b);doc.text(safe(t),xx,yy,{align:a});};
   const line=(x1,y1,x2,y2=y1,w=1)=>{doc.setDrawColor(0,0,0);doc.setLineWidth(finite(w,1));doc.line(finite(x1),finite(y1),finite(x2),finite(y2));};
   const rect=(x,y,w,h,fill=null,bw=1)=>{doc.setDrawColor(0,0,0);doc.setLineWidth(finite(bw,1));const xx=finite(x),yy=finite(y),ww=finite(w),hh=finite(h);if(fill){doc.setFillColor(finite(fill[0],255),finite(fill[1],255),finite(fill[2],255));doc.rect(xx,yy,ww,hh,'FD')}else doc.rect(xx,yy,ww,hh,'S');};
   const hcenter=(t,x1,x2,y,size=NORMAL,b=false)=>text(t,(x1+x2)/2,y,size,b,'center');
@@ -391,7 +391,7 @@ async function downloadFreightLetter(id){
   const PW=595.28,left=34,right=561,width=right-left,NORMAL=11,BLACK=[0,0,0],LIGHT=[238,238,238];
   const safe=v=>String(v??'').replace(/₹/g,'Rs. ').replace(/\u00a0/g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'?');
   const set=(size=NORMAL,b=false)=>{doc.setFont('helvetica',b?'bold':'normal');doc.setFontSize(size);doc.setTextColor(BLACK[0],BLACK[1],BLACK[2]);};
-  const text=(t,x,y,size=NORMAL,b=false,align='left')=>{set(size,b);doc.text(safe(t),x,y,{align});};
+  const text=(t,x,y,size=NORMAL,b=false,align='left')=>{const a=['left','center','right','justify'].includes(String(align))?String(align):'left';set(size,b);doc.text(safe(t),x,y,{align:a});};
   const line=(x1,y1,x2,y2=y1,w=1)=>{doc.setDrawColor(BLACK[0],BLACK[1],BLACK[2]);doc.setLineWidth(w);doc.line(x1,y1,x2,y2);};
   const rect=(x,y,w,h,fill=null,bw=1)=>{doc.setDrawColor(BLACK[0],BLACK[1],BLACK[2]);doc.setLineWidth(bw);if(fill){doc.setFillColor(fill[0],fill[1],fill[2]);doc.rect(x,y,w,h,'FD')}else doc.rect(x,y,w,h,'S');};
   const hcenter=(t,x1,x2,y,size=NORMAL,b=false)=>text(t,(x1+x2)/2,y,size,b,'center');
@@ -803,7 +803,7 @@ async function printMaterialInvoice(id){
     const moneyPlain=v=>Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
     const qty3=v=>Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:3,maximumFractionDigits:3});
     const set=(size=9,bold=false)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(...black);};
-    const text=(t,x,y,size=9,bold=false,align='left')=>{set(size,bold);doc.text(safe(t),x,y,{align});};
+    const text=(t,x,y,size=9,bold=false,align='left')=>{const a=['left','center','right','justify'].includes(String(align))?String(align):'left';set(size,bold);doc.text(safe(t),x,y,{align:a});};
     const line=(x1,y1,x2,y2,w=0.8)=>{doc.setLineWidth(w);doc.setDrawColor(...black);doc.line(x1,y1,x2,y2);};
     const rect=(x,y,w,h,lw=0.8)=>{doc.setLineWidth(lw);doc.setDrawColor(...black);doc.rect(x,y,w,h);};
     const center=(t,x1,x2,y,size=8,bold=false)=>text(t,(x1+x2)/2,y,size,bold,'center');
