@@ -1,8 +1,9 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta name="wm360-build" content="WM360-DOCUMENT-DESIGNS-LOCKED">
+  <meta name="wm360-build" content="WM360-DOCUMENT-DESIGNS-LOCKED-PO-BILLING-RESTORED">
   <!-- WM360-DOCUMENT-DESIGNS-LOCKED: LR / DC / INITIAL FL / FINAL FL -->
+<!-- WM360-PO-BILLING-RESTORED: Material Billing is strictly Purchase-Order based -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>WoodMaster 360</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -490,8 +491,8 @@ async function billingPage(){
     <div id="billingReceiptPreview" style="margin-top:14px">${renderBillingReceiptPreview(receiptDraft.lines||[])}</div><div class="field" style="margin-top:10px"><details><summary>Raw extracted text (verification)</summary><textarea id="brText" rows="5" oninput="saveBillingReceiptDraft()" placeholder="Extracted receipt text">${esc(receiptDraft.text||'')}</textarea></details></div>
     <div class="actions"><button class="btn primary" onclick="saveAndReconcileBillingReceipt()">Save GR & Reconcile All Lines</button><button class="btn secondary" onclick="clearBillingReceiptDraft()">Clear Draft</button></div></div></div>
 
-  <div class="section"><h2>Method 2 — Manual Date Selection <span class="badge">Current Method</span></h2><div class="card"><div class="notice">Select From Date and To Date. WoodMaster will take the billable Final Weighments from <b>your WoodMaster data</b> whose WC dates fall within this period. Before the selected From Date, WoodMaster also checks for any earlier load that is still unbilled and not already marked Waiting for Next Bill Cycle. Such loads must be accounted for before the draft bill can be prepared. Carry-forward loads already marked Waiting for Next Bill Cycle are automatically included.</div>
-    <div class="formgrid"><div class="field"><label>From Date *</label><input id="biManualFrom" type="date" value="${esc(invoiceDraft.manualFromDate||'')}" onchange="saveBillingInvoiceDraft()"></div><div class="field"><label>To Date / Cutoff *</label><input id="biManualTo" type="date" value="${esc(invoiceDraft.manualToDate||'')}" onchange="saveBillingInvoiceDraft()"></div><div class="field"><label>Invoice Date *</label><input id="biManualDate" type="date" value="${esc(invoiceDraft.invoiceDate||isoToday())}" onchange="saveBillingInvoiceDraft();refreshBillingInvoicePreview()"></div><div class="field"><label>Invoice Number</label><input id="biManualNo" class="readonly" readonly value="${esc(preview)}"><div class="small">Automatically assigned from the common Material + AMC invoice series.</div></div></div>
+  <div class="section"><h2>Method 2 — Manual Date Selection <span class="badge">Current Method</span></h2><div class="card"><div class="notice"><b>PO-wise billing:</b> Select the Purchase Order first. WoodMaster will consider only Final Weighments belonging to that PO, then apply the selected From/To dates. Rates are always taken from the selected PO. Select From Date and To Date. WoodMaster will take the billable Final Weighments from <b>your WoodMaster data</b> whose WC dates fall within this period. Before the selected From Date, WoodMaster also checks for any earlier load that is still unbilled and not already marked Waiting for Next Bill Cycle. Such loads must be accounted for before the draft bill can be prepared. Carry-forward loads already marked Waiting for Next Bill Cycle are automatically included.</div>
+    <div class="formgrid"><div class="field"><label>Purchase Order *</label><select id="biManualPo" onchange="saveBillingInvoiceDraft();refreshBillingInvoicePreview()"><option value="">— Select Purchase Order —</option>${(state.pos||[]).map(po=>`<option value="${esc(po.id)}" ${String(po.id)===String(invoiceDraft.poId||'')?'selected':''}>${esc(po.po_number||'')} — ${esc(po.area_name||'')} — ${esc(po.species_name||'')}</option>`).join('')}</select><div class="small">Billing is strictly PO-wise because rates can differ between POs.</div></div><div class="field"><label>From Date *</label><input id="biManualFrom" type="date" value="${esc(invoiceDraft.manualFromDate||'')}" onchange="saveBillingInvoiceDraft()"></div><div class="field"><label>To Date / Cutoff *</label><input id="biManualTo" type="date" value="${esc(invoiceDraft.manualToDate||'')}" onchange="saveBillingInvoiceDraft()"></div><div class="field"><label>Invoice Date *</label><input id="biManualDate" type="date" value="${esc(invoiceDraft.invoiceDate||isoToday())}" onchange="saveBillingInvoiceDraft();refreshBillingInvoicePreview()"></div><div class="field"><label>Invoice Number</label><input id="biManualNo" class="readonly" readonly value="${esc(preview)}"><div class="small">Automatically assigned from the common Material + AMC invoice series.</div></div></div>
     <div class="actions"><button class="btn primary" onclick="buildMaterialInvoiceDraft('manual')">Review & Confirm Billable Loads</button></div></div></div>
 
   <div class="section"><h2>Draft Material Invoices</h2><div class="notice">Draft invoices can be edited or deleted. Finalizing a draft marks its loads as Billed. Invoice numbers are never reused after allocation.</div><div class="tablewrap"><table><thead><tr><th>Invoice</th><th>Method</th><th>Date</th><th>Period</th><th>Qty MT</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>${invoices.filter(i=>i.status==='Draft').length?invoices.filter(i=>i.status==='Draft').map(i=>`<tr><td>${esc(i.invoice_number)}</td><td>${esc(i.billing_method||'—')}</td><td>${fmtDate(i.invoice_date)}</td><td>${fmtDate(i.from_date)} – ${fmtDate(i.to_date)}</td><td>${fmt(i.total_qty)}</td><td>${money(i.invoice_total)}</td><td><span class="badge">Draft</span></td><td><div class="rowactions"><button class="btn secondary mini" onclick="editMaterialInvoice('${i.id}')">Edit</button><button class="btn primary mini" onclick="finalizeMaterialInvoice('${i.id}')">Finalize</button><button class="btn secondary mini" onclick="printMaterialInvoice('${i.id}')">Print Draft</button><button class="btn danger mini" onclick="deleteMaterialInvoice('${i.id}')">Delete</button></div></td></tr>`).join(''):`<tr><td colspan="8" class="empty">No draft material invoices.</td></tr>`}</tbody></table></div></div>
@@ -500,7 +501,7 @@ async function billingPage(){
 }
 function saveBillingReceiptDraft(){const old=loadForm('billingReceipt')||{};const lines=old.lines||[];saveForm('billingReceipt',{receiptNumber:$('brNo')?.value||old.receiptNumber||'',receiptDate:$('brDate')?.value||old.receiptDate||'',fromDate:$('brFrom')?.value||old.fromDate||'',toDate:$('brTo')?.value||old.toDate||'',poNumber:$('brPo')?.value||old.poNumber||'',text:$('brText')?.value||old.text||'',lines});}
 function clearBillingReceiptDraft(){clearForm('billingReceipt');go('billing')}
-function saveBillingInvoiceDraft(){const old=loadForm('billingInvoice')||{};saveForm('billingInvoice',{...old,mode:'manual',manualFromDate:$('biManualFrom')?.value||old.manualFromDate||'',manualToDate:$('biManualTo')?.value||old.manualToDate||'',invoiceDate:$('biManualDate')?.value||old.invoiceDate||isoToday()});}
+function saveBillingInvoiceDraft(){const old=loadForm('billingInvoice')||{};saveForm('billingInvoice',{...old,mode:'manual',poId:$('biManualPo')?.value||old.poId||'',manualFromDate:$('biManualFrom')?.value||old.manualFromDate||'',manualToDate:$('biManualTo')?.value||old.manualToDate||'',invoiceDate:$('biManualDate')?.value||old.invoiceDate||isoToday()});}
 async function refreshBillingInvoicePreview(){const d=loadForm('billingInvoice')||{};const date=$('biManualDate')?.value||d.invoiceDate||isoToday();const r=await sb.rpc('peek_shared_invoice_number',{p_invoice_date:date});if(!$('biManualNo'))return;if(r.error){$('biManualNo').value='Run shared numbering migration';}else{$('biManualNo').value=r.data||'—';}}
 function receiptDateToISO(v){const m=String(v||'').trim().match(/^(\d{2})[.\/-](\d{2})[.\/-](\d{4})$/);return m?`${m[3]}-${m[2]}-${m[1]}`:''}
 function parseWoodReceiptSummary(text){const t=String(text||'').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();const unique=(t.match(/Unique\s*No\s*:\s*([A-Za-z0-9]+)/i)||[])[1]||'';const receiptDate=receiptDateToISO((t.match(/Date\s*:\s*(\d{2}[.\/-]\d{2}[.\/-]\d{4})/i)||[])[1]||'');const pm=t.match(/Period\s*From\s*:\s*(\d{2}[.\/-]\d{2}[.\/-]\d{4})\s*To\s*(\d{2}[.\/-]\d{2}[.\/-]\d{4})/i)||[];const fromDate=receiptDateToISO(pm[1]||''),toDate=receiptDateToISO(pm[2]||'');const poMatch=t.match(/Purchase\s+Order\s+NO\s*:\s*([0-9]+)/i);const poNumber=poMatch?poMatch[1]:'';const lines=[];const rowRe=/(\d+)\s+(\d{2}[.\/-]\d{2}[.\/-]\d{4})\s+(W[A-Z0-9]+)\s+([A-Z0-9]+)\s+([0-9]+(?:\.[0-9]+)?)\s+MT\b/gi;let m;while((m=rowRe.exec(t))){lines.push({sno:m[1],date:receiptDateToISO(m[2]),wc:m[3].toUpperCase(),vehicle:m[4].toUpperCase(),qty:Number(m[5])})}return {receiptNumber:unique,receiptDate,fromDate,toDate,poNumber,lines};}
@@ -514,50 +515,120 @@ async function markBillingWaiting(loadId,cutoff,mode){const l=state.loads.find(x
 async function buildMaterialInvoiceDraft(modeOverride){
   const mode=modeOverride||'manual';
   if(mode!=='manual')return alert('For now, Material Billing is being built using Manual Date Selection. GR upload/reconciliation remains available above for the next stage.');
-  const fd=$('biManualFrom')?.value||'',td=$('biManualTo')?.value||'',idate=$('biManualDate')?.value||'';
-  if(!fd||!td||!idate)return alert('From Date, To Date and Invoice Date are required.');
+
+  const poId=$('biManualPo')?.value||'';
+  const fd=$('biManualFrom')?.value||'';
+  const td=$('biManualTo')?.value||'';
+  const idate=$('biManualDate')?.value||'';
+
+  if(!poId||!fd||!td||!idate)return alert('Purchase Order, From Date, To Date and Invoice Date are required.');
   if(fd>td)return alert('From Date cannot be after To Date.');
+
+  const selectedPO=(state.pos||[]).find(p=>String(p.id)===String(poId));
+  if(!selectedPO)return alert('Selected Purchase Order was not found. Refresh Masters and try again.');
+
   saveBillingInvoiceDraft();
-  const ids=state.loads.map(x=>x.id).filter(Boolean);if(!ids.length)return alert('No loads available.');
-  const wr=await sb.from('itc_weighments').select('*').in('load_id',ids);if(wr.error)return alert(wr.error.message);
+
+  /*
+   * IMPORTANT 360-DEGREE FIX:
+   * Query the database directly by the selected PO ID.
+   * Do not depend on state.loads + nested po_master matching.
+   * This prevents one contractor having another PO's Final Weighments
+   * incorrectly included/excluded when several POs exist.
+   */
+  const loadRes=await sb.from('loads').select(`
+    *,
+    vehicle_master(vehicle_number,owner_name,driver_name,current_tare),
+    po_master(po_number,contractor_id,area_name,species_name,wood_rate,handling_other_rate,amc_rate,hsn_code,customer_id,customer_master(customer_name,gstin))
+  `).eq('po_id',poId).order('load_date',{ascending:true}).order('load_number',{ascending:true});
+
+  if(loadRes.error)return alert(`Could not read loads for the selected Purchase Order.\n\n${loadRes.error.message}`);
+
+  const poLoads=loadRes.data||[];
+  if(!poLoads.length){
+    return alert(`No loads are linked to PO ${selectedPO.po_number||'—'}.\n\nThe Purchase Order exists, but no load row has this PO ID. Please check the PO selected while creating the load.`);
+  }
+
+  const loadIds=poLoads.map(x=>x.id).filter(Boolean);
+
+  // Final Weighments are restricted to loads belonging to THIS selected PO.
+  const wr=await sb.from('itc_weighments').select('*').in('load_id',loadIds);
+  if(wr.error)return alert(`Could not read Final Weighments.\n\n${wr.error.message}`);
   const allW=wr.data||[];
-  const invR=await sb.from('invoice_items').select('load_id,invoice_id').in('load_id',ids);if(invR.error)return alert(invR.error.message);
-  const billedOrDraftIds=new Set((invR.data||[]).map(x=>x.load_id));
-  const source=allW.map(w=>({w,l:state.loads.find(x=>x.id===w.load_id)})).filter(x=>x.l&&num(x.w.approved_weight)>0);
+
+  // Give a precise diagnostic when loads exist but Final Weighments have not
+  // yet been entered. Billing must never silently bill from Load Net Weight.
+  if(!allW.length){
+    const loadList=poLoads.map((l,i)=>`${i+1}. ${l.dc_number||l.load_number||'—'} | ${fmtDate(l.load_date)} | ${String(l.vehicle_master?.vehicle_number||l.vehicle_number||'').toUpperCase()} | Net ${fmt(l.net_weight)} MT`).join('\n');
+    return alert(`PO ${selectedPO.po_number||'—'} has ${poLoads.length} load(s), but no Final Weighment is saved for any of them.\n\nBilling requires a Final Weighment with Approved Weight. Open Final Weighments and save the ITC WC details first.\n\nLoads linked to this PO:\n${loadList}`);
+  }
+
+  // A load is unavailable only when it is reserved by a LIVE Material Invoice.
+  // Cancelled invoice rows are retained for audit history, but they must NOT block
+  // the load from being billed again. This is important for the Khammam case where
+  // loads can still have invoice_items belonging to an older cancelled invoice.
+  const invR=await sb.from('invoice_items').select('load_id,invoice_id,material_invoices(id,invoice_number,status)').in('load_id',loadIds);
+  if(invR.error)return alert(`Could not check existing Material Invoice reservations.\n\n${invR.error.message}`);
+  const activeReservationRows=(invR.data||[]).filter(x=>x.is_active!==false&&['Draft','Verified','Finalized'].includes(String(x.material_invoices?.status||'')));
+  const billedOrDraftIds=new Set(activeReservationRows.map(x=>x.load_id));
+
+  const loadMap=new Map(poLoads.map(x=>[x.id,x]));
+  const source=allW.map(w=>({w,l:loadMap.get(w.load_id)})).filter(x=>x.l&&num(x.w.approved_weight)>0);
+
   const valid=[];
   for(const x of source){
     const {w,l}=x;
-    if(billedOrDraftIds.has(l.id)||l.status==='Billed')continue;
+    if(billedOrDraftIds.has(l.id))continue;
+
     const d=String(w.wc_date||l.load_date||'');
     const carry=Boolean(l.billing_waiting_next_cycle);
     const inPeriod=d>=fd&&d<=td;
     if(carry||inPeriod)valid.push(billingLineFromLoad(l,w,null));
   }
-  const seen=new Set();const unique=valid.filter(x=>{if(seen.has(x.l.id))return false;seen.add(x.l.id);return true;});
 
-  // 360-degree completeness check for Manual Date Selection:
-  // every earlier unbilled load must either already be in a billing draft/invoice,
-  // be billed, or be explicitly carried forward as Waiting for Next Bill Cycle.
-  // This prevents a load before the selected From Date from being silently missed.
+  // Prevent duplicate Final Weighment rows for the same load.
+  const seen=new Set();
+  const unique=valid.filter(x=>{
+    if(seen.has(x.l.id))return false;
+    seen.add(x.l.id);
+    return true;
+  });
+
+  // 360-degree completeness check for THIS PO only:
+  // every earlier unbilled load must be billed/reserved, or explicitly carried forward.
   const pendingBeforeFrom=[];
-  for(const l of state.loads){
+  for(const l of poLoads){
     if(!l?.id)continue;
-    if(billedOrDraftIds.has(l.id)||l.status==='Billed'||l.billing_waiting_next_cycle===true)continue;
+    if(billedOrDraftIds.has(l.id)||l.billing_waiting_next_cycle===true)continue;
+
     const w=allW.find(x=>x.load_id===l.id);
     const businessDate=String(w?.wc_date||l.load_date||'');
     if(!businessDate||businessDate>=fd)continue;
+
     if(w&&num(w.approved_weight)>0){
       pendingBeforeFrom.push({l,w,kind:'ready'});
     }else{
       pendingBeforeFrom.push({l,w:null,kind:'no_final'});
     }
   }
-  if(!unique.length && !pendingBeforeFrom.length)return alert(`No billable Final Weighments found between ${fmtDate(fd)} and ${fmtDate(td)}.`);
+
+  if(!unique.length&&!pendingBeforeFrom.length){
+    const finalCount=allW.length;
+    const approvedCount=allW.filter(w=>num(w.approved_weight)>0).length;
+    const inPeriodCount=allW.filter(w=>{const d=String(w.wc_date||'');return d>=fd&&d<=td&&num(w.approved_weight)>0;}).length;
+    const reservedCount=allW.filter(w=>billedOrDraftIds.has(w.load_id)).length;
+    const cancelledReservationCount=(invR.data||[]).filter(x=>String(x.material_invoices?.status||'')==='Cancelled').length;
+    return alert(
+      `No billable Final Weighments found for PO ${selectedPO.po_number||'—'} between ${fmtDate(fd)} and ${fmtDate(td)}.\n\n`+
+      `Diagnostic: ${poLoads.length} load(s) linked to this PO; ${finalCount} Final Weighment(s) found; ${approvedCount} with Approved Weight > 0; ${inPeriodCount} with WC Date inside the selected period; ${reservedCount} already reserved by a live invoice; ${cancelledReservationCount} item(s) belong to Cancelled invoice(s) and are not blocking.\n\n`+
+      `Billing uses WC Date (not Load Date) and Approved Weight. If the Final Weighment exists but its WC Date is outside ${fmtDate(fd)}–${fmtDate(td)}, change the billing period to the actual WC Date.`
+    );
+  }
 
   const preview=await sb.rpc('peek_shared_invoice_number',{p_invoice_date:idate});
   const invoiceNo=preview.error?'—':(preview.data||'—');
   const totalQty=unique.reduce((a,x)=>a+x.qty,0);
-  const rows=unique.map((x,i)=>`<tr><td>${i+1}</td><td>${fmtDate(x.w.wc_date)}</td><td>${esc(x.w.wc_number)}</td><td>${esc(String(x.w.vehicle_number||x.l.vehicle_number||'').toUpperCase())}</td><td>${fmt(x.qty)}</td><td>MT</td></tr>`).join('');
+  const rows=unique.map((x,i)=>`<tr><td>${i+1}</td><td>${fmtDate(x.w.wc_date)}</td><td>${esc(x.w.wc_number)}</td><td>${esc(String(x.w.vehicle_number||x.l.vehicle_master?.vehicle_number||'').toUpperCase())}</td><td>${fmt(x.qty)}</td><td>MT</td></tr>`).join('');
 
   let pendingHtml='';
   if(pendingBeforeFrom.length){
@@ -567,11 +638,13 @@ async function buildMaterialInvoiceDraft(modeOverride){
       const date=w?.wc_date||l.load_date;
       return `<tr><td>${i+1}</td><td>${fmtDate(date)}</td><td>${esc(w?.wc_number||'—')}</td><td>${esc(String(w?.vehicle_number||l.vehicle_master?.vehicle_number||'').toUpperCase())}</td><td>${w?fmt(w.approved_weight):'—'}</td><td>${esc(l.dc_number||l.load_number||'—')}</td><td>${status}</td><td><button class="btn secondary" type="button" onclick="markBillingWaitingAndRefresh('${l.id}')">Waiting for Next Bill Cycle</button></td></tr>`;
     }).join('');
-    pendingHtml=`<div class="notice error" style="margin-top:12px"><b>⚠ Billing completeness warning</b><br>There are ${pendingBeforeFrom.length} earlier unbilled load(s) before the selected From Date (${fmtDate(fd)}). To avoid silently leaving a load out of billing, each must be accounted for before the draft can be prepared. You can mark a load as <b>Waiting for Next Bill Cycle</b>; it will automatically be included in the next billing cycle.</div><div class="tablewrap" style="margin-top:10px"><table><thead><tr><th>S.No</th><th>Date</th><th>WC Number</th><th>Truck Number</th><th>Approved Qty</th><th>DC Number</th><th>Reason</th><th>Action</th></tr></thead><tbody>${pRows}</tbody></table></div>`;
+    pendingHtml=`<div class="notice error" style="margin-top:12px"><b>⚠ Billing completeness warning</b><br>There are ${pendingBeforeFrom.length} earlier unbilled load(s) for this PO before the selected From Date (${fmtDate(fd)}). To avoid silently leaving a load out of billing, each must be accounted for before the draft can be prepared. You can mark a load as <b>Waiting for Next Bill Cycle</b>; it will automatically be included in the next billing cycle.</div><div class="tablewrap" style="margin-top:10px"><table><thead><tr><th>S.No</th><th>Date</th><th>WC Number</th><th>Truck Number</th><th>Approved Qty</th><th>DC Number</th><th>Reason</th><th>Action</th></tr></thead><tbody>${pRows}</tbody></table></div>`;
   }
-  const blockNote=pendingBeforeFrom.length?`<div class="notice error" style="margin-top:12px"><b>Prepare Draft Bill is blocked</b> until the earlier pending loads are either billed/reserved in an invoice or explicitly marked Waiting for Next Bill Cycle.</div>`:'';
-  const body=`<div class="notice"><b>Billing Period:</b> ${fmtDate(fd)} to ${fmtDate(td)} &nbsp; | &nbsp; <b>Invoice Date:</b> ${fmtDate(idate)} &nbsp; | &nbsp; <b>Auto Invoice No:</b> ${esc(invoiceNo)}</div>${pendingHtml}<div class="sectionhead" style="margin-top:14px">Final Billable Loads — Verify Before Preparing Draft</div><div class="tablewrap"><table><thead><tr><th>S.No</th><th>Date</th><th>WC Number</th><th>Truck Number</th><th>Approved Quantity</th><th>UOM</th></tr></thead><tbody>${rows||`<tr><td colspan="6" class="empty">No loads selected for this period.</td></tr>`}</tbody><tfoot><tr><th colspan="4" style="text-align:right">Total Quantity</th><th>${fmt(totalQty)}</th><th>MT</th></tr></tfoot></table></div><div class="notice" style="margin-top:12px">Please verify that these are the final loads for this billing cycle. <b>Prepare Draft Bill</b> will create the Material Invoice as a Draft only; loads will not be marked Billed until the invoice is finalized.</div>${blockNote}`;
-  saveForm('billingInvoice',{mode:'manual',manualFromDate:fd,manualToDate:td,invoiceDate:idate,confirmationLines:unique.map(x=>({load_id:x.l.id,wc_number:x.w.wc_number,approved_qty:x.qty,wood_rate:x.woodRate,wood_value:x.wood,handling_rate:x.handlingRate,handling_value:x.handling,gst:x.gst,total:x.total})),confirmationInvoiceNo:invoiceNo,pendingBeforeFrom:pendingBeforeFrom.map(x=>x.l.id)});
+
+  const blockNote=pendingBeforeFrom.length?`<div class="notice error" style="margin-top:12px"><b>Prepare Draft Bill is blocked</b> until the earlier pending loads for this PO are either billed/reserved in an invoice or explicitly marked Waiting for Next Bill Cycle.</div>`:'';
+  const body=`<div class="notice"><b>Purchase Order:</b> ${esc(selectedPO.po_number||'')} &nbsp; | &nbsp; <b>Billing Period:</b> ${fmtDate(fd)} to ${fmtDate(td)} &nbsp; | &nbsp; <b>Invoice Date:</b> ${fmtDate(idate)} &nbsp; | &nbsp; <b>Auto Invoice No:</b> ${esc(invoiceNo)}</div>${pendingHtml}<div class="sectionhead" style="margin-top:14px">Final Billable Loads — Verify Before Preparing Draft</div><div class="tablewrap"><table><thead><tr><th>S.No</th><th>Date</th><th>WC Number</th><th>Truck Number</th><th>Approved Quantity</th><th>UOM</th></tr></thead><tbody>${rows||`<tr><td colspan="6" class="empty">No loads selected for this period.</td></tr>`}</tbody><tfoot><tr><th colspan="4" style="text-align:right">Total Quantity</th><th>${fmt(totalQty)}</th><th>MT</th></tr></tfoot></table></div><div class="notice" style="margin-top:12px">Please verify that these are the final loads for this billing cycle. <b>Prepare Draft Bill</b> will create the Material Invoice as a Draft only; loads will not be marked Billed until the invoice is finalized.</div>${blockNote}`;
+
+  saveForm('billingInvoice',{mode:'manual',poId,manualFromDate:fd,manualToDate:td,invoiceDate:idate,confirmationLines:unique.map(x=>({load_id:x.l.id,wc_number:x.w.wc_number,approved_qty:x.qty,wood_rate:x.woodRate,wood_value:x.wood,handling_rate:x.handlingRate,handling_value:x.handling,gst:x.gst,total:x.total})),confirmationInvoiceNo:invoiceNo,pendingBeforeFrom:pendingBeforeFrom.map(x=>x.l.id)});
   showModal('Material Billing — Final Confirmation',body,pendingBeforeFrom.length?'blockManualMaterialDraft()':'prepareManualMaterialDraft()','Prepare Draft Bill');
 }
 function blockManualMaterialDraft(){alert('Draft Bill cannot be prepared yet. Please account for every earlier unbilled load shown in the Billing completeness warning. Mark it Waiting for Next Bill Cycle if it should be carried forward.');}
