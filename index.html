@@ -664,7 +664,7 @@ async function billingPage(){
     finalRows=w.data||[];invRows=ii.data||[];invoices=mi.data||[];receipts=rr.data||[];
   }
   const byLoad=new Map(state.loads.map(x=>[x.id,x]));
-  const invoiceByLoad=new Map(invRows.map(x=>[x.load_id,x]));
+  const invoiceByLoad=new Map(invRows.filter(x=>['Draft','Verified','Finalized'].includes(String(x.material_invoices?.status||''))).map(x=>[x.load_id,x]));
   const eligible=finalRows.filter(w=>byLoad.has(w.load_id)).map(w=>({w,l:byLoad.get(w.load_id),ii:invoiceByLoad.get(w.load_id)}));
   const billed=eligible.filter(x=>x.ii||x.l.status==='Billed');
   const waiting=state.loads.filter(x=>x.billing_waiting_next_cycle===true);
@@ -860,7 +860,11 @@ async function prepareManualMaterialDraft(){
 
   const poId=d.poId,fd=d.manualFromDate,td=d.manualToDate,idate=d.invoiceDate;
   if(!poId||!fd||!td||!idate)return alert('Purchase Order, billing period and invoice date are required.');
-  const ids=lines.map(x=>x.load_id);const dup=await sb.from('invoice_items').select('load_id').in('load_id',ids);if(dup.error)return alert(dup.error.message);if(dup.data?.length)return alert('One or more loads are already reserved in a billing draft/invoice. Please refresh the billing screen.');
+  const ids=lines.map(x=>x.load_id).filter(Boolean);
+  const dup=await sb.from('invoice_items').select('load_id,invoice_id,material_invoices(id,status,invoice_number)').in('load_id',ids);
+  if(dup.error)return alert(`Could not check existing Material Invoice reservations: ${dup.error.message}`);
+  const activeDup=(dup.data||[]).filter(x=>['Draft','Verified','Finalized'].includes(String(x.material_invoices?.status||'')));
+  if(activeDup.length)return alert('One or more loads are already reserved in a LIVE billing draft/invoice. Cancelled invoices do not block billing. Refresh the billing screen and try again.');
   const itc=state.itcs.find(x=>x.is_default)||state.itcs[0];if(!itc)return alert('No default ITC Master record is configured.');
   const numberRes=await sb.rpc('allocate_shared_invoice_number',{p_invoice_date:idate});
   if(numberRes.error){
@@ -951,9 +955,9 @@ async function finalizeMaterialInvoice(id){
       const earlierDraft=(mr.data||[]).find(x=>x.id!==id&&parseInt(String(x.invoice_number||'').split('/')[0],10)<targetNo);
       if(earlierDraft)return alert(`Cannot finalize invoice ${invoice.invoice_number}. Invoice ${earlierDraft.invoice_number} is still in Draft status. Finalize or delete the earlier draft first.`);
     }
-    const dup=await sb.from('invoice_items').select('load_id,invoice_id').in('load_id',items.map(x=>x.load_id));
+    const dup=await sb.from('invoice_items').select('load_id,invoice_id,material_invoices(id,invoice_number,status)').in('load_id',items.map(x=>x.load_id));
     if(dup.error)return alert(dup.error.message);
-    const conflicts=(dup.data||[]).filter(x=>x.invoice_id!==id);
+    const conflicts=(dup.data||[]).filter(x=>x.invoice_id!==id&&['Draft','Verified','Finalized'].includes(String(x.material_invoices?.status||'')));
     if(conflicts.length)return alert('One or more loads are already reserved by another invoice. Refresh and resolve the conflict before finalizing.');
     const ok=confirm(`Finalize invoice ${invoice.invoice_number}? ${items.length} load(s) will be marked Billed. This should only be done after the draft is fully checked.`);if(!ok)return;
     const priorStatuses=[];
