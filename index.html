@@ -75,14 +75,15 @@ async function generatePackage(id){
   const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'a4',compress:true});
   const PW=595.28,PH=841.89,left=34,right=561,width=right-left;
   const black=[0,0,0], light=[235,235,235];
+  const NORMAL=11;
   const safe=v=>String(v??'').replace(/₹/g,'Rs. ').replace(/\u00a0/g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'?');
   const money2=v=>Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
   const wrap=(str,maxChars)=>{const words=String(str??'').trim().split(/\s+/).filter(Boolean),lines=[];let cur='';for(const wd of words){const t=(cur+' '+wd).trim();if(cur&&t.length>maxChars){lines.push(cur);cur=wd}else cur=t}if(cur)lines.push(cur);return lines;};
-  const set=(size=9,b=false)=>{doc.setFont('helvetica',b?'bold':'normal');doc.setFontSize(size);doc.setTextColor(...black);};
-  const text=(t,x,y,size=9,b=false,align='left')=>{set(size,b);doc.text(safe(t),x,y,{align});};
+  const set=(size=NORMAL,b=false)=>{doc.setFont('helvetica',b?'bold':'normal');doc.setFontSize(size);doc.setTextColor(...black);};
+  const text=(t,x,y,size=NORMAL,b=false,align='left')=>{set(size,b);doc.text(safe(t),x,y,{align});};
   const line=(x1,y1,x2,y2=y1,w=1)=>{doc.setDrawColor(...black);doc.setLineWidth(w);doc.line(x1,y1,x2,y2);};
   const rect=(x,y,w,h,fill=null,bw=1)=>{doc.setDrawColor(...black);doc.setLineWidth(bw);if(fill){doc.setFillColor(...fill);doc.rect(x,y,w,h,'FD')}else doc.rect(x,y,w,h,'S');};
-  const section=(title,y)=>{rect(left,y,width,20,light,1.1);text(title,PW/2,y+14,9.5,true,'center');};
+  const section=(title,y)=>{rect(left,y,width,22,light,1.1);text(title,PW/2,y+15,11,true,'center');};
   const addrRaw=active()?.address||'15-8-539, Rama Devi Nilayam, Rotary Nagar, Srinagar Colony, Khammam District, Telangana - 507002';
   const addr=String(addrRaw).replace(/^\s*\d+(?:[-\/]\d+)*\s*,?\s*/,'').replace(/\s*-\s*539\b/g,'').replace(/\s{2,}/g,' ').trim();
   const fullContractorName=active()?.contractor_name||'SRI VENKATESHWARA TRADERS';
@@ -91,61 +92,149 @@ async function generatePackage(id){
   const poNo=p.po_number||''; const material=x.species_name||p.species_name||'Eucalyptus Debarked Wood'; const hsn=p.hsn_code||'44039800';
   const networkNet=Number(x.network_net||0), gross=Number(x.network_gross||0), tare=Number(x.network_tare||0);
   const woodRate=Number(p.wood_rate??x.wood_rate??0), handling=Number(p.handling_other_rate??x.handling_other_rate??0);
-  const freightRate=Number(x.freight_rate||0), advance=Number(x.advance||0), amc=Number(p.amc_rate??x.amc_rate??0);
+  const freightRate=Number(x.freight_rate||0), advance=Number(x.advance||0);
   const challan=x.dc_number||x.load_number||''; const challanDate=fmtDate(x.load_date); const lrNo=x.lr_number||challan;
   const customer='ITC LTD PSPD'; const itcAddress='Unit: Bhadrachalam, Sarapaka, Burgampahad Mandal, Bhadradri Kothagudem Dt, Telangana - 507128';
   const eway=x.eway_bill_no||'';
 
   function frame(title){rect(20,20,555,801,null,1);text(title,PW/2,53,18,true,'center');line(PW/2-118,70,PW/2+118,70,1.2);}
+
   function addLR(){
     frame('LORRY RECEIPT (LR)');
-    text('LR Number',left+7,112,9,true);text(':',left+72,112,9);text(lrNo,left+86,112,10,true);
-    text('LR Date',right-112,112,9,true);text(':',right-48,112,9);text(challanDate,right-36,112,10,true);line(left,126,right,126,1);
+    const label=11, value=11;
+    text('LR Number',left+8,112,label,true);text(':',left+78,112,label);text(lrNo,left+94,112,value,true);
+    text('LR Date',right-124,112,label,true);text(':',right-54,112,label);text(challanDate,right-40,112,value,true);line(left,126,right,126,1.1);
+
     const top=145,bottom=305,mid=(left+right)/2;rect(left,top,width,bottom-top,null,1.1);line(mid,top,mid,bottom,1.1);
-    text('From',left+10,163,9);text(fullContractorName,left+10,182,12,true);wrap(addr,43).slice(0,4).forEach((ln,i)=>text(ln,left+10,203+i*13,9));
-    text('To',mid+10,163,9);text(customer,mid+10,182,12,true);wrap(itcAddress,43).slice(0,4).forEach((ln,i)=>text(ln,mid+10,203+i*13,9));
-    const tableTop=325,rowH=28,cols=[112,165,125,125], tableH=4*rowH;rect(left,tableTop,width,tableH,null,1.1);let xx=left;cols.slice(0,-1).forEach(cw=>{xx+=cw;line(xx,tableTop,xx,tableTop+tableH,1.1)});
+    text('From',left+10,165,11);text(fullContractorName,left+10,185,13,true);wrap(addr,42).slice(0,4).forEach((ln,i)=>text(ln,left+10,207+i*15,11));
+    text('To',mid+10,165,11);text(customer,mid+10,185,13,true);wrap(itcAddress,42).slice(0,4).forEach((ln,i)=>text(ln,mid+10,207+i*15,11));
+
+    const tableTop=325,rowH=30,cols=[118,157,135,117], tableH=4*rowH;rect(left,tableTop,width,tableH,null,1.1);let xx=left;cols.slice(0,-1).forEach(cw=>{xx+=cw;line(xx,tableTop,xx,tableTop+tableH,1.1)});
     const data=[['PO Number',poNo,'Gross Weight (MTS)',gross.toFixed(3)],['Species',material,'Tare Weight (MTS)',tare.toFixed(3)],['Truck No',vehicle,'Net Weight (MTS)',networkNet.toFixed(3)],['Way Bill No',eway,'','']];
-    data.forEach((r,i)=>{const y=tableTop+i*rowH;if(i)line(left,y,right,y,1.1);const by=y+18;text(r[0],left+7,by,8.8,true);let fs=8.8;while(fs>6.5&&doc.getTextWidth(safe(r[1]))>cols[1]-14){fs-=.2;set(fs,false)}text(r[1],left+cols[0]+7,by,fs);text(r[2],left+cols[0]+cols[1]+7,by,8.8,true);text(r[3],left+cols[0]+cols[1]+cols[2]+7,by,8.8)});
-    text('For Sri Venkateshwara Traders',right-8,tableTop+tableH+30,9.5,true,'right');
+    data.forEach((r,i)=>{
+      const y=tableTop+i*rowH;if(i)line(left,y,right,y,1.1);const by=y+20;
+      text(r[0],left+8,by,11,true);
+      let fs=11;while(fs>8 && doc.getTextWidth(safe(r[1]))>cols[1]-16){fs-=.25;set(fs,false)}
+      text(r[1],left+cols[0]+8,by,fs,false);
+      text(r[2],left+cols[0]+cols[1]+8,by,11,true);
+      text(r[3],left+cols[0]+cols[1]+cols[2]+8,by,11,false);
+    });
+    text('For Sri Venkateshwara Traders',right-8,tableTop+tableH+32,11,true,'right');
   }
+
   function addDC(){
     doc.addPage(); frame('DELIVERY CHALLAN (DC)');
-    text('Challan No',right-165,112,9,true);text(':',right-101,112,9);text(challan,right-86,112,9.5,true);text('Challan Date',right-165,131,9,true);text(':',right-101,131,9);text(challanDate,right-86,131,9.5,true);line(left,145,right,145,1.1);
-    let y=155;section('SUPPLIER',y);y+=20;rect(left,y,width,76,null,1.15);text('Name & Address',left+10,y+18,8.8,true);text(fullContractorName,left+10,y+37,11,true);wrap(addr,64).slice(0,2).forEach((ln,i)=>text(ln,left+10,y+54+i*12,8.6));text('State Code',left+335,y+18,8.5,true);text(': 36',left+410,y+18,8.5);text('State',left+335,y+32,8.5,true);text(': Telangana (TS)',left+410,y+32,8.5);text('GSTIN No',left+335,y+46,8.5,true);text(': 36TOHPS0526H1ZE',left+410,y+46,8.5);text('PAN',left+335,y+60,8.5,true);text(': TOHPS0526H',left+410,y+60,8.5);text('PO No',left+335,y+74,8.5,true);text(': '+poNo,left+410,y+74,8.5);
-    y+=86;section('CUSTOMER / CONSIGNEE',y);y+=20;rect(left,y,width,76,null,1.15);text('Name & Address',left+10,y+18,8.8,true);text('ITC Limited-PSPD',left+10,y+37,11,true);['UNIT: Bhadrachalam, Sarapaka','Bhadradri-Kothagudem District','Telangana State - 507128'].forEach((ln,i)=>text(ln,left+10,y+54+i*12,8.6));text('State Code',left+335,y+18,8.5,true);text(': 36',left+410,y+18,8.5);text('State',left+335,y+32,8.5,true);text(': Telangana (TS)',left+410,y+32,8.5);text('GSTIN',left+335,y+46,8.5,true);text(': 36AAACI5950L1ZB',left+410,y+46,8.5);text('PAN',left+335,y+60,8.5,true);text(': AAACI5950L',left+410,y+60,8.5);
-    y+=86;section('PLACE OF SUPPLY',y);y+=20;rect(left,y,width,76,null,1.15);text('Destination',left+10,y+18,8.8,true);text('ITC Limited-PSPD, UNIT: Bhadrachalam, Sarapaka',left+95,y+18,8.1);text('Bhadradri Kothagudem District, Telangana State - 507128',left+95,y+32,7.8);text('Transporter Name',left+10,y+52,8.5,true);text(': S V Traders',left+105,y+52,8.5);text('Mode of Transport',left+250,y+52,8.5,true);text(': By Road',left+360,y+52,8.5);text('LR Number',left+10,y+67,8.5,true);text(': '+lrNo,left+105,y+67,8.5);text('Vehicle No',left+250,y+67,8.5,true);text(': '+vehicle,left+360,y+67,8.5);
-    y+=86;section('DESCRIPTION OF GOODS',y);const tTop=y+20;const hh=34,rh=42,totalH=28;const cols=[30,105,58,45,40,66,54,54,75];const heads=['S.No','Material\nDescription','HSN\nCode','Qty','UOM','Taxable\nValue (Rs.)','CGST(9%)\n(Rs.)','SGST(9%)\n(Rs.)','Total Value\n(Rs.)'];const tableH=hh+3*rh+totalH;const bottom=tTop+tableH;rect(left,tTop,width,tableH,null,1.2);let xx=left;cols.forEach((cw,i)=>{if(i)line(xx,tTop,xx,bottom,1.0);heads[i].split('\n').forEach((h,j)=>text(h,xx+cw/2,tTop+14+j*8,6.2,true,'center'));xx+=cw});line(left,tTop+hh,right,tTop+hh,1.0);
-    const taxableMaterial=networkNet*woodRate, other=networkNet*handling, cgW=taxableMaterial*.09,sgW=cgW,cgO=other*.09,sgO=cgO,totalWood=taxableMaterial+cgW+sgW,totalOther=other+cgO+sgO,totalTaxable=taxableMaterial+other,totalCG=cgW+cgO,totalSG=sgW+sgO,totalValue=totalTaxable+totalCG+totalSG;
-    const dataY=tTop+hh; line(left,dataY+rh,right,dataY+rh,1);line(left,dataY+2*rh,right,dataY+2*rh,1);line(left,dataY+3*rh,right,dataY+3*rh,1);
-    text('1',left+15,dataY+25,7.3,false,'center');wrap(material,18).slice(0,2).forEach((s,i)=>text(s,left+33,dataY+17+i*9,7.0,true));
-    text(hsn,left+30+105+58/2,dataY+rh*1.5+4,7.0,false,'center');text(networkNet.toFixed(3),left+30+105+58+45/2,dataY+rh*1.5+4,7.1,false,'center');text('MTS',left+30+105+58+45+40/2,dataY+rh*1.5+4,7.0,false,'center');
-    let ax=left+30+105+58+45+40;[money2(taxableMaterial),money2(cgW),money2(sgW),money2(totalWood)].forEach((v,i)=>{text(v,ax+cols[5+i]-3,dataY+rh/2+4,6.8,false,'right');ax+=cols[5+i]});
-    text('2',left+15,dataY+rh+25,7.2,false,'center');wrap('Transportation charges',18).forEach((s,i)=>text(s,left+33,dataY+rh+17+i*9,7.0));
-    text('3',left+15,dataY+2*rh+25,7.2,false,'center');wrap('Other charges',18).forEach((s,i)=>text(s,left+33,dataY+2*rh+17+i*9,7.0));
-    // Combined Transportation + Other Charges financial cells, shown once across both rows.
-    const finX=left+30+105;const finW=width-(30+105);rect(finX,dataY+rh,finW,2*rh,[255,255,255],0);let fx=finX;[66,54,54,75].forEach(cw=>{fx+=cw;line(fx,dataY+rh,fx,dataY+3*rh,1.0)});let cx=finX;[money2(other),money2(cgO),money2(sgO),money2(totalOther)].forEach((v,i)=>{text(v,cx+[66,54,54,75][i]-3,dataY+1.5*rh+4,6.8,false,'right');cx+=[66,54,54,75][i]});
-    const totalTop=dataY+3*rh;line(left,totalTop,right,totalTop,1.1);text('TOTAL',left+30+105+58+45+40-7,totalTop+18,7.2,true,'right');let tx=left+30+105+58+45+40;[money2(totalTaxable),money2(totalCG),money2(totalSG),money2(totalValue)].forEach((v,i)=>{text(v,tx+cols[5+i]-3,totalTop+18,6.6,true,'right');tx+=cols[5+i]});
-    text('For S V TRADERS',right-8,bottom+31,8.8,true,'right');
+    text('Challan No',right-170,112,11,true);text(':',right-102,112,11);text(challan,right-87,112,11,true);
+    text('Challan Date',right-170,132,11,true);text(':',right-102,132,11);text(challanDate,right-87,132,11,true);line(left,148,right,148,1.1);
+
+    let y=158;
+    // Supplier: no middle divider; left block and right details share the same box.
+    section('SUPPLIER',y);y+=22;const infoH=92;rect(left,y,width,infoH,null,1.15);
+    text('Name & Address',left+10,y+20,11,true);text(fullContractorName,left+10,y+41,11,true);
+    wrap(addr,58).slice(0,3).forEach((ln,i)=>text(ln,left+10,y+61+i*14,11));
+    const rx=left+340, vx=rx+78;
+    text('State Code',rx,y+20,11,true);text(': 36',vx,y+20,11);
+    text('State',rx,y+36,11,true);text(': Telangana (TS)',vx,y+36,11);
+    text('GSTIN No',rx,y+52,11,true);text(': 36TOHPS0526H1ZE',vx,y+52,11);
+    text('PAN',rx,y+68,11,true);text(': TOHPS0526H',vx,y+68,11);
+    text('PO No',rx,y+84,11,true);text(': '+poNo,vx,y+84,11);
+
+    y+=infoH+10;section('CUSTOMER / CONSIGNEE',y);y+=22;rect(left,y,width,92,null,1.15);
+    text('Name & Address',left+10,y+20,11,true);text('ITC Limited-PSPD',left+10,y+41,11,true);
+    ['UNIT: Bhadrachalam, Sarapaka','Bhadradri-Kothagudem District','Telangana State - 507128'].forEach((ln,i)=>text(ln,left+10,y+61+i*14,11));
+    text('State Code',rx,y+20,11,true);text(': 36',vx,y+20,11);
+    text('State',rx,y+36,11,true);text(': Telangana (TS)',vx,y+36,11);
+    text('GSTIN',rx,y+52,11,true);text(': 36AAACI5950L1ZB',vx,y+52,11);
+    text('PAN',rx,y+68,11,true);text(': AAACI5950L',vx,y+68,11);
+
+    y+=102;section('PLACE OF SUPPLY',y);y+=22;rect(left,y,width,78,null,1.15);
+    text('Destination',left+10,y+20,11,true);text('ITC Limited-PSPD, UNIT: Bhadrachalam, Sarapaka',left+105,y+20,10.5);
+    text('Bhadradri Kothagudem District, Telangana State - 507128',left+105,y+36,10.5);
+    text('Transporter Name',left+10,y+58,11,true);text(': S V Traders',left+130,y+58,11);
+    text('Mode of Transport',left+295,y+58,11,true);text(': By Road',left+430,y+58,11);
+    text('LR Number',left+10,y+74,11,true);text(': '+lrNo,left+130,y+74,11);
+    text('Vehicle No',left+295,y+74,11,true);text(': '+vehicle,left+430,y+74,11);
+
+    y+=88;section('DESCRIPTION OF GOODS',y);
+    const tTop=y+22, hh=38, rh=42, totalH=30;
+    // Exact fixed A4 table geometry. Total width = 527pt.
+    const cols=[30,105,58,45,40,66,54,54,75];
+    const x=[left];for(const c of cols)x.push(x[x.length-1]+c);
+    const bottom=tTop+hh+3*rh+totalH;rect(left,tTop,width,bottom-tTop,null,1.2);
+    // Vertical borders.
+    for(let i=1;i<x.length-1;i++)line(x[i],tTop,x[i],bottom,1.0);
+    // Header boundary.
+    line(left,tTop+hh,right,tTop+hh,1.0);
+    const heads=['S.No','Material\nDescription','HSN\nCode','Qty','UOM','Taxable\nValue (Rs.)','CGST(9%)\n(Rs.)','SGST(9%)\n(Rs.)','Total Value\n(Rs.)'];
+    heads.forEach((h,i)=>h.split('\n').forEach((s,j)=>text(s,(x[i]+x[i+1])/2,tTop+15+j*10,8.2,true,'center')));
+
+    const taxableMaterial=networkNet*woodRate;
+    const other=networkNet*handling;
+    const cgW=taxableMaterial*.09, sgW=cgW;
+    const cgO=other*.09, sgO=cgO;
+    const totalWood=taxableMaterial+cgW+sgW;
+    const totalOther=other+cgO+sgO;
+    const totalTaxable=taxableMaterial+other, totalCG=cgW+cgO, totalSG=sgW+sgO, totalValue=totalTaxable+totalCG+totalSG;
+    const dataTop=tTop+hh;
+    // Row boundaries ONLY across S.No + Material for rows 1-3.
+    line(left,dataTop+rh,x[2],dataTop+rh,1.0);line(left,dataTop+2*rh,x[2],dataTop+2*rh,1.0);line(left,dataTop+3*rh,right,dataTop+3*rh,1.1);
+    // HSN, Qty and UOM merged vertically across all three item rows. No horizontal lines inside.
+    text(hsn,(x[2]+x[3])/2,dataTop+1.5*rh+4,10.5,false,'center');
+    text(networkNet.toFixed(3),(x[3]+x[4])/2,dataTop+1.5*rh+4,10.5,false,'center');
+    text('MTS',(x[4]+x[5])/2,dataTop+1.5*rh+4,10.5,false,'center');
+    // Material row.
+    text('1',(x[0]+x[1])/2,dataTop+24,10.5,false,'center');
+    wrap(material,18).slice(0,2).forEach((s,i)=>text(s,x[1]+6,dataTop+18+i*13,9.5,true));
+    text(money2(taxableMaterial),x[6]-5,dataTop+24,9.5,false,'right');
+    text(money2(cgW),x[7]-5,dataTop+24,9.5,false,'right');
+    text(money2(sgW),x[8]-5,dataTop+24,9.5,false,'right');
+    text(money2(totalWood),x[9]-5,dataTop+24,9.5,false,'right');
+    // Transportation / Other description rows.
+    text('2',(x[0]+x[1])/2,dataTop+rh+24,10.5,false,'center');wrap('Transportation charges',18).forEach((s,i)=>text(s,x[1]+6,dataTop+rh+18+i*13,9.5));
+    text('3',(x[0]+x[1])/2,dataTop+2*rh+24,10.5,false,'center');wrap('Other charges',18).forEach((s,i)=>text(s,x[1]+6,dataTop+2*rh+18+i*13,9.5));
+    // Financial columns for rows 2+3 are each one merged cell, so the combined amount appears once and in the correct columns.
+    const mergeTop=dataTop+rh, mergeH=2*rh;
+    // Cover only the internal horizontal boundary in financial columns, preserving outer/vertical borders.
+    doc.setFillColor(255,255,255);doc.rect(x[5]+1,mergeTop+1,x[9]-x[5]-2,mergeH-2,'F');
+    for(let i=6;i<=8;i++)line(x[i],mergeTop,x[i],mergeTop+mergeH,1.0);
+    text(money2(other),x[6]-5,mergeTop+mergeH/2+4,9.5,false,'right');
+    text(money2(cgO),x[7]-5,mergeTop+mergeH/2+4,9.5,false,'right');
+    text(money2(sgO),x[8]-5,mergeTop+mergeH/2+4,9.5,false,'right');
+    text(money2(totalOther),x[9]-5,mergeTop+mergeH/2+4,9.5,false,'right');
+    // Total row.
+    const totalTop=dataTop+3*rh;
+    text('TOTAL',x[5]-8,totalTop+20,10.5,true,'right');
+    text(money2(totalTaxable),x[6]-5,totalTop+20,9.5,true,'right');
+    text(money2(totalCG),x[7]-5,totalTop+20,9.5,true,'right');
+    text(money2(totalSG),x[8]-5,totalTop+20,9.5,true,'right');
+    text(money2(totalValue),x[9]-5,totalTop+20,9.5,true,'right');
+    text('For S V TRADERS',right-8,bottom+32,11,true,'right');
   }
+
   function addInitialFL(){
     doc.addPage();frame('FREIGHT LETTER');
-    let y=94;text('FROM',left+5,y,8.8,true);text(shortContractor,left+5,y+20,16,true);wrap(addr,58).slice(0,2).forEach((ln,i)=>text(ln,left+5,y+40+i*13,8.7));
-    text('Challan No.',405,y-2,8.8,true);text(':',467,y-2,8.8);text(challan,481,y-2,9.2,true);text('Challan Date',405,y+23,8.8,true);text(':',467,y+23,8.8);text(challanDate,481,y+23,9.2,true);line(left,150,right,150,1);
-    rect(left,162,width,66,null,1.1);text('TO',left+10,181,9.2,true);text('Vehicle Number',left+10,199,8.3);text(vehicle,left+10,219,15.5,true);
-    let top=242;const cols=[42,195,175,115],s1=left+42,s2=s1+195,s3=s2+175;const header=25;const rows=[['1','Freight Rate',money2(freightRate)+' / Ton',''],['2','Network Net Weight','',''],['3','Freight Charges','',''],['4','AMC Charges','',''],['5','Gross Amount','',''],['','Gross Amount in Words','',''],['6','Advance','',money2(advance)],['7','Clerk Commission','',''],['8','Shortage','',''],['9','NET AMOUNT','',''],['','Net Amount in Words','','']];const hs=[28,28,28,28,30,38,28,28,28,30,38];const total=hs.reduce((a,b)=>a+b,0);rect(left,top,width,header+total,null,1.2);let xx=left;cols.forEach((cw,i)=>{if(i)line(xx,top,xx,top+header,1.1);text(['S.No.','PARTICULARS','QUANTITY / RATE','AMOUNT (Rs.)'][i],xx+cw/2,top+17,7.5,true,'center');xx+=cw});line(left,top+header,right,top+header,1.1);let yy=top+header;rows.forEach((r,i)=>{const rh=hs[i];line(left,yy+rh,right,yy+rh,1);let x0=left;cols.slice(0,-1).forEach(cw=>{x0+=cw;line(x0,yy,x0,yy+rh,1)});if(r[0])text(r[0],left+21,yy+rh/2+3,7.3,false,'center');text(r[1],s1+8,yy+rh/2+3,8.0,i===4||i===9);if(r[2])text(r[2],s2+8,yy+rh/2+3,8.0,false);if(r[3])text(r[3],right-8,yy+rh/2+3,8.0,false,'right');yy+=rh});text('For S V Traders',right-8,top+header+total+30,9,true,'right');
+    let y=94;text('FROM',left+6,y,11,true);text(shortContractor,left+6,y+22,16,true);wrap(addr,56).slice(0,2).forEach((ln,i)=>text(ln,left+6,y+43+i*15,11));
+    text('Challan No.',405,y-2,11,true);text(':',469,y-2,11);text(challan,483,y-2,11,true);
+    text('Challan Date',405,y+23,11,true);text(':',469,y+23,11);text(challanDate,483,y+23,11,true);line(left,151,right,151,1.1);
+    rect(left,163,width,67,null,1.1);text('TO',left+10,183,11,true);text('Vehicle Number',left+10,202,11);text(vehicle,left+10,222,16,true);
+    const top=244,cols=[42,195,175,115],header=28;const s1=left+42,s2=s1+195,s3=s2+175;
+    const rows=[['1','Freight Rate',money2(freightRate)+' / Ton',''],['2','Network Net Weight','',''],['3','Freight Charges','',''],['4','AMC Charges','',''],['5','Gross Amount','',''],['','Gross Amount in Words','',''],['6','Advance','',money2(advance)],['7','Clerk Commission','',''],['8','Shortage','',''],['9','NET AMOUNT','',''],['','Net Amount in Words','','']];
+    const hs=[30,30,30,30,32,40,30,30,30,32,40], total=hs.reduce((a,b)=>a+b,0);rect(left,top,width,header+total,null,1.2);
+    let xx=left;cols.forEach((cw,i)=>{if(i)line(xx,top,xx,top+header,1.1);text(['S.No.','PARTICULARS','QUANTITY / RATE','AMOUNT (Rs.)'][i],xx+cw/2,top+19,9.2,true,'center');xx+=cw});line(left,top+header,right,top+header,1.1);
+    let yy=top+header;rows.forEach((r,i)=>{const rh=hs[i];let x0=left;cols.slice(0,-1).forEach(cw=>{x0+=cw;line(x0,yy,x0,yy+rh,1)});line(left,yy+rh,right,yy+rh,1);if(r[0])text(r[0],left+21,yy+rh/2+4,10.5,false,'center');text(r[1],s1+8,yy+rh/2+4,11,i===4||i===9);if(r[2])text(r[2],s2+8,yy+rh/2+4,11,false);if(r[3])text(r[3],right-8,yy+rh/2+4,11,false,'right');yy+=rh});text('For S V Traders',right-8,top+header+total+31,11,true,'right');
   }
-  addLR(); if(pkg==='LRDC'||pkg==='LRDCFL'||pkg==='LRDCEWAY'||pkg==='LRDCFLEWAY')addDC(); if(pkg==='LRDCFL'||pkg==='LRDCFLEWAY')addInitialFL();
-  if(pkg==='LRDCEWAY'||pkg==='LRDCFLEWAY'){
-    // Keep E-way package handling on pdf-lib only when explicitly requested. If unavailable, download WoodMaster pages and warn.
-    const f=state.ewayFiles[id]; if(f) console.warn('E-way PDF attachment is not merged in this jsPDF package generator; WoodMaster pages will still download.');
-  }
+
+  addLR();
+  if(pkg==='LRDC'||pkg==='LRDCFL'||pkg==='LRDCEWAY'||pkg==='LRDCFLEWAY')addDC();
+  if(pkg==='LRDCFL'||pkg==='LRDCFLEWAY')addInitialFL();
+  if(pkg==='LRDCEWAY'||pkg==='LRDCFLEWAY'){const f=state.ewayFiles[id];if(f)console.warn('E-way PDF attachment is not merged in this jsPDF package generator; WoodMaster pages will still download.');}
   const filename=`${challan||x.load_number||id}_Documents.pdf`;doc.save(filename);
   const statusMap={LRDC:'LR / DC Generated',LRDCFL:'LR / DC / FL Generated',LRDCEWAY:'LR / DC / E-way Bill Generated',LRDCFLEWAY:'LR / DC / FL / E-way Bill Generated'};const newStatus=statusMap[pkg]||'Documents Generated';
   const dr=await sb.from('documents').insert({load_id:id,document_type:'PACKAGE',document_package:pkg,generated_at:new Date().toISOString(),generated_file_reference:filename});if(dr.error)console.warn('Document history save failed:',dr.error.message);
   const sr=await sb.from('loads').update({status:newStatus}).eq('id',id);if(sr.error)console.warn('Load status update failed:',sr.error.message);x.status=newStatus;closeModal();await refreshLoads();if(state.page==='loads')await render();
  }catch(e){alert('Could not generate LR/DC/Initial Freight Letter PDF.\n\n'+(e?.message||e));console.error(e);}
 }
+
 async function downloadFreightLetter(id){
  const x=state.loads.find(v=>v.id===id);if(!x)return alert('Load not found.');
  const [wr,fr]=await Promise.all([sb.from('itc_weighments').select('*').eq('load_id',id).maybeSingle(),sb.from('freight_settlements').select('*').eq('load_id',id).maybeSingle()]);
