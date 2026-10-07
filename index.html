@@ -68,7 +68,7 @@ function closeModal(){$('wmModal')?.remove()}
 function openDocsModal(id){documentModal(id)}
 async function generatePackage(id){
  const x=state.loads.find(v=>v.id===id); if(!x)return;
- const pkg=$('docPackage')?.value||'LRDC'; const p=x.po_master||{};
+ const pkg=$('docPackage')?.value||'LRDC'; const p=x.po_master||{}; if(!x.id)throw new Error('This load has no valid ID.');
  if(!window.jspdf?.jsPDF)return alert('PDF generator is still loading. Please try again.');
  try{
   const {jsPDF}=window.jspdf;
@@ -79,10 +79,11 @@ async function generatePackage(id){
   const safe=v=>String(v??'').replace(/₹/g,'Rs. ').replace(/\u00a0/g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'?');
   const money2=v=>Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
   const wrapByWidth=(str,maxWidth,size=NORMAL,bold=false)=>{set(size,bold);const words=String(str??'').trim().split(/\s+/).filter(Boolean);const lines=[];let cur='';for(const word of words){const test=cur?cur+' '+word:word;if(doc.getTextWidth(safe(test))<=maxWidth)cur=test;else{if(cur)lines.push(cur);cur=word;}}if(cur)lines.push(cur);return lines.length?lines:[''];};
-  const set=(size=NORMAL,b=false)=>{doc.setFont('helvetica',b?'bold':'normal');doc.setFontSize(size);doc.setTextColor(BLACK[0],BLACK[1],BLACK[2]);};
-  const text=(t,x,y,size=NORMAL,b=false,align='left')=>{set(size,b);doc.text(safe(t),x,y,{align});};
-  const line=(x1,y1,x2,y2=y1,w=1)=>{doc.setDrawColor(BLACK[0],BLACK[1],BLACK[2]);doc.setLineWidth(w);doc.line(x1,y1,x2,y2);};
-  const rect=(x,y,w,h,fill=null,bw=1)=>{doc.setDrawColor(BLACK[0],BLACK[1],BLACK[2]);doc.setLineWidth(bw);if(fill){doc.setFillColor(fill[0],fill[1],fill[2]);doc.rect(x,y,w,h,'FD')}else doc.rect(x,y,w,h,'S');};
+  const finite=(v,d=0)=>{const n=Number(v);return Number.isFinite(n)?n:d;};
+  const set=(size=NORMAL,b=false)=>{const fs=finite(size,NORMAL);doc.setFont('helvetica',b?'bold':'normal');doc.setFontSize(fs);doc.setTextColor(0,0,0);};
+  const text=(t,x,y,size=NORMAL,b=false,align='left')=>{const xx=finite(x,0),yy=finite(y,0);set(size,b);doc.text(safe(t),xx,yy,{align});};
+  const line=(x1,y1,x2,y2=y1,w=1)=>{doc.setDrawColor(0,0,0);doc.setLineWidth(finite(w,1));doc.line(finite(x1),finite(y1),finite(x2),finite(y2));};
+  const rect=(x,y,w,h,fill=null,bw=1)=>{doc.setDrawColor(0,0,0);doc.setLineWidth(finite(bw,1));const xx=finite(x),yy=finite(y),ww=finite(w),hh=finite(h);if(fill){doc.setFillColor(finite(fill[0],255),finite(fill[1],255),finite(fill[2],255));doc.rect(xx,yy,ww,hh,'FD')}else doc.rect(xx,yy,ww,hh,'S');};
   const hcenter=(t,x1,x2,y,size=NORMAL,b=false)=>text(t,(x1+x2)/2,y,size,b,'center');
   const vcenterY=(top,bottom,size=NORMAL)=>top-(top-bottom)/2+(size*0.34);
   const fitSize=(str,maxWidth,start=NORMAL,min=8,bold=false)=>{let s=start;set(s,bold);while(s>min&&doc.getTextWidth(safe(str))>maxWidth){s-=0.25;set(s,bold)}return s;};
@@ -172,7 +173,7 @@ async function generatePackage(id){
    hcenter('2',x[0],x[1],dataTop+rh+24,10.5,false);wrapByWidth('Transportation charges',x[2]-x[1]-12,9.8,false).forEach((s,i)=>text(s,x[1]+6,dataTop+rh+18+i*13,11));
    hcenter('3',x[0],x[1],dataTop+2*rh+24,10.5,false);wrapByWidth('Other charges',x[2]-x[1]-12,9.8,false).forEach((s,i)=>text(s,x[1]+6,dataTop+2*rh+18+i*13,11));
    // Financial columns for Transportation + Other are one merged block. The actual amount shown is the PO Other/Handling amount.
-   const mergeTop=dataTop+rh,mergeH=2*rh;doc.setFillColor(255,255,255);doc.rect(x[5]+1,mergeTop+1,x[9]-x[5]-2,mergeH-2,'F');
+   const mergeTop=dataTop+rh,mergeH=2*rh;doc.setFillColor(255,255,255);doc.rect(finite(x[5]+1),finite(mergeTop+1),finite(x[9]-x[5]-2),finite(mergeH-2),'F');
    for(let i=6;i<=8;i++)line(x[i],mergeTop,x[i],mergeTop+mergeH,1.0);
    const mergeCY=mergeTop+mergeH/2+4;text(money2(other),x[6]-5,mergeCY,10.5,false,'right');text(money2(cgO),x[7]-5,mergeCY,10.5,false,'right');text(money2(sgO),x[8]-5,mergeCY,10.5,false,'right');text(money2(totalOther),x[9]-5,mergeCY,10.5,false,'right');
    const totalTop=dataTop+3*rh;hcenter('TOTAL',x[4],x[5],totalTop+20,10.5,true);text(money2(totalTaxable),x[6]-5,totalTop+20,10,true,'right');text(money2(totalCG),x[7]-5,totalTop+20,10,true,'right');text(money2(totalSG),x[8]-5,totalTop+20,10,true,'right');text(money2(totalValue),x[9]-5,totalTop+20,10,true,'right');
