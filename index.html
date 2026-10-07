@@ -1000,6 +1000,104 @@ async function finalizeMaterialInvoice(id){
     alert(`Material Invoice ${invoice.invoice_number} is finalized.`);await refreshLoads();await render();
   }catch(e){alert(`Could not finalize invoice: ${e.message||e}`)}
 }
+async function downloadMaterialInvoice(id){
+  try{
+    if(typeof PDFLib==='undefined'){
+      return alert('PDF engine is not loaded. Please check your internet connection and refresh WoodMaster.');
+    }
+    const {invoice,items}=await getMaterialInvoiceBundle(id);
+    if(!invoice)return;
+    if(!items.length)return alert(`Invoice ${invoice.invoice_number} has no invoice lines.`);
+
+    const contractor=active()||{};
+    const itc=state.itcs.find(x=>x.id===invoice.itc_id)||state.itcs.find(x=>x.is_default)||state.itcs[0]||{};
+    let customer={};
+    const poIds=[...new Set(items.map(x=>x.po_id).filter(Boolean))];
+    if(poIds.length){
+      const pr=await sb.from('po_master').select('customer_id,customer_master(*)').in('id',poIds).limit(1);
+      if(!pr.error&&pr.data?.[0]?.customer_master)customer=pr.data[0].customer_master;
+    }
+    if(!customer.gstin)customer={customer_name:itc.company_name||'ITC LTD - PSPD',gstin:itc.gstin||'',pan:itc.pan||'',address:itc.address||''};
+
+    const {PDFDocument,StandardFonts,rgb}=PDFLib;
+    const pdf=await PDFDocument.create();
+    const pageW=595.28,pageH=841.89,margin=36;
+    const regular=await pdf.embedFont(StandardFonts.Helvetica);
+    const bold=await pdf.embedFont(StandardFonts.HelveticaBold);
+    const gray=rgb(.92,.92,.92),black=rgb(0,0,0),muted=rgb(.35,.35,.35);
+    let page=null,y=0;
+    const pages=[];
+    const moneyPdf=v=>`Rs. ${num(v).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+    const datePdf=v=>fmtDate(v)||'';
+    const wrap=(text,font,size,max)=>{
+      text=String(text??''); if(!text)return [''];
+      const words=text.split(/\s+/); const out=[]; let line='';
+      for(const w of words){const test=line?line+' '+w:w;if(font.widthOfTextAtSize(test,size)<=max)line=test;else{if(line)out.push(line);line=w;}}
+      if(line)out.push(line); return out.length?out:[''];
+    };
+    const newPage=()=>{page=pdf.addPage([pageW,pageH]);pages.push(page);y=pageH-margin;};
+    const text=(v,x,yy,size=9,font=regular)=>page.drawText(String(v??''),{x,y:yy,size,font,color:black});
+    const right=(v,x,yy,size=9,font=regular)=>{const t=String(v??'');page.drawText(t,{x:x-font.widthOfTextAtSize(t,size),y:yy,size,font,color:black});};
+    const line=(x1,y1,x2,y2)=>page.drawLine({start:{x:x1,y:y1},end:{x:x2,y:y2},thickness:.6,color:black});
+    const rect=(x,yy,w,h,fill=null)=>page.drawRectangle({x,y:yy,width:w,height:h,borderWidth:.6,borderColor:black,color:fill||undefined});
+    const section=(title)=>{page.drawText(title,{x:margin,y:y-10,size:10,font:bold,color:black});y-=18;};
+
+    newPage();
+    text('TAX INVOICE',margin,y,16,bold); right(`Invoice No: ${invoice.invoice_number}`,pageW-margin,y,10,bold); y-=16;
+    right(`Invoice Date: ${datePdf(invoice.invoice_date)}`,pageW-margin,y,9,regular); y-=12;
+    line(margin,y,pageW-margin,y); y-=14;
+
+    const boxW=(pageW-2*margin-8)/2,boxH=92,boxY=y-boxH;
+    rect(margin,boxY,boxW,boxH); rect(margin+boxW+8,boxY,boxW,boxH);
+    text('FROM',margin+8,y-14,8,bold); text(contractor.contractor_name||'',margin+8,y-28,10,bold);
+    let yy=y-41; for(const ln of wrap(contractor.address||'',regular,8,boxW-16)){text(ln,margin+8,yy,8);yy-=10;}
+    text(`PAN: ${contractor.pan||''}`,margin+8,yy,8);yy-=10;text(`GSTIN: ${contractor.gstin||''}`,margin+8,yy,8);yy-=10;text(`Vendor Code: ${contractor.contractor_code||''}`,margin+8,yy,8);
+    const rx=margin+boxW+8;text('TO',rx+8,y-14,8,bold);text(customer.customer_name||'ITC LTD - PSPD',rx+8,y-28,10,bold);
+    yy=y-41; for(const ln of wrap(customer.address||'',regular,8,boxW-16)){text(ln,rx+8,yy,8);yy-=10;}
+    text(`PAN: ${customer.pan||''}`,rx+8,yy,8);yy-=10;text(`GSTIN: ${customer.gstin||''}`,rx+8,yy,8);
+    y=boxY-16;
+
+    rect(margin,y-58,pageW-2*margin,58);
+    text(`Period: ${datePdf(invoice.from_date)} to ${datePdf(invoice.to_date)}`,margin+8,y-14,8,bold);
+    text(`PO No: ${items[0]?.po_number||invoice.po_id||''}`,margin+8,y-29,8);
+    text(`HSN Code: ${items[0]?.hsn_code||'44039800'}`,margin+280,y-14,8,bold);
+    text('Material: Eucalyptus Debarked Wood',margin+280,y-29,8);
+    text('Place of Supply: ITC Ltd - PSPD, Sarapaka (Telangana State)',margin+8,y-44,8);
+    y-=72;
+
+    section('Invoice Lines');
+    const cols=[margin,margin+32,margin+98,margin+190,margin+305,margin+360,margin+420,pageW-margin];
+    const heads=['S.No','Date','WC Number','Truck Number','Qty','UOM','Rate','Amount'];
+    const drawHeader=()=>{rect(margin,y-20,pageW-2*margin,20,gray);heads.forEach((h,i)=>text(h,cols[i]+3,y-14,7,bold));y-=20;};
+    drawHeader();
+    for(let i=0;i<items.length;i++){
+      if(y<100){newPage();drawHeader();}
+      const x=items[i]; const rowH=22; line(margin,y-rowH, pageW-margin,y-rowH);
+      text(i+1,cols[0]+3,y-14,7);text(datePdf(x.wc_date),cols[1]+3,y-14,7);text(x.wc_number||'',cols[2]+3,y-14,7);
+      text(String(x.vehicle_number||'').toUpperCase(),cols[3]+3,y-14,7);right(fmt(x.approved_qty),cols[5]-4,y-14,7);text('MT',cols[5]+3,y-14,7);
+      text(moneyPdf(x.wood_rate),cols[6]+3,y-14,7);right(moneyPdf(num(x.wood_value)+num(x.handling_value)+num(x.gst)),pageW-margin-4,y-14,7);
+      y-=rowH;
+    }
+    line(margin,y,pageW-margin,y); y-=12;
+
+    const totalQty=num(invoice.total_qty),mv=num(invoice.material_value),hv=num(invoice.handling_value),gst=num(invoice.gst),total=num(invoice.invoice_total);
+    const summaryW=pageW-2*margin, sx=margin+summaryW-255, sw=255;
+    if(y<185){newPage();}
+    section('Amount Summary');
+    const summary=[['Material Cost',totalQty,items[0]?.wood_rate,mv],['Handling and Other Charges',totalQty,items[0]?.handling_rate,hv],['Subtotal',totalQty,num(items[0]?.wood_rate)+num(items[0]?.handling_rate),mv+hv],['CGST 9%','','',gst/2],['SGST 9%','','',gst/2],['TOTAL INVOICE VALUE','','',total]];
+    const rh=21; summary.forEach((r,i)=>{const fill=i===5?gray:null;rect(sx,y-rh,sw,rh,fill);text(r[0],sx+7,y-14,8,i===5?bold:regular);if(r[1]!=='' )right(fmt(r[1]),sx+150,y-14,8);if(r[2]!=='')right(moneyPdf(r[2]),sx+205,y-14,8);right(moneyPdf(r[3]),sx+sw-7,y-14,8,i===5?bold:regular);y-=rh;});
+    y-=18;text(invoice.status==='Draft'?'DRAFT INVOICE':'TAX INVOICE',margin,y,11,bold);y-=24;
+    text('For '+(contractor.contractor_name||''),margin,y,9,bold);right('Authorised Signatory',pageW-margin,y,9,bold);
+
+    const bytes=await pdf.save();
+    const blob=new Blob([bytes],{type:'application/pdf'});
+    const url=URL.createObjectURL(blob); const a=document.createElement('a');
+    const safe=String(invoice.invoice_number||'invoice').replace(/[^a-zA-Z0-9._-]+/g,'_');
+    a.href=url;a.download=`WoodMaster_${safe}_${invoice.status==='Draft'?'DRAFT':'FINAL'}.pdf`;document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+  }catch(e){console.error(e);alert(`Could not download invoice PDF: ${e.message||e}`)}
+}
+
 async function printMaterialInvoice(id){
   try{
     const {invoice,items}=await getMaterialInvoiceBundle(id);
