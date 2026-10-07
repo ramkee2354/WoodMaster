@@ -89,7 +89,10 @@ async function generatePackage(id){
   const fitSize=(str,maxWidth,start=NORMAL,min=8,bold=false)=>{let s=start;set(s,bold);while(s>min&&doc.getTextWidth(safe(str))>maxWidth){s-=0.25;set(s,bold)}return s;};
   const drawFrame=(title)=>{rect(20,20,555,801,null,1.05);text(title,PW/2,53,18,true,'center');line(PW/2-118,70,PW/2+118,70,1.2);};
   const addrRaw=active()?.address||'15-8-539, Rama Devi Nilayam, Rotary Nagar, Srinagar Colony, Khammam District, Telangana - 507002';
-  const addr=String(addrRaw).replace(/^\s*\d+(?:[-\/]\d+)*\s*,?\s*/,'').replace(/\s*-\s*539\b/g,'').replace(/\s{2,}/g,' ').trim();
+  // LR and DC use the complete registered contractor address, including house number.
+  const addr=String(addrRaw).replace(/\s{2,}/g,' ').trim();
+  // Freight Letters intentionally omit the house number.
+  const flAddr=String(addrRaw).replace(/^\s*\d+(?:[-\/]\d+)*\s*,?\s*/,'').replace(/\s*-\s*539\b/g,'').replace(/\s{2,}/g,' ').trim();
   const fullContractorName=active()?.contractor_name||'SRI VENKATESHWARA TRADERS';
   const shortContractor='S V TRADERS';
   const vehicle=String(x.vehicle_master?.vehicle_number||'').toUpperCase();
@@ -185,7 +188,7 @@ async function generatePackage(id){
    doc.addPage();drawFrame('FREIGHT LETTER');
    const metaY=94;
    text('FROM',left+10,metaY,11,true);text(shortContractor,left+10,metaY+22,16,true);
-   wrapByWidth(addr,360,11,false).slice(0,2).forEach((ln,i)=>text(ln,left+10,metaY+43+i*15,11));
+   wrapByWidth(flAddr,360,11,false).slice(0,2).forEach((ln,i)=>text(ln,left+10,metaY+43+i*15,11));
    text('Challan No.',405,metaY-2,11,true);text(':',469,metaY-2,11);text(challan,483,metaY-2,11,true);
    text('Challan Date',405,metaY+23,11,true);text(':',469,metaY+23,11);text(challanDate,483,metaY+23,11,true);
    line(left,175,right,175,1.1);
@@ -492,8 +495,8 @@ async function billingPage(){
     <div class="formgrid"><div class="field"><label>From Date *</label><input id="biManualFrom" type="date" value="${esc(invoiceDraft.manualFromDate||'')}" onchange="saveBillingInvoiceDraft()"></div><div class="field"><label>To Date / Cutoff *</label><input id="biManualTo" type="date" value="${esc(invoiceDraft.manualToDate||'')}" onchange="saveBillingInvoiceDraft()"></div><div class="field"><label>Invoice Date *</label><input id="biManualDate" type="date" value="${esc(invoiceDraft.invoiceDate||isoToday())}" onchange="saveBillingInvoiceDraft();refreshBillingInvoicePreview()"></div><div class="field"><label>Invoice Number</label><input id="biManualNo" class="readonly" readonly value="${esc(preview)}"><div class="small">Automatically assigned from the common Material + AMC invoice series.</div></div></div>
     <div class="actions"><button class="btn primary" onclick="buildMaterialInvoiceDraft('manual')">Review & Confirm Billable Loads</button></div></div></div>
 
-  <div class="section"><h2>Draft Material Invoices</h2><div class="notice">Draft invoices can be edited or deleted. Finalizing a draft marks its loads as Billed. Invoice numbers are never reused after allocation.</div><div class="tablewrap"><table><thead><tr><th>Invoice</th><th>Method</th><th>Date</th><th>Period</th><th>Qty MT</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>${invoices.filter(i=>i.status==='Draft').length?invoices.filter(i=>i.status==='Draft').map(i=>`<tr><td>${esc(i.invoice_number)}</td><td>${esc(i.billing_method||'—')}</td><td>${fmtDate(i.invoice_date)}</td><td>${fmtDate(i.from_date)} – ${fmtDate(i.to_date)}</td><td>${fmt(i.total_qty)}</td><td>${money(i.invoice_total)}</td><td><span class="badge">Draft</span></td><td><div class="rowactions"><button class="btn secondary mini" onclick="editMaterialInvoice('${i.id}')">Edit</button><button class="btn primary mini" onclick="finalizeMaterialInvoice('${i.id}')">Finalize</button><button class="btn secondary mini" onclick="printMaterialInvoice('${i.id}')">Print Draft</button><button class="btn danger mini" onclick="deleteMaterialInvoice('${i.id}')">Delete</button></div></td></tr>`).join(''):`<tr><td colspan="8" class="empty">No draft material invoices.</td></tr>`}</tbody></table></div></div>
-  <div class="section"><h2>Final Material Invoices</h2><div class="notice">Final invoices are retained for history. Edit/Delete actions are currently enabled; later they can be restricted centrally by user role without redesigning the workflow.</div><div class="tablewrap"><table><thead><tr><th>Invoice</th><th>Method</th><th>Date</th><th>Period</th><th>Qty MT</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>${invoices.filter(i=>i.status==='Finalized').length?invoices.filter(i=>i.status==='Finalized').map(i=>`<tr><td>${esc(i.invoice_number)}</td><td>${esc(i.billing_method||'—')}</td><td>${fmtDate(i.invoice_date)}</td><td>${fmtDate(i.from_date)} – ${fmtDate(i.to_date)}</td><td>${fmt(i.total_qty)}</td><td>${money(i.invoice_total)}</td><td><span class="badge">Finalized</span></td><td><div class="rowactions"><button class="btn secondary mini" onclick="editMaterialInvoice('${i.id}')">Edit</button><button class="btn secondary mini" onclick="printMaterialInvoice('${i.id}')">Print Invoice</button><button class="btn danger mini" onclick="deleteMaterialInvoice('${i.id}')">Delete</button></div></td></tr>`).join(''):`<tr><td colspan="8" class="empty">No final material invoices.</td></tr>`}</tbody></table></div></div>
+  <div class="section"><h2>Draft Material Invoices</h2><div class="notice">Draft invoices can be edited or deleted. Finalizing a draft marks its loads as Billed. Invoice numbers are never reused after allocation.</div><div class="tablewrap"><table><thead><tr><th>Invoice</th><th>Method</th><th>Date</th><th>Period</th><th>Qty MT</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>${invoices.filter(i=>i.status==='Draft').length?invoices.filter(i=>i.status==='Draft').map(i=>`<tr><td>${esc(i.invoice_number)}</td><td>${esc(i.billing_method||'—')}</td><td>${fmtDate(i.invoice_date)}</td><td>${fmtDate(i.from_date)} – ${fmtDate(i.to_date)}</td><td>${fmt(i.total_qty)}</td><td>${money(i.invoice_total)}</td><td><span class="badge">Draft</span></td><td><div class="rowactions"><button class="btn secondary mini" onclick="editMaterialInvoice('${i.id}')">Edit</button><button class="btn primary mini" onclick="finalizeMaterialInvoice('${i.id}')">Finalize</button><button class="btn secondary mini" onclick="downloadMaterialInvoice('${i.id}')">Download Draft PDF</button><button class="btn danger mini" onclick="deleteMaterialInvoice('${i.id}')">Delete</button></div></td></tr>`).join(''):`<tr><td colspan="8" class="empty">No draft material invoices.</td></tr>`}</tbody></table></div></div>
+  <div class="section"><h2>Final Material Invoices</h2><div class="notice">Final invoices are retained for history. Edit/Delete actions are currently enabled; later they can be restricted centrally by user role without redesigning the workflow.</div><div class="tablewrap"><table><thead><tr><th>Invoice</th><th>Method</th><th>Date</th><th>Period</th><th>Qty MT</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>${invoices.filter(i=>i.status==='Finalized').length?invoices.filter(i=>i.status==='Finalized').map(i=>`<tr><td>${esc(i.invoice_number)}</td><td>${esc(i.billing_method||'—')}</td><td>${fmtDate(i.invoice_date)}</td><td>${fmtDate(i.from_date)} – ${fmtDate(i.to_date)}</td><td>${fmt(i.total_qty)}</td><td>${money(i.invoice_total)}</td><td><span class="badge">Finalized</span></td><td><div class="rowactions"><button class="btn secondary mini" onclick="editMaterialInvoice('${i.id}')">Edit</button><button class="btn secondary mini" onclick="downloadMaterialInvoice('${i.id}')">Download Invoice PDF</button><button class="btn danger mini" onclick="deleteMaterialInvoice('${i.id}')">Delete</button></div></td></tr>`).join(''):`<tr><td colspan="8" class="empty">No final material invoices.</td></tr>`}</tbody></table></div></div>
   <div class="section"><h2>Other / Cancelled Material Invoices</h2><div class="tablewrap"><table><thead><tr><th>Invoice</th><th>Method</th><th>Date</th><th>Period</th><th>Qty MT</th><th>Total</th><th>Status</th><th>Action</th></tr></thead><tbody>${invoices.filter(i=>!['Draft','Finalized'].includes(i.status)).length?invoices.filter(i=>!['Draft','Finalized'].includes(i.status)).map(i=>`<tr><td>${esc(i.invoice_number)}</td><td>${esc(i.billing_method||'—')}</td><td>${fmtDate(i.invoice_date)}</td><td>${fmtDate(i.from_date)} – ${fmtDate(i.to_date)}</td><td>${fmt(i.total_qty)}</td><td>${money(i.invoice_total)}</td><td><span class="badge">${esc(i.status)}</span></td><td>—</td></tr>`).join(''):`<tr><td colspan="8" class="empty">No cancelled/other invoices.</td></tr>`}</tbody></table></div></div>`;
 }
 function saveBillingReceiptDraft(){const old=loadForm('billingReceipt')||{};const lines=old.lines||[];saveForm('billingReceipt',{receiptNumber:$('brNo')?.value||old.receiptNumber||'',receiptDate:$('brDate')?.value||old.receiptDate||'',fromDate:$('brFrom')?.value||old.fromDate||'',toDate:$('brTo')?.value||old.toDate||'',poNumber:$('brPo')?.value||old.poNumber||'',text:$('brText')?.value||old.text||'',lines});}
@@ -686,10 +689,78 @@ async function finalizeMaterialInvoice(id){
     alert(`Material Invoice ${invoice.invoice_number} is finalized.`);await refreshLoads();await render();
   }catch(e){alert(`Could not finalize invoice: ${e.message||e}`)}
 }
-async function printMaterialInvoice(id){
+
+function quantityWordsIndian(v){
+  const n=Math.max(0,Number(v)||0);
+  const whole=Math.floor(n+1e-9);
+  const frac=Math.round((n-whole)*1000);
+  const base=numberWordsIndian(whole).replace(/ Rupees Only$/,'').toUpperCase();
+  if(!frac)return `${base} (MT)`;
+  const f=String(frac).padStart(3,'0').split('').map(d=>numberWordsIndian(Number(d)).replace(/ Rupees Only$/,'').toUpperCase()).join(' ');
+  return `${base} POINT ${f} (MT)`;
+}
+function invoiceWordsWithPaise(amount){
+  const n=Math.max(0,Number(amount)||0);
+  const rupees=Math.floor(n+1e-9);
+  const paise=Math.round((n-rupees)*100);
+  let out=numberWordsIndian(rupees).replace(/ Rupees Only$/,'');
+  if(paise){
+    out += ` Rupees and ${numberWordsIndian(paise).replace(/ Rupees Only$/,'')} Paise Only`;
+  }else{
+    out += ' Rupees Only';
+  }
+  return out.toUpperCase();
+}
+function invoiceAddressLines(v){
+  let t=String(v||'').replace(/\r/g,'').trim();
+  t=t.replace(/^\s*\d{1,5}[-/]\d{1,5}[-/]\d{1,5}\s*,?\s*/,'');
+  t=t.replace(/^\s*\d{1,5}[-/]\d{1,5}\s*,?\s*/,'');
+  const raw=t.split(/\n|,\s*/).map(x=>x.trim()).filter(Boolean);
+  const lines=[];
+  raw.forEach(x=>{
+    if(!lines.length)lines.push(x);
+    else{
+      const last=lines[lines.length-1];
+      if((last+' '+x).length<=48)lines[lines.length-1]=last+', '+x;
+      else lines.push(x);
+    }
+  });
+  return lines.slice(0,5);
+}
+function pdfText(doc,text,x,y,maxW,opts={}){
+  const str=String(text??'');
+  const size=Number.isFinite(Number(opts.size))?Number(opts.size):10;
+  const leading=Number.isFinite(Number(opts.leading))?Number(opts.leading):size+2.5;
+  const lines=maxW?doc.splitTextToSize(str,Math.max(10,maxW)):str.split('\n');
+  doc.setFont('helvetica',opts.bold?'bold':'normal');
+  doc.setFontSize(size);
+  doc.setTextColor(0,0,0);
+  doc.text(lines,x,y,{align:opts.align||'left',baseline:'alphabetic'});
+  return lines.length*leading;
+}
+function pdfCellText(doc,text,x,y,w,h,opts={}){
+  const size=Number.isFinite(Number(opts.size))?Number(opts.size):9;
+  const pad=Number.isFinite(Number(opts.pad))?Number(opts.pad):4;
+  const align=opts.align||'left';
+  const maxW=Math.max(8,w-pad*2);
+  const lines=doc.splitTextToSize(String(text??''),maxW);
+  const leading=Number.isFinite(Number(opts.leading))?Number(opts.leading):size+2;
+  const total=lines.length*leading;
+  let ty=y+(h-total)/2+size;
+  if(ty<y+size)ty=y+size;
+  doc.setFont('helvetica',opts.bold?'bold':'normal');
+  doc.setFontSize(size);
+  doc.setTextColor(0,0,0);
+  const tx=align==='center'?x+w/2:align==='right'?x+w-pad:x+pad;
+  doc.text(lines,tx,ty,{align,baseline:'alphabetic'});
+}
+async function downloadMaterialInvoice(id){
   try{
+    if(!window.jspdf?.jsPDF)return alert('PDF generator is still loading. Please try again.');
+    const {jsPDF}=window.jspdf;
     const {invoice,items}=await getMaterialInvoiceBundle(id);
     if(!invoice)return;
+
     const contractor=active()||{};
     const itc=state.itcs.find(x=>x.id===invoice.itc_id)||state.itcs.find(x=>x.is_default)||state.itcs[0]||{};
     let customer={};
@@ -698,24 +769,193 @@ async function printMaterialInvoice(id){
       const pr=await sb.from('po_master').select('customer_id,customer_master(*)').in('id',poIds).limit(1);
       if(!pr.error&&pr.data?.[0]?.customer_master)customer=pr.data[0].customer_master;
     }
-    if(!customer.gstin)customer={customer_name:itc.company_name||'ITC LTD - PSPD',gstin:itc.gstin||'',pan:itc.pan||'',address:itc.address||''};
-    const totalQty=num(invoice.total_qty), mv=num(invoice.material_value), hv=num(invoice.handling_value), gst=num(invoice.gst), total=num(invoice.invoice_total);
-    const rows=items.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(fmtDate(x.wc_date))}</td><td>${esc(x.wc_number||'')}</td><td>${esc(String(x.vehicle_number||'').toUpperCase())}</td><td class="num">${fmt(x.approved_qty)}</td><td>MT</td></tr>`).join('');
-    const rate=items.length?num(items[0].wood_rate):0, handlingRate=items.length?num(items[0].handling_rate):0;
-    const html=`<!doctype html><html><head><meta charset="utf-8"><title>Tax Invoice ${esc(invoice.invoice_number)}</title><style>
-      @page{size:A4;margin:12mm}body{font-family:Arial,Helvetica,sans-serif;color:#111;font-size:11px;margin:0}.sheet{width:100%}h1{text-align:center;font-size:18px;margin:0 0 4px}.subtitle{text-align:center;font-weight:bold;font-size:13px;margin-bottom:10px}.top{display:grid;grid-template-columns:1fr 1fr;border:1px solid #111}.box{padding:7px;border-right:1px solid #111;min-height:85px}.box:last-child{border-right:0}.label{font-weight:bold}.meta{margin:8px 0}.meta table,.lines,.summary{width:100%;border-collapse:collapse}.meta td{padding:3px 5px}.lines th,.lines td,.summary th,.summary td{border:1px solid #111;padding:5px}.lines th{background:#f2f2f2}.num{text-align:right}.summary{margin-top:8px}.summary td:first-child{font-weight:bold}.footer{margin-top:18px;display:flex;justify-content:space-between}.draft{position:fixed;top:45%;left:20%;font-size:60px;color:#bbb;transform:rotate(-25deg);opacity:.25;z-index:-1}
-      @media print{button{display:none}}
-    </style></head><body><div class="sheet">${invoice.status==='Draft'?'<div class="draft">DRAFT</div>':''}<h1>TAX INVOICE</h1><div class="subtitle">Invoice No: ${esc(invoice.invoice_number)} &nbsp;&nbsp; Date: ${esc(fmtDate(invoice.invoice_date))}</div>
-      <div class="top"><div class="box"><div class="label">To</div><b>${esc(customer.customer_name||'ITC LTD - PSPD')}</b><br>${esc(customer.address||'')}<br>PAN: ${esc(customer.pan||'')}<br>GSTIN: ${esc(customer.gstin||'')}</div><div class="box"><div class="label">From</div><b>${esc(contractor.contractor_name||'')}</b><br>${esc(contractor.address||'')}<br>PAN: ${esc(contractor.pan||'')}<br>GSTIN: ${esc(contractor.gstin||'')}<br>Vendor Code: ${esc(contractor.contractor_code||'')}</div></div>
-      <div class="meta"><table><tr><td><b>1. Period From</b> ${esc(fmtDate(invoice.from_date))} To ${esc(fmtDate(invoice.to_date))}</td><td><b>2. HSN Code</b> ${esc(items[0]?.hsn_code||'44039800')}</td></tr><tr><td><b>3. Material</b> Eucalyptus Debarked Wood</td><td><b>4. Place of Supply</b> ITC Ltd - PSPD, Sarapaka (Telangana State)</td></tr><tr><td colspan="2"><b>5. Payment</b> E-Payment</td></tr></table></div>
-      <table class="lines"><thead><tr><th>S.No</th><th>Date</th><th>WC Number</th><th>Truck Number</th><th>Qty</th><th>UOM</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><th colspan="4" class="num">Total Quantity</th><th>${fmt(totalQty)}</th><th>MT</th></tr></tfoot></table>
-      <table class="summary"><tr><th>Particulars</th><th>Quantity</th><th>Rate</th><th>Amount</th></tr><tr><td>Material Cost</td><td class="num">${fmt(totalQty)}</td><td class="num">${money(rate)}</td><td class="num">${money(mv)}</td></tr><tr><td>Handling and Other Charges Cost</td><td class="num">${fmt(totalQty)}</td><td class="num">${money(handlingRate)}</td><td class="num">${money(hv)}</td></tr><tr><th>Total</th><th class="num">${fmt(totalQty)}</th><th class="num">${money(rate+handlingRate)}</th><th class="num">${money(mv+hv)}</th></tr><tr><td colspan="3">CGST 9%</td><td class="num">${money(gst/2)}</td></tr><tr><td colspan="3">SGST 9%</td><td class="num">${money(gst/2)}</td></tr><tr><th colspan="3">Total Invoice Value</th><th class="num">${money(total)}</th></tr></table>
-      <div class="meta"><b>Ref: Agreement / PO No:</b> ${esc(items[0]?.po_number||'')}</div><div class="meta"><b>Total Qty:</b> ${fmt(totalQty)} MT</div><div class="footer"><div>Yours faithfully<br><br>For ${esc(contractor.contractor_name||'')}</div><div><b>${invoice.status==='Draft'?'DRAFT INVOICE':'TAX INVOICE'}</b></div></div>
-      </div></body></html>`;
-    const w=window.open('','_blank','width=900,height=1100');
-    if(!w)return alert('Please allow pop-ups for WoodMaster to print the invoice.');
-    w.document.open();w.document.write(html);w.document.close();w.onload=()=>setTimeout(()=>w.print(),250);
-  }catch(e){alert(`Could not prepare invoice for printing: ${e.message||e}`)}
+    if(!customer.gstin){
+      customer={
+        customer_name:itc.company_name||'ITC LTD - PSPD',
+        gstin:itc.gstin||'',
+        pan:itc.pan||'',
+        address:itc.address||''
+      };
+    }
+
+    const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'a4',compress:true});
+    const PW=595.28,PH=841.89;
+    const M=38,R=PW-M,W=PW-2*M;
+    const black=[0,0,0], grey=[245,245,245];
+    const finite=v=>Number.isFinite(Number(v))?Number(v):0;
+    const moneyPlain=v=>Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const qtyPlain=v=>Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:3,maximumFractionDigits:3});
+    const drawLine=(x1,y1,x2,y2)=>{doc.setDrawColor(0,0,0);doc.setLineWidth(0.65);doc.line(finite(x1),finite(y1),finite(x2),finite(y2));};
+    const drawRect=(x,y,w,h,fill=false)=>{doc.setDrawColor(0,0,0);doc.setLineWidth(0.65);if(fill){doc.setFillColor(245,245,245);doc.rect(finite(x),finite(y),finite(w),finite(h),'FD')}else doc.rect(finite(x),finite(y),finite(w),finite(h),'S');};
+    const center=(text,x,y,size=10,bold=false)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(0,0,0);doc.text(String(text??''),finite(x),finite(y),{align:'center'});};
+    const right=(text,x,y,size=10,bold=false)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(0,0,0);doc.text(String(text??''),finite(x),finite(y),{align:'right'});};
+    const left=(text,x,y,size=10,bold=false)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(0,0,0);doc.text(String(text??''),finite(x),finite(y));};
+
+    const contractorAddress=invoiceAddressLines(contractor.address||'');
+    const customerAddress=invoiceAddressLines(customer.address||itc.address||'');
+    const customerName=customer.customer_name||itc.company_name||'ITC LTD - PSPD';
+    const contractorName=contractor.contractor_name||'SRI VENKATESHWARA TRADERS';
+    const invoiceDate=fmtDate(invoice.invoice_date);
+    const fromDate=fmtDate(invoice.from_date),toDate=fmtDate(invoice.to_date);
+    const hsn=items[0]?.hsn_code||'44039800';
+    const material=items[0]?.material_description||items[0]?.species_name||'Eucalyptus Debarked Wood';
+    const place=itc.address?`${itc.company_name||'ITC LTD'} - PSPD, Sarapaka (Telangana State)`:'ITC Ltd - PSPD, Sarapaka (Telangana State)';
+    const poNo=items[0]?.po_number||'';
+    const totalQty=finite(invoice.total_qty);
+    const materialValue=finite(invoice.material_value);
+    const handlingValue=finite(invoice.handling_value);
+    const fsc=finite(invoice.fsc_premium);
+    const deduction=finite(invoice.deduction);
+    const base=materialValue+handlingValue+fsc;
+    const gross=Math.max(0,base-deduction);
+    const gst=finite(invoice.gst);
+    const cgst=gst/2,sgst=gst/2;
+    const total=finite(invoice.invoice_total)||gross+gst;
+    const woodRate=items.length?finite(items[0].wood_rate):0;
+    const handlingRate=items.length?finite(items[0].handling_rate):0;
+
+    // One-page reference layout. If there are unusually many lines, the load table
+    // continues onto additional pages while the financial summary remains on the last page.
+    const rowsPerPage=13;
+    const chunks=[];
+    for(let i=0;i<items.length;i+=rowsPerPage)chunks.push(items.slice(i,i+rowsPerPage));
+    if(!chunks.length)chunks.push([]);
+
+    const drawHeaderAndMeta=()=>{
+      let y=28;
+      center('TAX INVOICE',PW/2,y+1,17,true);
+      left('Tax Invoice NO:',M,y+25,10,true);
+      left(invoice.invoice_number||'',M+82,y+25,11,true);
+      right(`Date: ${invoiceDate}`,R,y+25,10,true);
+
+      const topY=y+39, topH=91, mid=PW/2;
+      drawRect(M,topY,W,topH,false);
+      drawLine(mid,topY,mid,topY+topH);
+      left('To',M+7,topY+16,10,false);
+      left('From',mid+7,topY+16,10,false);
+      left(customerName,M+7,topY+31,10,true);
+      let yy=topY+44;
+      customerAddress.forEach(line=>{left(line,M+7,yy,9,false);yy+=11});
+      left(`PAN No: ${customer.pan||''}`,M+7,topY+topH-22,9,false);
+      left(`GST NO: ${customer.gstin||''}`,M+7,topY+topH-10,9,false);
+
+      left(contractorName,mid+7,topY+31,10,true);
+      yy=topY+44;
+      contractorAddress.forEach(line=>{left(line,mid+7,yy,9,false);yy+=11});
+      left(`Telangana State (Code 36)`,mid+7,topY+topH-33,9,false);
+      left(`PAN NO: ${contractor.pan||''}`,mid+7,topY+topH-21,9,false);
+      left(`GST NO: ${contractor.gstin||''}`,mid+7,topY+topH-9,9,false);
+
+      y=topY+topH+11;
+      const metaH=80;
+      const labelX=M+2, valueX=M+100, rightLabel=PW/2+2, rightValue=PW/2+84;
+      left('1  Period From',labelX,y+12,9.5,true);left(`${fromDate} To ${toDate}`,valueX,y+12,9.5,false);
+      left('2  HSN Code',rightLabel,y+12,9.5,true);left(hsn,rightValue,y+12,9.5,false);
+      left('3  Material',labelX,y+28,9.5,true);left(material,valueX,y+28,9.5,false);
+      left('4  Place of Supply',rightLabel,y+28,9.5,true);left(place,rightValue,y+28,9.5,false);
+      left('5  Payment',labelX,y+44,9.5,true);left('E-Payment',valueX,y+44,9.5,false);
+      center(`Ref: Agreement / PO No: ${poNo}`,PW/2,y+62,9.5,true);
+      center('Direct supply to ITC Ltd PSPD Sarapaka (Telangana State)',PW/2,y+76,9,false);
+      return y+metaH+4;
+    };
+
+    const drawLoadTable=(startY,chunk,offset)=>{
+      const x=M, y=startY, widths=[45,72,150,125,67,58];
+      const headers=['S.No','Date','WC Number','Truck Number','Qty','UOM'];
+      const headerH=21,rowH=20,totalH=21;
+      let cx=x;
+      drawRect(x,y,W,headerH,false);
+      headers.forEach((h,i)=>{if(i){drawLine(cx,y,cx,y+headerH)};pdfCellText(doc,h,cx,y,widths[i],headerH,{size:8,bold:true,align:'center'});cx+=widths[i]});
+      let yy=y+headerH;
+      chunk.forEach((it,i)=>{
+        cx=x;drawRect(x,yy,W,rowH,false);
+        const vals=[String(offset+i+1),fmtDate(it.wc_date||it.date||''),it.wc_number||'',String(it.vehicle_number||'').toUpperCase(),qtyPlain(it.approved_qty), 'MT'];
+        vals.forEach((v,j)=>{if(j){drawLine(cx,yy,cx,yy+rowH)};pdfCellText(doc,v,cx,yy,widths[j],rowH,{size:8.7,align:j===0||j===4||j===5?'center':'left'});cx+=widths[j]});
+        yy+=rowH;
+      });
+      cx=x;drawRect(x,yy,W,totalH,false);
+      const totalWidths=widths;
+      for(let i=1;i<totalWidths.length;i++){cx+=totalWidths[i-1];drawLine(cx,yy,cx,yy+totalH)}
+      pdfCellText(doc,'Total Qty',x,yy,45+72+150+125,totalH,{size:8.7,bold:true,align:'right'});
+      pdfCellText(doc,qtyPlain(totalQty),x+45+72+150+125,yy,67,totalH,{size:8.7,bold:true,align:'center'});
+      pdfCellText(doc,'MT',x+45+72+150+125+67,yy,58,totalH,{size:8.7,bold:true,align:'center'});
+      return yy+totalH;
+    };
+
+    const drawSummary=(startY)=>{
+      const x=M,y=startY,w=W;
+      const cols=[218,90,90,w-398];
+      const headerH=20,rowH=20;
+      let cx=x;
+      drawRect(x,y,w,headerH,false);
+      ['Particulars','Quantity','Rate','Amount'].forEach((h,i)=>{if(i){drawLine(cx,y,cx,y+headerH)};pdfCellText(doc,h,cx,y,cols[i],headerH,{size:8.5,bold:true,align:'center'});cx+=cols[i]});
+      const rows=[
+        ['Material Cost (Price as determined by AMC)',qtyPlain(totalQty),moneyPlain(woodRate),moneyPlain(materialValue)],
+        ['Handling and Other Charges Cost',qtyPlain(totalQty),moneyPlain(handlingRate),moneyPlain(handlingValue)],
+        ['FSC Premium', '', fsc?'': '-', fsc?moneyPlain(fsc):'-'],
+        ['Total',qtyPlain(totalQty),moneyPlain(woodRate+handlingRate+(totalQty?fsc/totalQty:0)),moneyPlain(base)],
+        ['Deduction','','-',deduction?moneyPlain(deduction):'-'],
+        ['Gross Amount','','',moneyPlain(gross)],
+        ['SGST','9%','',moneyPlain(sgst)],
+        ['CGST','9%','',moneyPlain(cgst)],
+        ['Total Tax Amount','','',moneyPlain(gst)],
+        ['Total Invoice Value','','',moneyPlain(total)]
+      ];
+      let yy=y+headerH;
+      rows.forEach((r,ri)=>{
+        cx=x;drawRect(x,yy,w,rowH,false);
+        r.forEach((v,j)=>{if(j){drawLine(cx,yy,cx,yy+rowH)};pdfCellText(doc,v,cx,yy,cols[j],rowH,{size:8.5,bold:[3,5,8,9].includes(ri),align:j===0?'left':j===1||j===2?'center':'right'});cx+=cols[j]});
+        yy+=rowH;
+      });
+      return yy;
+    };
+
+    const drawWordsAndFooter=(y)=>{
+      const gap=14;
+      left('Qty:',M,y+gap+1,10,false);
+      pdfText(doc,`${qtyPlain(totalQty)} MT`,M+47,y+gap+1,430,{size:9.5,bold:true});
+      left('Qty in Words:',M,y+gap+19,10,false);
+      pdfText(doc,quantityWordsIndian(totalQty),M+77,y+gap+19,430,{size:9.2,bold:false});
+      left('Amount:',M,y+gap+37,10,false);
+      pdfText(doc,invoiceWordsWithPaise(total),M+47,y+gap+37,500,{size:9.2,bold:false});
+      left('Yours faithfully',M,y+gap+68,9.5,false);
+      left(`For ${contractorName}`,M,y+gap+96,9.5,false);
+      right('TAX INVOICE',R,y+gap+68,9.5,true);
+      return y+gap+108;
+    };
+
+    // First page
+    let y=drawHeaderAndMeta();
+    let rowEnd=drawLoadTable(y,chunks[0],0);
+    if(chunks.length===1){
+      y=drawSummary(rowEnd+12);
+      drawWordsAndFooter(y+10);
+    }else{
+      // Summary goes to last page.
+      for(let pno=1;pno<chunks.length;pno++){
+        doc.addPage();
+        left(`Tax Invoice NO: ${invoice.invoice_number}`,M,28,9.5,true);
+        right(`Page ${pno+1}`,R,28,9,false);
+        center('TAX INVOICE — CONTINUED',PW/2,48,14,true);
+        rowEnd=drawLoadTable(64,chunks[pno],pno*rowsPerPage);
+        if(pno===chunks.length-1){
+          y=drawSummary(rowEnd+12);
+          drawWordsAndFooter(y+10);
+        }
+      }
+    }
+
+    const blob=doc.output('blob');
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=`Tax_Invoice_${String(invoice.invoice_number||'').replace(/[^\w.-]+/g,'_')}.pdf`;
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),2000);
+  }catch(e){
+    console.error(e);
+    alert(`Could not generate Tax Invoice PDF. ${e?.message||e}`);
+  }
 }
 async function deleteMaterialInvoice(id){
   try{
