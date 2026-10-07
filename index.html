@@ -5,7 +5,6 @@
 <title>WoodMaster 360</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;--line:#e4e7ec;--primary:#1769aa;--primary2:#0f5d93;--success:#16845b;--danger:#c62828;--warn:#b26a00;--info:#eef7ff}
 *{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text)}button,input,select,textarea{font:inherit}header{height:64px;background:#123b5d;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:10}.brand{font-size:21px;font-weight:700}.user{font-size:13px;opacity:.9}.layout{display:flex;min-height:calc(100vh - 64px)}nav{width:215px;background:#fff;border-right:1px solid var(--line);padding:14px;flex:none}nav button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:11px 12px;border-radius:8px;margin:3px 0;color:#344054;cursor:pointer;font-size:14px}nav button:hover,nav button.active{background:#eaf3fb;color:#125a8d;font-weight:600}main{flex:1;padding:25px;max-width:1550px;margin:auto;width:100%}h1{font-size:25px;margin:0 0 6px}h2{font-size:19px;margin:0 0 14px}.sub{color:var(--muted);font-size:13px;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.card,.form{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:0 1px 2px #00000008}.metric{font-size:27px;font-weight:700;margin-top:7px}.label{font-size:12px;color:var(--muted)}.section{margin-top:18px}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff}table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:10px 11px;border-bottom:1px solid var(--line);text-align:left;font-size:13px;vertical-align:top}th{color:#475467;background:#fafafa}.empty{text-align:center;padding:28px;color:var(--muted)}.formgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.field label{display:block;font-size:12px;font-weight:600;color:#475467;margin-bottom:6px}.field input,.field select,.field textarea{width:100%;padding:10px 11px;border:1px solid #d0d5dd;border-radius:8px;background:#fff;outline:none}.field textarea{min-height:75px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px #1769aa18}.field.full{grid-column:1/-1}.readonly{background:#f2f4f7!important}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.btn{border:0;border-radius:8px;padding:10px 15px;cursor:pointer;font-weight:600}.primary{background:var(--primary);color:#fff}.primary:hover{background:var(--primary2)}.secondary{background:#eef2f6;color:#344054}.danger{background:#fff0f0!important;color:var(--danger)!important;border:1px solid #f3c3c3!important}.success{background:#effaf5!important;color:#11633f!important;border:1px solid #bde8d1!important}.notice{padding:12px 14px;border-radius:8px;background:#eef7ff;border:1px solid #cfe7fb;color:#17527c;font-size:13px;margin-bottom:15px}.notice.error{background:#fff1f1;border-color:#f3c3c3;color:#9d1c1c}.notice.success{background:#effaf5;border-color:#bde8d1;color:#11633f}.small{font-size:12px;color:var(--muted)}.badge{display:inline-block;padding:4px 8px;border-radius:99px;background:#eef4f8;font-size:11px;color:#355b73}.topbar{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;flex-wrap:wrap}.context{background:#eaf3fb;border:1px solid #c9e1f3;border-radius:9px;padding:10px 13px;margin-bottom:18px;color:#15527c;font-size:13px}.contractor-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.contractor-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;cursor:pointer}.contractor-card:hover{box-shadow:0 7px 22px #00000010;border-color:#9fc9e6}.contractor-name{font-size:18px;font-weight:700;margin-top:8px}.contractor-meta{font-size:12px;color:var(--muted);margin-top:5px}.quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.quick button{text-align:left;background:#fff;border:1px solid var(--line);border-radius:10px;padding:15px;cursor:pointer}.quick button:hover{border-color:#9fc9e6;background:#fafdff}.quick b{display:block;margin-bottom:4px}.login{min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#edf5fb,#f7fafc);padding:20px}.loginbox{width:min(440px,100%);background:#fff;border:1px solid var(--line);border-radius:15px;padding:28px;box-shadow:0 10px 30px #00000010}.loginbox h1{text-align:center;margin-bottom:4px}.loginbox .sub{text-align:center}.modal{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;padding:18px;z-index:100}.modalbox{width:min(950px,100%);max-height:94vh;overflow:auto;background:#fff;border-radius:14px;padding:20px;box-shadow:0 20px 60px #00000030}.modalhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px}.modalclose{border:0;background:#eef2f6;border-radius:8px;padding:8px 12px;cursor:pointer}.rowactions{display:flex;gap:6px;flex-wrap:wrap}.mini{padding:6px 9px;font-size:12px;border-radius:7px}.sectionhead{background:#eaf3fb;border:1px solid #c9e1f3;border-radius:10px;padding:11px 13px;font-weight:700;color:#15527c;margin-top:15px}.docgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.doccard{border:1px solid var(--line);background:#fff;border-radius:10px;padding:14px}.compare{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}.compare>div{padding:10px;border-bottom:1px solid var(--line)}.compare .head{font-weight:700;background:#f7f9fb}.compare .diff{background:#fff6e6}.statusbar{padding:10px;border-radius:8px;background:#f7f9fb;border:1px solid var(--line);font-size:12px}.sticky-actions{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);padding:12px 0;margin-top:15px}.hidden{display:none!important}
@@ -68,177 +67,343 @@ function closeModal(){$('wmModal')?.remove()}
 function openDocsModal(id){documentModal(id)}
 async function generatePackage(id){
  const x=state.loads.find(v=>v.id===id); if(!x)return;
- const pkg=$('docPackage')?.value||'LRDC'; const p=x.po_master||{}; if(!x.id)throw new Error('This load has no valid ID.');
- if(!window.jspdf?.jsPDF)return alert('PDF generator is still loading. Please try again.');
+ const pkg=$('docPackage')?.value||'LRDC'; const p=x.po_master||{};
+ if(!window.PDFLib)return alert('PDF generator is still loading. Please try again.');
  try{
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'a4',compress:true});
-  const PW=595.28,PH=841.89,left=34,right=561,width=right-left;
-  const BLACK=[0,0,0], LIGHT=[238,238,238];
-  const NORMAL=11;
-  const safe=v=>String(v??'').replace(/₹/g,'Rs. ').replace(/\u00a0/g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'?');
-  const money2=v=>Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const wrapByWidth=(str,maxWidth,size=NORMAL,bold=false)=>{set(size,bold);const words=String(str??'').trim().split(/\s+/).filter(Boolean);const lines=[];let cur='';for(const word of words){const test=cur?cur+' '+word:word;if(doc.getTextWidth(safe(test))<=maxWidth)cur=test;else{if(cur)lines.push(cur);cur=word;}}if(cur)lines.push(cur);return lines.length?lines:[''];};
-  const finite=(v,d=0)=>{const n=Number(v);return Number.isFinite(n)?n:d;};
-  const set=(size=NORMAL,b=false)=>{const fs=finite(size,NORMAL);doc.setFont('helvetica',b?'bold':'normal');doc.setFontSize(fs);doc.setTextColor(0,0,0);};
-  const text=(t,x,y,size=NORMAL,b=false,align='left')=>{const xx=finite(x,0),yy=finite(y,0);set(size,b);doc.text(safe(t),xx,yy,{align});};
-  const line=(x1,y1,x2,y2=y1,w=1)=>{doc.setDrawColor(0,0,0);doc.setLineWidth(finite(w,1));doc.line(finite(x1),finite(y1),finite(x2),finite(y2));};
-  const rect=(x,y,w,h,fill=null,bw=1)=>{doc.setDrawColor(0,0,0);doc.setLineWidth(finite(bw,1));const xx=finite(x),yy=finite(y),ww=finite(w),hh=finite(h);if(fill){doc.setFillColor(finite(fill[0],255),finite(fill[1],255),finite(fill[2],255));doc.rect(xx,yy,ww,hh,'FD')}else doc.rect(xx,yy,ww,hh,'S');};
-  const hcenter=(t,x1,x2,y,size=NORMAL,b=false)=>text(t,(x1+x2)/2,y,size,b,'center');
-  const vcenterY=(top,bottom,size=NORMAL)=>top-(top-bottom)/2+(size*0.34);
-  const fitSize=(str,maxWidth,start=NORMAL,min=8,bold=false)=>{let s=start;set(s,bold);while(s>min&&doc.getTextWidth(safe(str))>maxWidth){s-=0.25;set(s,bold)}return s;};
-  const drawFrame=(title)=>{rect(20,20,555,801,null,1.05);text(title,PW/2,53,18,true,'center');line(PW/2-118,70,PW/2+118,70,1.2);};
-  const addrRaw=active()?.address||'15-8-539, Rama Devi Nilayam, Rotary Nagar, Srinagar Colony, Khammam District, Telangana - 507002';
-  // LR and DC use the complete registered contractor address, including house number.
-  const addr=String(addrRaw).replace(/\s{2,}/g,' ').trim();
-  // Freight Letters intentionally omit the house number.
-  const flAddr=String(addrRaw).replace(/^\s*\d+(?:[-\/]\d+)*\s*,?\s*/,'').replace(/\s*-\s*539\b/g,'').replace(/\s{2,}/g,' ').trim();
-  const fullContractorName=active()?.contractor_name||'SRI VENKATESHWARA TRADERS';
-  const shortContractor='S V TRADERS';
+  const {PDFDocument,StandardFonts,rgb}=PDFLib;
+  const out=await PDFDocument.create();
+  const font=await out.embedFont(StandardFonts.Helvetica);
+  const bold=await out.embedFont(StandardFonts.HelveticaBold);
+  const PW=595.28, PH=841.89, left=34, right=561, width=right-left;
+  const black=rgb(0,0,0), light=rgb(.93,.93,.93), white=rgb(1,1,1);
+
+  const safe=v=>String(v??'')
+    .replace(/₹/g,'Rs. ').replace(/\u00a0/g,' ')
+    .replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'")
+    .replace(/•/g,'-').replace(/…/g,'...')
+    .replace(/[^\x00-\xFF]/g,'?');
+  const txt=(pg,t,x,y,size=9,b=false,align='left')=>{
+    const str=safe(t), fn=b?bold:font, tw=fn.widthOfTextAtSize(str,size);
+    let xx=x;
+    if(align==='center')xx=x-tw/2; else if(align==='right')xx=x-tw;
+    pg.drawText(str,{x:xx,y,size,font:fn,color:black});
+  };
+  const line=(pg,x1,y1,x2,y2=y1,bw=1)=>pg.drawLine({start:{x:x1,y:y1},end:{x:x2,y:y2},thickness:bw,color:black});
+  const vline=(pg,x,y1,y2,bw=1)=>line(pg,x,y1,x,y2,bw);
+  const rect=(pg,x,y,w,h,fill=null,bw=1)=>{
+    if(typeof pg.drawRectangle==='function'){
+      const o={x,y,width:w,height:h,borderColor:black,borderWidth:bw};
+      if(fill)o.color=fill;
+      pg.drawRectangle(o);
+    }else{
+      line(pg,x,y,x+w,y,bw);line(pg,x,y,x,y+h,bw);line(pg,x+w,y,x+w,y+h,bw);line(pg,x,y+h,x+w,y+h,bw);
+    }
+  };
+  const wrap=(str,max)=>{
+    const words=String(str||'').split(/\s+/).filter(Boolean), lines=[]; let cur='';
+    for(const wd of words){const t=(cur+' '+wd).trim();if(cur&&t.length>max){lines.push(cur);cur=wd}else cur=t}
+    if(cur)lines.push(cur);return lines;
+  };
+
+  const contractorName='S V TRADERS';
+  let addr=active()?.address||'Rama Devi Nilayam, Rotary Nagar, Srinagar Colony, Khammam District, Telangana - 507002';
+  addr=String(addr).replace(/^\s*\d+(?:[-\/]\d+)*\s*,?\s*/,'').replace(/\s*-\s*539\b/g,'').replace(/\s{2,}/g,' ').trim();
   const vehicle=String(x.vehicle_master?.vehicle_number||'').toUpperCase();
-  const poNo=p.po_number||''; const material=x.species_name||p.species_name||'Eucalyptus Debarked Wood'; const hsn=p.hsn_code||'44039800';
-  const networkNet=Number(x.network_net||0), gross=Number(x.network_gross||0), tare=Number(x.network_tare||0);
-  const woodRate=Number(p.wood_rate??x.wood_rate??0), handling=Number(p.handling_other_rate??x.handling_other_rate??0);
-  const freightRate=Number(x.freight_rate||0), advance=Number(x.advance||0);
-  const challan=x.dc_number||x.load_number||''; const challanDate=fmtDate(x.load_date); const lrNo=x.lr_number||challan; const eway=x.eway_bill_no||'';
-  const customer='ITC LTD PSPD'; const itcAddress='Unit: Bhadrachalam, Sarapaka, Burgampahad Mandal, Bhadradri Kothagudem Dt, Telangana - 507128';
+  const poNo=p.po_number||'';
+  const material=x.species_name||p.species_name||'Eucalyptus Debarked Wood';
+  const hsn=p.hsn_code||'44039800';
+  const gross=num(x.network_gross||0), tare=num(x.network_tare||0), net=num(x.network_net||0);
+  const woodRate=num(p.wood_rate??x.wood_rate??0), handling=num(p.handling_other_rate??x.handling_other_rate??0);
+  const freightRate=num(x.freight_rate||0), advance=num(x.advance||0), amc=num(p.amc_rate??x.amc_rate??0);
+  const challan=x.dc_number||x.load_number||'';
+  const challanDate=fmtDate(x.load_date);
+  const customer='ITC LTD PSPD';
+  const itcAddress='Unit: Bhadrachalam, Sarapaka, Burgampahad Mandal, Bhadradri Kothagudem Dt, Telangana - 507128';
+  const eway=x.eway_bill_no||'';
 
-  function addLR(){
-   drawFrame('LORRY RECEIPT (LR)');
-   const metaY=112;
-   text('LR Number',left+10,metaY,11,true);text(':',left+82,metaY,11);text(lrNo,left+98,metaY,11,true);
-   text('LR Date',right-140,metaY,11,true);text(':',right-67,metaY,11);text(challanDate,right-51,metaY,11,true);
-   line(left,126,right,126,1.1);
-
-   const boxTop=145,boxBottom=305,mid=(left+right)/2;rect(left,boxTop,width,boxBottom-boxTop,null,1.1);line(mid,boxTop,mid,boxBottom,1.1);
-   text('From',left+10,165,11);text(fullContractorName,left+10,185,13,true);
-   wrapByWidth(addr,mid-left-28,11,false).slice(0,4).forEach((ln,i)=>text(ln,left+10,207+i*15,11));
-   text('To',mid+10,165,11);text(customer,mid+10,185,13,true);
-   wrapByWidth(itcAddress,right-mid-28,11,false).slice(0,4).forEach((ln,i)=>text(ln,mid+10,207+i*15,11));
-
-   const tableTop=325,rowH=30,cols=[118,157,135,117],tableH=rowH*4;rect(left,tableTop,width,tableH,null,1.1);
-   let xx=left;cols.slice(0,-1).forEach(cw=>{xx+=cw;line(xx,tableTop,xx,tableTop+tableH,1.1)});
-   const rows=[['PO Number',poNo,'Gross Weight (MTS)',gross.toFixed(3)],['Species',material,'Tare Weight (MTS)',tare.toFixed(3)],['Truck No',vehicle,'Net Weight (MTS)',networkNet.toFixed(3)],['Way Bill No',eway,'','']];
-   rows.forEach((r,i)=>{
-    const top=tableTop+i*rowH,bottom=top+rowH;if(i)line(left,top,right,top,1.1);
-    const cy=vcenterY(bottom,top,11);
-    text(r[0],left+9,cy,11,true);
-    const valMax=cols[1]-18;const fs=fitSize(r[1],valMax,11,8.5,false);text(r[1],left+cols[0]+9,cy,fs,false);
-    text(r[2],left+cols[0]+cols[1]+9,cy,11,true);
-    const rfs=fitSize(r[3],cols[3]-18,11,9,false);text(r[3],right-cols[3]+9,cy,rfs,false);
-   });
-   text('For Sri Venkateshwara Traders',right-8,tableTop+tableH+32,11,true,'right');
+  function frame(pg,title){
+    rect(pg,20,20,555,801,null,1);
+    txt(pg,title,PW/2,792,18,true,'center');
+    line(pg,PW/2-118,781,PW/2+118,781,1.2);
+  }
+  function sectionBar(pg,title,top,h=20){
+    rect(pg,left,top-h,width,h,light,1.05);
+    txt(pg,title,PW/2,top-14,9,true,'center');
   }
 
-  function addDC(){
-   doc.addPage();drawFrame('DELIVERY CHALLAN (DC)');
-   text('Challan No',right-170,112,11,true);text(':',right-102,112,11);text(challan,right-87,112,11,true);
-   text('Challan Date',right-170,132,11,true);text(':',right-102,132,11);text(challanDate,right-87,132,11,true);
-   line(left,148,right,148,1.1);
+  // ---------------- LR ----------------
+  function makeLR(){
+    const pg=out.addPage([PW,PH]); frame(pg,'LR');
+    txt(pg,'LORRY RECEIPT (LR)',PW/2,760,13,true,'center');
+    line(pg,left,748,right,748,1);
 
-   // Sequential vertical layout: every section starts only after the previous section is finished.
-   let y=158;
-   const sectionH=22, gap=10;
-   const drawSection=(title,top)=>{rect(left,top,width,sectionH,LIGHT,1.1);hcenter(title,left,right,top+15,11,true);return top+sectionH;};
-   const infoH=100;
-   let contentTop=drawSection('SUPPLIER',y);let supplierBottom=contentTop+infoH;rect(left,contentTop,width,infoH,null,1.15);
-   const rx=left+340,vx=rx+78;
-   text('Name & Address',left+10,contentTop+21,11,true);text(fullContractorName,left+10,contentTop+43,11,true);
-   wrapByWidth(addr,300,11,false).slice(0,3).forEach((ln,i)=>text(ln,left+10,contentTop+65+i*15,11));
-   [['State Code',': 36',21],['State',': Telangana (TS)',39],['GSTIN No',': 36TOHPS0526H1ZE',57],['PAN',': TOHPS0526H',75],['PO No',': '+poNo,93]].forEach(([lab,val,dy])=>{text(lab,rx,contentTop+dy,11,true);text(val,vx,contentTop+dy,11)});
+    txt(pg,'LR Number',left+7,727,8.5,true); txt(pg,':',left+69,727,8.5); txt(pg,x.lr_number||challan,left+82,727,9,true);
+    txt(pg,'LR Date',right-108,727,8.5,true); txt(pg,':',right-46,727,8.5); txt(pg,challanDate,right-34,727,9,true);
 
-   y=supplierBottom+gap;contentTop=drawSection('CUSTOMER / CONSIGNEE',y);const customerBottom=contentTop+100;rect(left,contentTop,width,100,null,1.15);
-   text('Name & Address',left+10,contentTop+21,11,true);text('ITC Limited-PSPD',left+10,contentTop+43,11,true);
-   ['UNIT: Bhadrachalam, Sarapaka','Bhadradri-Kothagudem District','Telangana State - 507128'].forEach((ln,i)=>text(ln,left+10,contentTop+65+i*15,11));
-   [['State Code',': 36',21],['State',': Telangana (TS)',39],['GSTIN',': 36AAACI5950L1ZB',57],['PAN',': AAACI5950L',75]].forEach(([lab,val,dy])=>{text(lab,rx,contentTop+dy,11,true);text(val,vx,contentTop+dy,11)});
+    const top=708, bh=138, bottom=top-bh, mid=(left+right)/2;
+    rect(pg,left,bottom,width,bh,null,1.1); vline(pg,mid,bottom,top,1.1);
+    txt(pg,'From',left+10,top-18,8.5);
+    txt(pg,'SRI VENKATESHWARA TRADERS',left+10,top-35,10.5,true);
+    wrap(addr,42).slice(0,4).forEach((s,i)=>txt(pg,s,left+10,top-49-i*11,8.1));
 
-   y=customerBottom+gap;contentTop=drawSection('PLACE OF SUPPLY',y);const placeH=78,placeBottom=contentTop+placeH;rect(left,contentTop,width,placeH,null,1.15);
-   text('Destination',left+10,contentTop+21,11,true);
-   const destX=left+105;const dest1='ITC Limited-PSPD, UNIT: Bhadrachalam, Sarapaka';const dest2='Bhadradri Kothagudem District, Telangana State - 507128';
-   text(dest1,destX,contentTop+21,fitSize(dest1,260,10.5,9.5,false));text(dest2,destX,contentTop+37,fitSize(dest2,260,10.5,9.5,false));
-   text('Transporter Name',left+10,contentTop+59,11,true);text(': S V Traders',left+130,contentTop+59,11);
-   text('Mode of Transport',left+295,contentTop+59,11,true);text(': By Road',left+430,contentTop+59,11);
-   text('LR Number',left+10,contentTop+75,11,true);text(': '+lrNo,left+130,contentTop+75,11);
-   text('Vehicle No',left+295,contentTop+75,11,true);text(': '+vehicle,left+430,contentTop+75,11);
+    txt(pg,'To',mid+10,top-18,8.5);
+    txt(pg,customer,mid+10,top-35,10.5,true);
+    wrap(itcAddress,42).slice(0,4).forEach((s,i)=>txt(pg,s,mid+10,top-49-i*11,8.1));
 
-   y=placeBottom+gap;const titleTop=drawSection('DESCRIPTION OF GOODS',y);
-   const tTop=titleTop,hh=38,rh=42,totalH=30;const cols=[30,105,58,45,40,66,54,54,75];const x=[left];for(const c of cols)x.push(x[x.length-1]+c);const bottom=tTop+hh+3*rh+totalH;
-   rect(left,tTop,width,bottom-tTop,null,1.2);for(let i=1;i<x.length-1;i++)line(x[i],tTop,x[i],bottom,1.0);line(left,tTop+hh,right,tTop+hh,1.0);
-   const heads=['S.No','Material\nDescription','HSN\nCode','Qty','UOM','Taxable\nValue (Rs.)','CGST(9%)\n(Rs.)','SGST(9%)\n(Rs.)','Total Value\n(Rs.)'];
-   heads.forEach((h,i)=>h.split('\n').forEach((s,j)=>hcenter(s,x[i],x[i+1],tTop+15+j*10,8.2,true)));
-   const taxableMaterial=networkNet*woodRate, other=networkNet*handling, cgW=taxableMaterial*.09, sgW=cgW, cgO=other*.09, sgO=cgO;
-   const totalWood=taxableMaterial+cgW+sgW,totalOther=other+cgO+sgO,totalTaxable=taxableMaterial+other,totalCG=cgW+cgO,totalSG=sgW+sgO,totalValue=totalTaxable+totalCG+totalSG;
-   const dataTop=tTop+hh;
-   line(left,dataTop+rh,x[2],dataTop+rh,1.0);line(x[5],dataTop+rh,right,dataTop+rh,1.0);line(left,dataTop+2*rh,x[2],dataTop+2*rh,1.0);line(left,dataTop+3*rh,right,dataTop+3*rh,1.1);
-   hcenter(hsn,x[2],x[3],dataTop+1.5*rh+4,10.5,false);hcenter(networkNet.toFixed(3),x[3],x[4],dataTop+1.5*rh+4,10.5,false);hcenter('MTS',x[4],x[5],dataTop+1.5*rh+4,10.5,false);
-   hcenter('1',x[0],x[1],dataTop+24,10.5,false);wrapByWidth(material,x[2]-x[1]-12,11,true).slice(0,2).forEach((s,i)=>text(s,x[1]+6,dataTop+18+i*13,11,true));
-   text(money2(taxableMaterial),x[6]-5,dataTop+24,10.5,false,'right');text(money2(cgW),x[7]-5,dataTop+24,10.5,false,'right');text(money2(sgW),x[8]-5,dataTop+24,10.5,false,'right');text(money2(totalWood),x[9]-5,dataTop+24,10.5,false,'right');
-   hcenter('2',x[0],x[1],dataTop+rh+24,10.5,false);wrapByWidth('Transportation charges',x[2]-x[1]-12,9.8,false).forEach((s,i)=>text(s,x[1]+6,dataTop+rh+18+i*13,11));
-   hcenter('3',x[0],x[1],dataTop+2*rh+24,10.5,false);wrapByWidth('Other charges',x[2]-x[1]-12,9.8,false).forEach((s,i)=>text(s,x[1]+6,dataTop+2*rh+18+i*13,11));
-   // Financial columns for Transportation + Other are one merged block. The actual amount shown is the PO Other/Handling amount.
-   const mergeTop=dataTop+rh,mergeH=2*rh;doc.setFillColor(255,255,255);doc.rect(finite(x[5]+1),finite(mergeTop+1),finite(x[9]-x[5]-2),finite(mergeH-2),'F');
-   for(let i=6;i<=8;i++)line(x[i],mergeTop,x[i],mergeTop+mergeH,1.0);
-   const mergeCY=mergeTop+mergeH/2+4;text(money2(other),x[6]-5,mergeCY,10.5,false,'right');text(money2(cgO),x[7]-5,mergeCY,10.5,false,'right');text(money2(sgO),x[8]-5,mergeCY,10.5,false,'right');text(money2(totalOther),x[9]-5,mergeCY,10.5,false,'right');
-   const totalTop=dataTop+3*rh;hcenter('TOTAL',x[4],x[5],totalTop+20,10.5,true);text(money2(totalTaxable),x[6]-5,totalTop+20,10,true,'right');text(money2(totalCG),x[7]-5,totalTop+20,10,true,'right');text(money2(totalSG),x[8]-5,totalTop+20,10,true,'right');text(money2(totalValue),x[9]-5,totalTop+20,10,true,'right');
-   // Dedicated signature area: large deliberate gap after the table.
-   text('For Sri Venkateshwara Traders',right-8,785,11,true,'right');
+    let y=bottom-12;
+    const cols=[120,100,120,187], rowH=25;
+    const tableTop=y, tableH=4*rowH;
+    rect(pg,left,tableTop-tableH,width,tableH,null,1.05);
+    [left+cols[0],left+cols[0]+cols[1],left+cols[0]+cols[1]+cols[2]].forEach(xx=>vline(pg,xx,tableTop-tableH,tableTop,1.05));
+    const data=[
+      ['PO Number',poNo,'Gross Weight (MTS)',fmt(gross)],
+      ['Species',material,'Tare Weight (MTS)',fmt(tare)],
+      ['Truck No',vehicle,'Net Weight (MTS)',fmt(net)],
+      ['Way Bill No',eway,'','']
+    ];
+    data.forEach((r,i)=>{
+      const yy=tableTop-i*rowH;
+      if(i)line(pg,left,yy,right,yy,1.05);
+      const base=yy-rowH/2-3;
+      txt(pg,r[0],left+7,base,8.1,true); txt(pg,r[1],left+cols[0]+7,base,8.0);
+      txt(pg,r[2],left+cols[0]+cols[1]+7,base,8.1,true); txt(pg,r[3],left+cols[0]+cols[1]+cols[2]+7,base,8.0);
+    });
+    txt(pg,'For S V TRADERS',right-8,tableTop-tableH-30,8.8,true,'right');
   }
 
-  function addInitialFL(){
-   doc.addPage();drawFrame('FREIGHT LETTER');
-   const metaY=94;
-   text('FROM',left+10,metaY,11,true);text(shortContractor,left+10,metaY+22,16,true);
-   wrapByWidth(flAddr,360,11,false).slice(0,2).forEach((ln,i)=>text(ln,left+10,metaY+43+i*15,11));
-   text('Challan No.',405,metaY-2,11,true);text(':',469,metaY-2,11);text(challan,483,metaY-2,11,true);
-   text('Challan Date',405,metaY+23,11,true);text(':',469,metaY+23,11);text(challanDate,483,metaY+23,11,true);
-   line(left,175,right,175,1.1);
-   rect(left,190,width,84,null,1.1);text('TO',left+10,211,11,true);text('Vehicle Number',left+10,232,11);text(vehicle,left+10,255,16,true);
-   const top=294,cols=[42,195,175,115],header=28;
-   const rows=[['1','Freight Rate',money2(freightRate)+' / Ton',''],['2','Network Net Weight','',''],['3','Freight Charges','',''],['4','AMC Charges','',''],['5','Gross Amount','',''],['','Gross Amount in Words','',''],['6','Advance','',money2(advance)],['7','Clerk Commission','',money2(300)],['8','Shortage','',''],['9','NET AMOUNT','',''],['','Net Amount in Words','','']];
-   const rowH=32,wordsH=38;const heights=rows.map((r,i)=>r[0]===''?wordsH:rowH);const total=heights.reduce((a,b)=>a+b,0);rect(left,top,width,header+total,1.2);
-   const xs=[left,left+cols[0],left+cols[0]+cols[1],left+cols[0]+cols[1]+cols[2],right];
-   for(let i=1;i<xs.length-1;i++)line(xs[i],top,xs[i],top+header,1.1);
-   ['S.No.','PARTICULARS','QUANTITY / RATE','AMOUNT (Rs.)'].forEach((h,i)=>hcenter(h,xs[i],xs[i+1],top+19,9.2,true));line(left,top+header,right,top+header,1.1);
-   let yy=top+header;
-   rows.forEach((r,i)=>{
-    const rh=heights[i],bottom=yy+rh;
-    line(left,yy+rh,right,yy+rh,1.0);
-    if(r[0]){line(xs[1],yy,xs[1],bottom,1.0);line(xs[2],yy,xs[2],bottom,1.0);line(xs[3],yy,xs[3],bottom,1.0);}else{line(xs[1],yy,xs[1],bottom,1.0);line(xs[2],yy,xs[2],bottom,1.0);}
-    const cy=vcenterY(bottom,yy,11);
-    if(r[0])hcenter(r[0],xs[0],xs[1],cy,11,false);
-    text(r[1],xs[1]+10,cy,11,i===4||i===9);
-    if(r[2])hcenter(r[2],xs[2],xs[3],cy,11,false);
-    if(r[3])hcenter(r[3],xs[3],xs[4],cy,11,false);
-    yy=bottom;
-   });
-   text('For S V Traders',right-8,785,11,true,'right');
+  // ---------------- DC ----------------
+  function makeDC(){
+    const pg=out.addPage([PW,PH]); frame(pg,'Delivery Challan');
+    txt(pg,'Delivery Challan',PW/2,760,13,true,'center');
+    txt(pg,'Challan No',right-160,737,8.5,true);txt(pg,':',right-99,737,8.5);txt(pg,challan,right-85,737,9,true);
+    txt(pg,'Challan Date',right-160,720,8.5,true);txt(pg,':',right-99,720,8.5);txt(pg,challanDate,right-85,720,9,true);
+    line(pg,left,707,right,707,1);
+
+    let y=699;
+
+    // Supplier
+    sectionBar(pg,'SUPPLIER',y); y-=20;
+    const supH=72, supTop=y;
+    rect(pg,left,supTop-supH,width,supH,null,1.05);
+    const split=left+330;
+    vline(pg,split,supTop-supH,supTop,1.0);
+    txt(pg,'Name & Addresss:',left+8,supTop-24,8.0,true);
+    txt(pg,'S V TRADERS',left+112,supTop-24,8.0,true);
+    txt(pg,'Rama Devi Nilayam, Rotary Nagar, Srinagar colony,',left+112,supTop-37,7.7);
+    txt(pg,'Khammam, Telangana - 507002',left+112,supTop-49,7.7);
+    txt(pg,'State Code',split+10,supTop-24,8.0,true);txt(pg,': 36',split+86,supTop-24,8.0);
+    txt(pg,'State',split+10,supTop-37,8.0,true);txt(pg,': Telangana(TS)',split+86,supTop-37,8.0);
+    txt(pg,'GSTIN No',split+10,supTop-50,8.0,true);txt(pg,': 36TOHPS0526H1ZE',split+86,supTop-50,8.0);
+    txt(pg,'PAN',split+10,supTop-63,8.0,true);txt(pg,': TOHPS0526H',split+86,supTop-63,8.0);
+    txt(pg,'PO No',split+10,supTop-76,8.0,true);txt(pg,': '+poNo,split+86,supTop-76,8.0);
+    y=supTop-supH-9;
+
+    // Customer
+    sectionBar(pg,'CUSTOMER / CONSIGNEE',y); y-=20;
+    const custH=72,custTop=y;
+    rect(pg,left,custTop-custH,width,custH,null,1.05);
+    vline(pg,split,custTop-custH,custTop,1.0);
+    txt(pg,'Name & Addresss:',left+8,custTop-24,8.0,true);
+    txt(pg,'ITC Limited-PSPD',left+112,custTop-24,8.0,true);
+    txt(pg,'UNIT: Bhadrachalam, Sarapaka',left+112,custTop-37,7.7);
+    txt(pg,'Bhadradri-Kothagudem District',left+112,custTop-49,7.7);
+    txt(pg,'Telangana State - 507128',left+112,custTop-61,7.7);
+    txt(pg,'State Code',split+10,custTop-24,8.0,true);txt(pg,': 36',split+86,custTop-24,8.0);
+    txt(pg,'State',split+10,custTop-37,8.0,true);txt(pg,': Telangana(TS)',split+86,custTop-37,8.0);
+    txt(pg,'GSTIN',split+10,custTop-50,8.0,true);txt(pg,': 36AAACI5950L1ZB',split+86,custTop-50,8.0);
+    txt(pg,'PAN',split+10,custTop-63,8.0,true);txt(pg,': AAACI5950L',split+86,custTop-63,8.0);
+    y=custTop-custH-9;
+
+    // Place of supply: two balanced columns so nothing crosses.
+    sectionBar(pg,'PLACE OF SUPPLY',y); y-=20;
+    const posH=72,posTop=y, mid=left+330;
+    rect(pg,left,posTop-posH,width,posH,null,1.05);vline(pg,mid,posTop-posH,posTop,1.0);
+    txt(pg,'Destination:',left+8,posTop-24,8.0,true);
+    txt(pg,'ITC Limited-PSPD, UNIT:Bhadrachalam,Sarapaka',left+82,posTop-24,7.5);
+    txt(pg,'Bhadradri Kothagudem District, Telangana State - 507128',left+82,posTop-37,7.1);
+    txt(pg,'Transporter Name',mid+10,posTop-24,7.8,true);txt(pg,': S V Traders',mid+105,posTop-24,7.8);
+    txt(pg,'Mode of Transport',mid+10,posTop-37,7.8,true);txt(pg,': By Road',mid+105,posTop-37,7.8);
+    txt(pg,'LR Number',mid+10,posTop-50,7.8,true);txt(pg,': '+(x.lr_number||challan),mid+105,posTop-50,7.8);
+    txt(pg,'Vehicle No',mid+10,posTop-63,7.8,true);txt(pg,': '+vehicle,mid+105,posTop-63,7.8);
+    y=posTop-posH-9;
+
+    // Goods table: fixed widths exactly equal to printable width.
+    sectionBar(pg,'DESCRIPTION OF GOODS',y); y-=20;
+    const tTop=y, headerH=32, rowH=30, totalH=25;
+    const dcCols=[30,112,55,45,38,68,60,60,59]; // sum = 527
+    const heads=[
+      ['S.No'],['Material','Description'],['HSN','Code'],['Qty'],['UOM'],
+      ['Taxable','Value (Rs.)'],['CGST(9%)','(Rs.)'],['SGST(9%)','(Rs.)'],['Total Value','(Rs.)']
+    ];
+    const tableH=headerH+rowH*3+totalH, tableBottom=tTop-tableH;
+    rect(pg,left,tableBottom,width,tableH,white,1.1);
+    let xx=left;
+    dcCols.forEach((cw,i)=>{
+      if(i)vline(pg,xx,tableBottom,tTop,1.05);
+      heads[i].forEach((h,j)=>txt(pg,h,xx+cw/2,tTop-11-j*8,6.0,true,'center'));
+      xx+=cw;
+    });
+    line(pg,left,tTop-headerH,right,tTop-headerH,1.05);
+
+    const taxableMaterial=net*woodRate, taxableOther=net*handling;
+    const cg1=taxableMaterial*.09, sg1=cg1, cg2=taxableOther*.09, sg2=cg2;
+    const totalTaxable=taxableMaterial+taxableOther, totalCG=cg1+cg2, totalSG=sg1+sg2, totalValue=totalTaxable+totalCG+totalSG;
+    const goods=[
+      ['1',material,hsn,fmt(net),'MTS',money(taxableMaterial),money(cg1),money(sg1),money(taxableMaterial+cg1+sg1)],
+      ['2','Transportation charges','0','0','0',money(0),money(0),money(0),money(0)],
+      ['3','Other charges',hsn,'','',money(taxableOther),money(cg2),money(sg2),money(taxableOther+cg2+sg2)]
+    ];
+    let gy=tTop-headerH;
+    goods.forEach((r,ri)=>{
+      const bot=gy-rowH;
+      if(ri)line(pg,left,gy,right,gy,1.0);
+      let cx=left;
+      r.forEach((val,ci)=>{
+        const cw=dcCols[ci];
+        if(ci===0)txt(pg,val,cx+cw/2,bot+11,6.6,false,'center');
+        else if(ci>=5)txt(pg,val,cx+cw-3,bot+11,6.2,false,'right');
+        else wrap(val,ci===1?18:10).slice(0,2).forEach((s,j)=>txt(pg,s,cx+3,bot+17-j*8,6.1,ci===1&&ri===0));
+        cx+=cw;
+      });
+      gy=bot;
+    });
+    // Merge HSN, Qty and UOM visually over the three goods rows, matching the old DC.
+    const mergeStart=tTop-headerH-3*rowH;
+    const mergeCols=[
+      {idx:2,label:hsn},{idx:3,label:fmt(net)},{idx:4,label:'MTS'}
+    ];
+    mergeCols.forEach(m=>{
+      const x0=left+dcCols.slice(0,m.idx).reduce((a,b)=>a+b,0), cw=dcCols[m.idx];
+      // cover only internal horizontal lines, then redraw the side borders
+      if(typeof pg.drawRectangle==='function')pg.drawRectangle({x:x0+0.7,y:mergeStart+0.7,width:cw-1.4,height:3*rowH-1.4,color:white,borderWidth:0});
+      else pg.drawRectangle?.call(pg,{x:x0+0.7,y:mergeStart+0.7,width:cw-1.4,height:3*rowH-1.4,color:white,borderWidth:0});
+      vline(pg,x0,mergeStart,tTop-headerH,1.0);vline(pg,x0+cw,mergeStart,tTop-headerH,1.0);
+      txt(pg,m.label,x0+cw/2,mergeStart+3*rowH/2-3,6.5,false,'center');
+    });
+    // redraw row horizontal lines only where they should remain
+    [1,2].forEach(n=>{
+      const yy=tTop-headerH-n*rowH;
+      // skip through merged HSN/Qty/UOM columns
+      line(pg,left,yy,left+dcCols[0]+dcCols[1],yy,1.0);
+      const rightStart=left+dcCols[0]+dcCols[1]+dcCols[2]+dcCols[3]+dcCols[4];
+      line(pg,rightStart,yy,right,yy,1.0);
+    });
+    const totalTop=mergeStart;
+    line(pg,left,totalTop,right,totalTop,1.05);
+    const totalLabelX=left+dcCols.slice(0,5).reduce((a,b)=>a+b,0);
+    text(pg,'TOTAL',totalLabelX-6,totalTop-totalH/2-3,7.0,true,'right');
+    let ax=totalLabelX;
+    [money(totalTaxable),money(totalCG),money(totalSG),money(totalValue)].forEach((v,i)=>{
+      const cw=dcCols[5+i];txt(pg,v,ax+cw-3,totalTop-totalH/2-3,6.3,true,'right');ax+=cw;
+    });
+    line(pg,left,tableBottom,right,tableBottom,1.0);
+    txt(pg,'For S V TRADERS',right-8,tableBottom-31,8.8,true,'right');
   }
 
-  addLR();
-  if(['LRDC','LRDCFL','LRDCEWAY','LRDCFLEWAY'].includes(pkg))addDC();
-  if(['LRDCFL','LRDCFLEWAY'].includes(pkg))addInitialFL();
-  const filename=`${challan||x.load_number||id}_Documents.pdf`;doc.save(filename);
+  // ---------------- INITIAL FREIGHT LETTER ----------------
+  // Exact Final-FL row structure, but only fields known at the initial stage are populated.
+  // No WC/reference column and no signature.
+  function makeInitialFL(){
+    const pg=out.addPage([PW,PH]); frame(pg,'INITIAL FREIGHT LETTER');
+    let y=758;
+    txt(pg,'FROM',left+5,y,8.5,true);
+    txt(pg,contractorName,left+5,y-18,15.5,true);
+    wrap(addr,58).slice(0,2).forEach((ln,i)=>txt(pg,ln,left+5,y-35-i*12,8.5));
+    const mx=405;
+    txt(pg,'Challan No.',mx,y-2,8.7,true);txt(pg,':',mx+62,y-2,8.7);txt(pg,challan,mx+76,y-2,9,true);
+    txt(pg,'Challan Date',mx,y-26,8.7,true);txt(pg,':',mx+62,y-26,8.7);txt(pg,challanDate,mx+76,y-26,9,true);
+    line(pg,left,690,right,690,.9);
+
+    // TO only: no reference/WC before unloading.
+    const toTop=678,toH=67,toBottom=toTop-toH;
+    rect(pg,left,toBottom,width,toH,null,1);
+    txt(pg,'TO',left+10,toTop-16,9,true);
+    txt(pg,'Vehicle Number',left+10,toTop-33,8.2);
+    txt(pg,vehicle,left+10,toTop-54,15,true);
+
+    // Same complete row structure as Final FL.
+    let top=toBottom-12;
+    const tL=left,tR=right,snoW=42,partW=205,qtyW=162,s1=tL+snoW,s2=s1+partW,s3=s2+qtyW;
+    const drawHeader=(topY)=>{
+      rect(pg,tL,topY-25,width,25,light,1.25);vline(pg,s1,topY,topY-25,1.25);vline(pg,s2,topY,topY-25,1.25);vline(pg,s3,topY,topY-25,1.25);
+      txt(pg,'S.No.',(tL+s1)/2,topY-17,8.5,true,'center');txt(pg,'PARTICULARS',(s1+s2)/2,topY-17,8.5,true,'center');txt(pg,'QUANTITY / RATE',(s2+s3)/2,topY-17,8.5,true,'center');txt(pg,'AMOUNT (Rs.)',(s3+tR)/2,topY-17,8.5,true,'center');
+    };
+    const normal=(topY,h,no,part,qty,amt,hi=false)=>{
+      if(hi)rect(pg,tL,topY-h,width,h,light,1.25);else rect(pg,tL,topY-h,width,h,null,1.05);
+      vline(pg,s1,topY,topY-h,1.05);vline(pg,s2,topY,topY-h,1.05);vline(pg,s3,topY,topY-h,1.05);
+      txt(pg,no,(tL+s1)/2,topY-h/2-3,8.4,hi,'center');txt(pg,part,s1+9,topY-h/2-3,8.5,hi);
+      if(qty)txt(pg,qty,(s2+s3)/2,topY-h/2-3,8.5,false,'center');
+      if(amt)txt(pg,amt,tR-9,topY-h/2-3,8.5,hi,'right');
+      return topY-h;
+    };
+    const words=(topY,h,label,value)=>{
+      rect(pg,tL,topY-h,width,h,null,1.05);vline(pg,s1,topY,topY-h,1.05);vline(pg,s2,topY,topY-h,1.05);
+      txt(pg,label,s1+9,topY-h/2-3,8.5);if(value)txt(pg,value,(s2+tR)/2,topY-h/2-3,8.3,true,'center');
+      return topY-h;
+    };
+    const total=(topY,h,no,label,amt)=>{
+      rect(pg,tL,topY-h,width,h,light,1.35);vline(pg,s1,topY,topY-h,1.1);
+      txt(pg,no,(tL+s1)/2,topY-h/2-3,8.5,true,'center');txt(pg,label,s1+9,topY-h/2-3,9,true);if(amt)txt(pg,amt,tR-9,topY-h/2-3,9,true,'right');
+      return topY-h;
+    };
+
+    drawHeader(top);top-=25;
+    top=normal(top,25,'1','Freight Rate',freightRate?money(freightRate)+' / Ton':'','');
+    top=normal(top,25,'2','Network Net Weight',net?fmt(net)+' MT':'','');
+    top=normal(top,25,'3','Freight Charges','',freightRate&&net?money(freightRate*net):'');
+    top=normal(top,25,'4','AMC Charges','',amc?money(amc):'');
+    top=total(top,27,'5','Gross Amount',''); // unavailable before final settlement
+    top=words(top,31,'Gross Amount in Words',''); // unavailable
+    top-=13; drawHeader(top); top-=25;
+    top=normal(top,25,'6','Advance','',advance?money(advance):'');
+    top=normal(top,25,'7','Clerk Commission','',''); // final-stage only
+    top=normal(top,25,'8','Shortage','',''); // final-stage only
+    top=total(top,27,'9','NET AMOUNT',''); // final-stage only
+    top=words(top,31,'Net Amount in Words',''); // final-stage only
+
+    top-=13;
+    const payTop=top,payHeader=25,payRow=27,payH=payHeader+payRow*3,payBottom=payTop-payH,payMid=left+205;
+    rect(pg,left,payBottom,width,payH,null,1.2);
+    rect(pg,left,payTop-payHeader,width,payHeader,light,1.2);
+    txt(pg,'PAYMENT DETAILS',left+10,payTop-17,9.2,true);txt(pg,'(FOR FINAL PAYMENT)',left+111,payTop-17,7.8);
+    line(pg,left,payTop-payHeader,right,payTop-payHeader,1.1);vline(pg,payMid,payTop-payHeader,payBottom,1.1);
+    for(let i=1;i<3;i++)line(pg,left,payTop-payHeader-payRow*i,right,payTop-payHeader-payRow*i,1.0);
+    [['Account Number / UPI Number',0],['Account Holder Name',1],['Paid Date',2]].forEach(([lab,i])=>{
+      const cy=payTop-payHeader-payRow*i-payRow/2-3;txt(pg,lab,left+9,cy,8.5,true);txt(pg,':',payMid+9,cy,8.5);
+    });
+    // No signature on Initial FL.
+  }
+
+  if(pkg==='LRDC'||pkg==='LRDCFL'||pkg==='LRDCEWAY'||pkg==='LRDCFLEWAY'){makeLR();makeDC();}
+  if(pkg==='LRDCFL'||pkg==='LRDCFLEWAY'){makeInitialFL();}
+  if(pkg==='LRDCEWAY'||pkg==='LRDCFLEWAY'){
+    const f=state.ewayFiles[id];
+    if(f){const bytes=await f.arrayBuffer();const src=await PDFDocument.load(bytes);const pages=await out.copyPages(src,src.getPageIndices());pages.forEach(pg=>out.addPage(pg));}
+  }
+
+  const bytes=await out.save();
+  const blob=new Blob([bytes],{type:'application/pdf'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=`${challan||x.load_number||id}_Documents.pdf`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
   const statusMap={LRDC:'LR / DC Generated',LRDCFL:'LR / DC / FL Generated',LRDCEWAY:'LR / DC / E-way Bill Generated',LRDCFLEWAY:'LR / DC / FL / E-way Bill Generated'};
   const newStatus=statusMap[pkg]||'Documents Generated';
-  const dr=await sb.from('documents').insert({load_id:id,document_type:'PACKAGE',document_package:pkg,generated_at:new Date().toISOString(),generated_file_reference:filename});if(dr.error)console.warn('Document history save failed:',dr.error.message);
-  const sr=await sb.from('loads').update({status:newStatus}).eq('id',id);if(sr.error)console.warn('Load status update failed:',sr.error.message);x.status=newStatus;closeModal();await refreshLoads();if(state.page==='loads')await render();
- }catch(e){alert('Could not generate LR/DC/Initial Freight Letter PDF.\n\n'+(e?.message||e));console.error(e);}
+  const dr=await sb.from('documents').insert({load_id:id,document_type:'PACKAGE',document_package:pkg,generated_at:new Date().toISOString(),generated_file_reference:`${challan||x.load_number||id}_Documents.pdf`});
+  if(dr.error)console.warn('Document history save failed:',dr.error.message);
+  const sr=await sb.from('loads').update({status:newStatus}).eq('id',id);
+  if(sr.error)console.warn('Load status update failed:',sr.error.message);
+  x.status=newStatus;closeModal();await refreshLoads();if(state.page==='loads')await render();
+ }catch(e){
+  alert('Could not generate LR/DC/Initial Freight Letter PDF.\n\n'+(e?.message||e));
+  console.error(e);
+ }
 }
 
 function startItc(id){state.selectedLoad=state.loads.find(x=>x.id===id)||null;state.page='itcdetail';render()}
-
 function getItcDrafts(){try{return JSON.parse(localStorage.getItem('wm360:draft:itcDrafts')||'{}')}catch(e){return {}}}
-
 function saveItcDraft(){const loadId=state.selectedLoad?.id||$('itcLoad')?.value;if(!loadId)return;const d=getItcDrafts();d[loadId]={wc:(($('wc')?.value||'').toUpperCase()),wcDate:$('wcDate')?.value||'',vehicle:(($('itcVehicle')?.value||'').toUpperCase()),gross:$('itcGross')?.value||'',tare:$('itcTare')?.value||'',net:$('itcNet')?.value||'',approved:$('itcApproved')?.value||'',approvedAuto:$('itcApproved')?.dataset.auto!=='0',savedAt:Date.now()};localStorage.setItem('wm360:draft:itcDrafts',JSON.stringify(d))}
-
 function clearItcDraft(loadId){const d=getItcDrafts();delete d[loadId];localStorage.setItem('wm360:draft:itcDrafts',JSON.stringify(d))}
-
 function clearAllItcDrafts(){localStorage.removeItem('wm360:draft:itcDrafts')}
-
 function calcItcNet(){const g=$('itcGross'),t=$('itcTare'),n=$('itcNet'),a=$('itcApproved');if(!g||!t||!n||!a)return;const gv=g.value===''?null:num(g.value),tv=t.value===''?null:num(t.value);if(gv===null||tv===null){n.value='';if(a.dataset.auto!=='0')a.value='';saveItcDraft();return}const net=gv-tv;n.value=net.toFixed(3);if(a.dataset.auto!=='0'||a.value===''){a.value=net.toFixed(3);a.dataset.auto='1'}saveItcDraft()}
-
 function bindItcForm(){const ids=['wc','wcDate','itcVehicle','itcGross','itcTare','itcNet','itcApproved'];ids.forEach(id=>{const el=$(id);if(!el)return;el.addEventListener('input',()=>{if(id==='itcVehicle')el.value=el.value.toUpperCase();if(id==='itcApproved')el.dataset.auto='0';if(id==='itcGross'||id==='itcTare')calcItcNet();else saveItcDraft()});el.addEventListener('change',()=>{if(id==='itcVehicle')el.value=el.value.toUpperCase();if(id==='itcApproved')el.dataset.auto='0';saveItcDraft()})});calcItcNet();saveItcDraft()}
-
 async function itcPage(){
   const ids=state.loads.map(x=>x.id).filter(Boolean);
   let rows=[];
@@ -253,15 +418,10 @@ async function itcPage(){
   <div class="tablewrap"><table><thead><tr><th>DC Number</th><th>DC Date</th><th>Vehicle</th><th>Material</th><th>Network Net MT</th><th>WC Number</th><th>Approved MT</th><th>Status</th><th>Action</th></tr></thead><tbody>
   ${state.loads.length?state.loads.map(x=>{const w=byLoad.get(x.id);const status=w?'Final Weighment Received':'Pending Final Weighment';const action=w?`<button class="btn secondary mini" onclick="startItc('${x.id}')">View / Edit</button>`:`<button class="btn primary mini" onclick="startItc('${x.id}')">Enter Final Weighment</button>`;return `<tr><td><button class="btn secondary mini" onclick="startItc('${x.id}')">${esc(x.dc_number||x.load_number||'—')}</button></td><td>${fmtDate(x.load_date)}</td><td>${esc(x.vehicle_master?.vehicle_number||'')}</td><td>${esc(x.species_name||x.po_master?.species_name||'')}</td><td>${fmt(x.network_net)}</td><td>${esc(w?.wc_number||'—')}</td><td>${w?fmt(w.approved_weight):'—'}</td><td><span class="badge">${status}</span></td><td>${action}</td></tr>`}).join(''):`<tr><td colspan="9" class="empty">No loads available for final weighment.</td></tr>`}</tbody></table></div>`;
 }
-
 async function itcDetailPage(){const pre=state.selectedLoad;const w=pre?((await sb.from('itc_weighments').select('*').eq('load_id',pre.id).maybeSingle()).data):null;const x=pre||{};const draft=x.id?getItcDrafts()[x.id]:null;const base={wc:w?.wc_number||'',wcDate:w?.wc_date||'',vehicle:w?.vehicle_number||x.vehicle_master?.vehicle_number||'',gross:w?.gross_weight??'',tare:w?.tare_weight??'',net:w?.net_weight??'',approved:w?.approved_weight??''};const d=draft?{...base,...Object.fromEntries(Object.entries(draft).filter(([k,v])=>k==='approvedAuto'||(v!==''&&v!=null)))}:base;const autoApproved=draft?draft.approvedAuto:(w?.approved_weight==null);return `<div class="context">Active Contractor: <b>${esc(active()?.contractor_name)}</b></div><div class="back" onclick="go('itc')">← Back to Final Weighment</div><div class="topbar"><div><h1>Final Weighment — ${esc(x.dc_number||x.load_number||'')}</h1><div class="sub">Enter and verify the final weighment card for this load.</div></div><div class="card" style="min-width:260px"><div class="label">Load / DC</div><div style="font-weight:700;margin-top:5px">${esc(x.dc_number||x.load_number||'')}</div><div class="small" style="margin-top:4px">${esc(x.vehicle_master?.vehicle_number||'')} · ${esc(x.species_name||x.po_master?.species_name||'')}</div></div></div><div class="form"><div class="sectionhead">Final Weighment Details</div><div class="formgrid"><div class="field"><label>WC Number *</label><input id="wc" value="${esc(d.wc)}" oninput="this.value=this.value.toUpperCase()"></div><div class="field"><label>WC Date *</label><input id="wcDate" type="date" value="${esc(d.wcDate)}"></div><div class="field"><label>Vehicle Number *</label><input id="itcVehicle" value="${esc(d.vehicle)}"></div><div class="field"><label>DC Number</label><input id="itcDc" class="readonly" readonly value="${esc(w?.dc_number||x.dc_number||'')}"></div><div class="field"><label>DC Date</label><input id="itcDcDate" class="readonly" readonly value="${fmtDate(w?.dc_date||x.load_date||'')}"></div><div class="field"><label>Material Description</label><input id="itcMaterial" value="${esc(w?.material_description||x.species_name||x.po_master?.species_name||'')}"></div><div class="field"><label>Gross Weight (MT)</label><input id="itcGross" type="number" step="0.001" value="${d.gross}"></div><div class="field"><label>Tare Weight (MT)</label><input id="itcTare" type="number" step="0.001" value="${d.tare}"></div><div class="field"><label>Net Weight (MT)</label><input id="itcNet" class="readonly" readonly type="number" step="0.001" value="${d.net}"></div><div class="field"><label>Approved Weight (MT) *</label><input id="itcApproved" type="number" step="0.001" value="${d.approved}" data-auto="${autoApproved?'1':'0'}"><div class="small">Defaults to Net Weight. Change it only if ITC has approved a different quantity.</div></div></div><div class="actions"><button class="btn primary" onclick="compareItc()">Compare & Verify</button><button class="btn secondary" onclick="cancelItc()">Cancel</button></div></div>`}
-
 function selectItcLoad(){const previous=$('itcLoad')?.dataset.previousLoadId;if(previous&&previous!==$('itcLoad').value)saveItcDraft();const x=state.loads.find(v=>v.id===$('itcLoad').value);if(!x)return;state.selectedLoad=x;$('itcLoad').dataset.previousLoadId=x.id;const drafts=getItcDrafts();if(!drafts[x.id]){drafts[x.id]={wc:'',wcDate:'',vehicle:x.vehicle_master?.vehicle_number||'',gross:'',tare:'',net:'',approved:'',approvedAuto:true,savedAt:Date.now()};localStorage.setItem('wm360:draft:itcDrafts',JSON.stringify(drafts))}else if(!drafts[x.id].vehicle){drafts[x.id].vehicle=x.vehicle_master?.vehicle_number||'';localStorage.setItem('wm360:draft:itcDrafts',JSON.stringify(drafts))}render()}
-
 function cancelItc(){const id=state.selectedLoad?.id||$('itcLoad')?.value;if(id)clearItcDraft(id);state.selectedLoad=null;go('itc')}
-
 function cancelNewLoad(){clearForm('newload');state.editLoad=null;state.selectedLoad=null;go('loads')}
-
 async function compareItc(){
 const x=state.selectedLoad||state.loads.find(v=>v.id===state.selectedLoad?.id);
 if(!x)return alert('Select a load/DC.');
@@ -287,9 +447,7 @@ const extra=n==='WC Number'||n==='Vehicle Number'?'oninput="this.value=this.valu
 return `<div><b>${esc(n)}</b><br>${hasExisting?esc(a):'<span class="small">Entered by user</span>'}</div><div class="${diff?'diff':''}"><b>${esc(n)}</b><br><input id="${id}" data-cmp="${esc(n)}" type="${type}" value="${esc(b)}" ${type==='number'?'step="0.001"':''} ${extra} ${readonly?'readonly class="readonly"':''} style="width:100%;padding:8px;border:1px solid #d0d5dd;border-radius:7px"></div>`;
 }).join('')}</div><div class="notice" style="margin-top:14px">Review the complete comparison before saving. WC Number, WC Date and Approved Weight come directly from your first Final Weighment screen entry; you do not need to type them again. Differences from WoodMaster data are highlighted. You may correct any value here before confirming.</div>`;
 showModal('Final Weighment Comparison',body,`saveComparedItc('${x.id}')`,'Confirm & Save Final Weighment')}
-
 function showModal(title,body,saveFn,saveLabel='Save'){closeModal();document.body.insertAdjacentHTML('beforeend',`<div class="modal" id="wmModal"><div class="modalbox"><div class="modalhead"><h2>${esc(title)}</h2><button class="modalclose" onclick="closeModal()">✕</button></div>${body}<div class="actions"><button class="btn primary" onclick="${saveFn}">${esc(saveLabel)}</button><button class="btn secondary" onclick="closeModal()">Cancel</button></div></div></div>`)}
-
 async function saveComparedItc(loadId){
   const x=state.loads.find(v=>v.id===loadId)||state.selectedLoad;
   if(!x)return alert('Load/DC context is missing. Please close this window, select the DC again, and retry.');
@@ -349,7 +507,6 @@ async function saveComparedItc(loadId){
     if(saveBtn){saveBtn.disabled=false;saveBtn.textContent='Confirm & Save Final Weighment';}
   }
 }
-
 function openFreight(id){
  state.selectedLoad=state.loads.find(x=>x.id===id)||null;
  state.page='freightdetail';
@@ -377,85 +534,122 @@ async function freightDetailPage(){
 async function saveFreight(id){
  const x=state.loads.find(v=>v.id===id);const w=(await sb.from('itc_weighments').select('*').eq('load_id',id).maybeSingle()).data;if(!x||!w)return alert('Final Weighment with Approved Weight is required first.');const rate=num($('frRate').value),qty=$('frQty').value?num($('frQty').value):num(w.approved_weight);if(rate<0||qty<=0)return alert('Freight Rate and applicable quantity must be valid.');const charges=rate*qty,amc=num($('frAmc').value),gross=charges+amc,advance=num($('frAdvance').value),clerk=num($('frClerk').value||300),short=num($('frShortage').value),net=gross-advance-clerk-short;if(net<0&&!confirm('Net Amount is negative. Do you want to save this Final Freight Letter anyway?'))return;const row={load_id:id,wc_number:w.wc_number,challan_number:x.dc_number,challan_date:x.load_date,freight_rate:rate,applicable_weight:qty,freightable_qty:$('frQty').value?qty:null,freight_charges:charges,amc_charges:amc,gross_amount:gross,advance,clerk_commission:clerk,shortage:short,net_amount:net,account_number:$('frAccount').value.trim()||null,account_holder:$('frHolder').value.trim()||null,paid_date:$('frPaid').value||null,final_payment_paid_by:$('frPaymentBy').value||'Ramkee',driver_signature_reference:$('frSig').value.trim()||null,finalized:true,created_by:state.session.user.id};const r=await sb.from('freight_settlements').upsert(row,{onConflict:'load_id'});if(r.error)return alert('Final Freight Letter was not saved.\n\n'+r.error.message);const sr=await sb.from('loads').update({status:'Final Freight Letter Generated'}).eq('id',id);if(sr.error)return alert('Final Freight Letter was saved, but the load status could not be updated.\n\n'+sr.error.message);clearForm(freightDraftKey(id));alert('Final Freight Letter saved successfully.');await refreshLoads();state.page='freight';state.selectedLoad=null;await render();
 }
-
 async function downloadFreightLetter(id){
  const x=state.loads.find(v=>v.id===id);if(!x)return alert('Load not found.');
  const [wr,fr]=await Promise.all([sb.from('itc_weighments').select('*').eq('load_id',id).maybeSingle(),sb.from('freight_settlements').select('*').eq('load_id',id).maybeSingle()]);
  if(wr.error||fr.error)return alert((wr.error||fr.error).message);
  const w=wr.data,f=fr.data;if(!w||!f)return alert('Final Freight Letter data is incomplete.');
- if(!window.jspdf?.jsPDF)return alert('PDF generator is still loading. Please try again.');
+ if(!window.PDFLib)return alert('PDF generator is still loading. Please try again.');
  try{
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'a4',compress:true});
-  const PW=595.28,left=34,right=561,width=right-left,NORMAL=11,BLACK=[0,0,0],LIGHT=[238,238,238];
-  const safe=v=>String(v??'').replace(/₹/g,'Rs. ').replace(/\u00a0/g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'?');
-  const set=(size=NORMAL,b=false)=>{doc.setFont('helvetica',b?'bold':'normal');doc.setFontSize(size);doc.setTextColor(BLACK[0],BLACK[1],BLACK[2]);};
-  const text=(t,x,y,size=NORMAL,b=false,align='left')=>{set(size,b);doc.text(safe(t),x,y,{align});};
-  const line=(x1,y1,x2,y2=y1,w=1)=>{doc.setDrawColor(BLACK[0],BLACK[1],BLACK[2]);doc.setLineWidth(w);doc.line(x1,y1,x2,y2);};
-  const rect=(x,y,w,h,fill=null,bw=1)=>{doc.setDrawColor(BLACK[0],BLACK[1],BLACK[2]);doc.setLineWidth(bw);if(fill){doc.setFillColor(fill[0],fill[1],fill[2]);doc.rect(x,y,w,h,'FD')}else doc.rect(x,y,w,h,'S');};
-  const hcenter=(t,x1,x2,y,size=NORMAL,b=false)=>text(t,(x1+x2)/2,y,size,b,'center');
-  const vcenter=(top,bottom,size=NORMAL)=>top+(bottom-top)/2+size*.34;
-  const money2=v=>Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const money=v=>'Rs. '+money2(v);
-  const fit=(str,max,start=NORMAL,min=8,b=false)=>{let z=start;set(z,b);while(z>min&&doc.getTextWidth(safe(str))>max){z-=.25;set(z,b)}return z;};
-  const wrap=(str,maxWidth,size=NORMAL,b=false)=>{set(size,b);const words=String(str||'').trim().split(/\s+/).filter(Boolean);const lines=[];let cur='';for(const word of words){const t=cur?cur+' '+word:word;if(doc.getTextWidth(safe(t))<=maxWidth)cur=t;else{if(cur)lines.push(cur);cur=word;}}if(cur)lines.push(cur);return lines.length?lines:[''];};
-  const frame=title=>{rect(20,20,555,801,null,1.05);text(title,PW/2,53,18,true,'center');line(PW/2-118,70,PW/2+118,70,1.2);};
-
-  const activeContractor=active();let address=activeContractor?.address||'15-8-539, Rama Devi Nilayam, Rotary Nagar, Srinagar Colony, Khammam District, Telangana - 507002';
+  const {PDFDocument,StandardFonts,rgb}=PDFLib;
+  const pdf=await PDFDocument.create();
+  const pageW=595.28,pageH=841.89; const page=pdf.addPage([pageW,pageH]);
+  const font=await pdf.embedFont(StandardFonts.Helvetica),bold=await pdf.embedFont(StandardFonts.HelveticaBold);
+  const contractorName='S V TRADERS';
+  const activeContractor=active();
+  let address=activeContractor?.address||'Rama Devi Nilayam, Rotary Nagar, Srinagar Colony, Khammam District, Telangana - 507002';
+  // Customer-facing freight letter must not print the house number.
   address=String(address).replace(/^\s*\d+(?:[-\/]\d+)*\s*,?\s*/,'').replace(/\s*-\s*539\b/g,'').replace(/\s{2,}/g,' ').trim();
-  const vehicle=String(x.vehicle_master?.vehicle_number||'').toUpperCase();
-  const challan=x.dc_number||x.load_number||'';const challanDate=fmtDate(x.load_date);const wc=w.wc_number||'';
-  frame('FINAL FREIGHT LETTER');
-  const metaY=94;
-  text('FROM',left+10,metaY,11,true);text('S V TRADERS',left+10,metaY+22,16,true);
-  wrap(address,360,11,false).slice(0,2).forEach((ln,i)=>text(ln,left+10,metaY+43+i*15,11));
-  text('Challan No.',405,metaY-2,11,true);text(':',469,metaY-2,11);text(challan,483,metaY-2,11,true);
-  text('Challan Date',405,metaY+23,11,true);text(':',469,metaY+23,11);text(challanDate,483,metaY+23,11,true);
-  line(left,175,right,175,1.1);
+  const black=rgb(0,0,0), light=rgb(0.93,0.93,0.93);
+  const left=34,right=561,width=right-left;
+  const pdfSafeText=(value)=>String(value??'').replace(/₹/g,'Rs. ').replace(/ /g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'?');
+  const text=(t,x,yv,size=9,b=false,align='left')=>{
+   const str=pdfSafeText(t),fn=b?bold:font,tw=fn.widthOfTextAtSize(str,size);
+   let xx=x;if(align==='center')xx=x-tw/2;else if(align==='right')xx=x-tw;
+   page.drawText(str,{x:xx,y:yv,size,font:fn,color:black});return tw;
+  };
+  const rect=(x,y,w,h,fill=null,th=.9)=>{page.drawRectangle({x,y,width:w,height:h,borderColor:black,borderWidth:th,color:fill||undefined});};
+  const hline=(x1,y1,x2,th=0.9)=>page.drawLine({start:{x:x1,y:y1},end:{x:x2,y:y1},thickness:th,color:black});
+  const vline=(x1,y1,y2,th=0.9)=>page.drawLine({start:{x:x1,y:y1},end:{x:x1,y:y2},thickness:th,color:black});
+  const wrap=(str,maxChars)=>{const words=String(str||'').split(/\s+/);let lines=[],cur='';words.forEach(wd=>{const t=(cur+' '+wd).trim();if(t.length>maxChars&&cur){lines.push(cur);cur=wd}else cur=t});if(cur)lines.push(cur);return lines};
 
-  rect(left,190,width,84,null,1.1);const mid=(left+right)/2;line(mid,190,mid,274,1.1);
-  text('TO',left+10,211,11,true);text('Vehicle Number',left+10,232,11);text(vehicle,left+10,255,16,true);
-  text('REFERENCE',mid+10,211,11,true);text('Weighment Card (WC) Number',mid+10,232,11);text(wc,mid+10,255,14,true);
+  // Outer A4 border
+  page.drawRectangle({x:20,y:20,width:555,height:801,borderColor:black,borderWidth:1});
 
-  const xs=[left,left+42,left+237,left+412,right];const drawHeader=(top)=>{rect(left,top,width,24,LIGHT,1.15);for(let i=1;i<4;i++)line(xs[i],top,xs[i],top+26,1.15);['S.No.','PARTICULARS','QUANTITY / RATE','AMOUNT (Rs.)'].forEach((h,i)=>hcenter(h,xs[i],xs[i+1],top+17,9.2,true));};
-  const row=(top,h,no,part,qty,amt,bold=false)=>{rect(left,top,width,h,null,1.05);for(let i=1;i<4;i++)line(xs[i],top,xs[i],top+h,1.05);const cy=top+h/2+4;if(no!==''&&no!=null)hcenter(no,xs[0],xs[1],cy,11,bold);text(part,xs[1]+10,cy,11,bold);if(qty)hcenter(qty,xs[2],xs[3],cy,fit(qty,xs[3]-xs[2]-14,11,8.5,false),false);if(amt)hcenter(amt,xs[3],xs[4],cy,fit(amt,xs[4]-xs[3]-14,11,8.5,false),bold);return top+h;};
-  const words=(top,h,label,value)=>{rect(left,top,width,h,null,1.05);line(xs[1],top,xs[1],top+h,1.05);line(xs[2],top,xs[2],top+h,1.05);const cy=top+h/2+4;text(label,xs[1]+10,cy,11);if(value)hcenter(value,xs[2],right,cy,9.5,true);return top+h;};
-  const totalRow=(top,h,no,label,amount)=>{rect(left,top,width,h,LIGHT,1.25);line(xs[1],top,xs[1],top+h,1.1);const cy=top+h/2+4;hcenter(no,xs[0],xs[1],cy,11,true);text(label,xs[1]+10,cy,11,true);hcenter(amount,xs[3],xs[4],cy,11,true);return top+h;};
+  // Header
+  text('FINAL FREIGHT LETTER',pageW/2,792,18,true,'center');
+  hline(pageW/2-118,781,pageW/2+118,1.2);
+  let y=758;
+  text('FROM',left+5,y,8.5,true); text(contractorName,left+5,y-18,15.5,true);
+  const addrLines=wrap(address,58).slice(0,2);
+  addrLines.forEach((ln,i)=>text(ln,left+5,y-35-i*12,8.5));
+  const metaX=405;
+  text('Challan No.',metaX,y-2,8.7,true); text(':',metaX+62,y-2,8.7); text(x.dc_number||'',metaX+76,y-2,9,true);
+  text('Challan Date',metaX,y-26,8.7,true); text(':',metaX+62,y-26,8.7); text(fmtDate(x.load_date),metaX+76,y-26,9,true);
+  hline(left,690,right,.9);
 
-  // Section 1: through Gross Amount in Words
-  let top=294;drawHeader(top);top+=24;
-  top=row(top,25,'1','Freight Rate',money2(f.freight_rate)+' / Ton','');
-  top=row(top,25,'2','Freightable / Approved Weight',fmt(f.applicable_weight)+' MT','');
-  top=row(top,25,'3','Freight Charges','',money(f.freight_charges));
-  top=row(top,25,'4','AMC Charges','',money(f.amc_charges));
-  top=totalRow(top,26,'5','Gross Amount',money(f.gross_amount));
-  top=words(top,30,'Gross Amount in Words',numberWordsIndian(f.gross_amount));
+  // Vehicle / WC reference box
+  let top=678,boxH=67,mid=(left+right)/2;
+  rect(left,top-boxH,width,boxH,null,1);
+  vline(mid,top,top-boxH,1);
+  text('TO',left+10,top-16,9,true); text('Vehicle Number',left+10,top-33,8.2); text(x.vehicle_master?.vehicle_number||'',left+10,top-54,15,true);
+  text('REFERENCE',mid+10,top-16,9,true); text('Weighment Card (WC) Number',mid+10,top-33,8.2); text(w.wc_number||'',mid+10,top-54,13,true);
 
-  // Section 2: settlement
-  top+=14;drawHeader(top);top+=24;
-  top=row(top,25,'6','Advance','',money(f.advance));
-  top=row(top,25,'7','Clerk Commission','',money(f.clerk_commission));
-  top=row(top,25,'8','Shortage','',money(f.shortage));
-  top=totalRow(top,26,'9','NET AMOUNT',money(f.net_amount));
-  top=words(top,30,'Net Amount in Words',numberWordsIndian(f.net_amount));
+  // Common table columns. Strong borders everywhere.
+  const tL=left,tR=right,snoW=42,partW=205,qtyW=162;
+  const s1=tL+snoW,s2=s1+partW,s3=s2+qtyW;
+  const drawHeader=(topY)=>{
+    rect(tL,topY-25,width,25,light,1.25);vline(s1,topY,topY-25,1.25);vline(s2,topY,topY-25,1.25);vline(s3,topY,topY-25,1.25);
+    text('S.No.',(tL+s1)/2,topY-17,8.5,true,'center');text('PARTICULARS',(s1+s2)/2,topY-17,8.5,true,'center');text('QUANTITY / RATE',(s2+s3)/2,topY-17,8.5,true,'center');text('AMOUNT (Rs.)',(s3+tR)/2,topY-17,8.5,true,'center');
+  };
+  const drawNormalRow=(topY,h,no,part,qty,amt,highlight=false)=>{
+    if(highlight){page.drawRectangle({x:tL,y:topY-h,width:width,height:h,color:light,borderColor:black,borderWidth:1.25});}
+    else{rect(tL,topY-h,width,h,null,1.05);}
+    vline(s1,topY,topY-h,1.05);vline(s2,topY,topY-h,1.05);vline(s3,topY,topY-h,1.05);
+    text(no,(tL+s1)/2,topY-h/2-3,8.4,highlight,'center');text(part,s1+9,topY-h/2-3,8.5,highlight);if(qty){const qSize=String(qty).length>18?7.8:8.5;text(qty,(s2+s3)/2,topY-h/2-3,qSize,false,'center');}if(amt)text(amt,tR-9,topY-h/2-3,8.5,highlight,'right');
+    return topY-h;
+  };
+  const drawWordsRow=(topY,h,label,value)=>{
+    rect(tL,topY-h,width,h,null,1.05);vline(s1,topY,topY-h,1.05);vline(s2,topY,topY-h,1.05);
+    // Merge Quantity + Amount into ONE cell. No s3 border here.
+    text('',s2,topY-h/2,8);text(label,s1+9,topY-h/2-3,8.5);text(value,(s2+tR)/2,topY-h/2-3,8.4,true,'center');
+    return topY-h;
+  };
+  const drawTotalRow=(topY,h,no,label,amount)=>{
+    page.drawRectangle({x:tL,y:topY-h,width:width,height:h,color:light,borderColor:black,borderWidth:1.35});
+    vline(s1,topY,topY-h,1.1);
+    text(no,(tL+s1)/2,topY-h/2-3,8.5,true,'center');
+    text(label,s1+9,topY-h/2-3,9,true);
+    text(amount,tR-9,topY-h/2-3,9,true,'right');
+    return topY-h;
+  };
 
-  // Payment details
-  top+=14;const payTop=top,payHeader=22,payRow=20,payH=payHeader+payRow*3,payBottom=payTop+payH;
-  rect(left,payTop,width,payH,null,1.15);rect(left,payTop,width,payHeader,LIGHT,1.15);line(left,payTop+payHeader,right,payTop+payHeader,1.1);
-  const payMid=left+235;line(payMid,payTop+payHeader,payMid,payBottom,1.05);for(let i=1;i<3;i++)line(left,payTop+payHeader+payRow*i,right,payTop+payHeader+payRow*i,1);
-  text('PAYMENT DETAILS',left+10,payTop+16,10.5,true);text('(FOR FINAL PAYMENT)',left+117,payTop+16,8.5);
-  const payVals=[['Account Number / UPI Number',f.account_number||f.upi_number||''],['Account Holder Name',f.account_holder_name||''],['Paid Date',fmtDate(f.paid_date)||'']];
-  payVals.forEach((r,i)=>{const cy=payTop+payHeader+payRow*i+15;text(r[0],left+10,cy,10.5,true);text(':',payMid+10,cy,10.5);if(r[1])text(r[1],payMid+25,cy,10.5);});
+  // SECTION 1: up to Gross Amount in Words
+  // Start below the complete TO / REFERENCE box; never overlap its values.
+  top=599;drawHeader(top);top-=25;
+  top=drawNormalRow(top,25,'1','Freight Rate',money(f.freight_rate)+'/ Ton','');
+  top=drawNormalRow(top,25,'2','Freightable / Approved Weight',fmt(f.applicable_weight)+' MT','');
+  top=drawNormalRow(top,25,'3','Freight Charges','',money(f.freight_charges));
+  top=drawNormalRow(top,25,'4','AMC Charges','',money(f.amc_charges));
+  top=drawTotalRow(top,27,'5','Gross Amount',money(f.gross_amount));
+  top=drawWordsRow(top,31,'Gross Amount in Words',numberWordsIndian(f.gross_amount));
 
-  // Signature area at the bottom with a real reserved gap.
-  const sigY=790;line(left+10,sigY,right/2-10, sigY,.9);line(PW/2+10,sigY,right-10,sigY,.9);
-  try{if(FREIGHT_SIGNATURE_DATA)doc.addImage(FREIGHT_SIGNATURE_DATA,'PNG',left+30,766,105,22);}catch(e){}
-  text('For S V Traders',(left+right/2)/2,801,11,true,'center');text('Driver Signature',(right/2+right)/2,801,11,true,'center');
+  // SECTION 2: settlement through Net Amount in Words
+  top-=13;drawHeader(top);top-=25;
+  top=drawNormalRow(top,25,'6','Advance','',money(f.advance));
+  top=drawNormalRow(top,25,'7','Clerk Commission','',money(f.clerk_commission));
+  top=drawNormalRow(top,25,'8','Shortage','',money(f.shortage));
+  top=drawTotalRow(top,27,'9','NET AMOUNT',money(f.net_amount));
+  top=drawWordsRow(top,31,'Net Amount in Words',numberWordsIndian(f.net_amount));
 
-  const filename=`Final_Freight_Letter_${String(challan||id).replace(/[^A-Za-z0-9_-]/g,'_')}.pdf`;doc.save(filename);
- }catch(e){alert('Could not generate Freight Letter PDF.\n\n'+(e?.message||e));console.error(e);}
+  // Payment section with equal-height rows and stronger borders
+  top-=13;const payTop=top,payHeader=25,payRow=27,payH=payHeader+payRow*3,payBottom=payTop-payH,payMid=left+205;
+  rect(left,payBottom,width,payH,null,1.2);page.drawRectangle({x:left,y:payTop-payHeader,width:width,height:payHeader,color:light,borderColor:black,borderWidth:1.2});
+  text('PAYMENT DETAILS',left+10,payTop-17,9.2,true);text('(FOR FINAL PAYMENT)',left+111,payTop-17,7.8);
+  hline(left,payTop-payHeader,right,1.1);vline(payMid,payTop-payHeader,payBottom,1.1);
+  for(let i=1;i<3;i++)hline(left,payTop-payHeader-payRow*i,right,1.0);
+  [['Account Number / UPI Number',0],['Account Holder Name',1],['Paid Date',2]].forEach(([lab,i])=>{const cy=payTop-payHeader-payRow*i-payRow/2-3;text(lab,left+9,cy,8.5,true);text(':',payMid+9,cy,8.5);});
+
+  // Signature area, balanced to use remaining A4 space
+  const sigTop=payBottom-16,sigBase=58;
+  hline(left+8,sigBase,right/2-8,.9);hline(pageW/2+8,sigBase,right-8,.9);
+  try{const png=await pdf.embedPng(FREIGHT_SIGNATURE_DATA);const scale=Math.min(115/png.width,42/png.height);page.drawImage(png,{x:left+22,y:sigBase+4,width:png.width*scale,height:png.height*scale});}catch{}
+  text('For S V TRADERS',(left+pageW/2)/2,sigBase-14,8.7,true,'center');text('Driver Signature',(pageW/2+right)/2,sigBase-14,8.7,true,'center');
+
+  const bytes=await pdf.save();
+  const blob=new Blob([bytes],{type:'application/pdf'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`Final_Freight_Letter_${String(x.dc_number||x.load_number||id).replace(/[^A-Za-z0-9_-]/g,'_')}.pdf`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
+ }catch(e){alert('Could not generate Freight Letter PDF.\n\n'+(e?.message||e));}
 }
-function invoicePoLabel(i){const p=(state.pos||[]).find(x=>String(x.id)===String(i?.po_id||''));return p?.po_number||i?.po_number||'—';}
 async function billingPage(){
   const ids=state.loads.map(x=>x.id).filter(Boolean);
   let finalRows=[],invRows=[],invoices=[],receipts=[];
@@ -492,23 +686,17 @@ async function billingPage(){
     <div id="billingReceiptPreview" style="margin-top:14px">${renderBillingReceiptPreview(receiptDraft.lines||[])}</div><div class="field" style="margin-top:10px"><details><summary>Raw extracted text (verification)</summary><textarea id="brText" rows="5" oninput="saveBillingReceiptDraft()" placeholder="Extracted receipt text">${esc(receiptDraft.text||'')}</textarea></details></div>
     <div class="actions"><button class="btn primary" onclick="saveAndReconcileBillingReceipt()">Save GR & Reconcile All Lines</button><button class="btn secondary" onclick="clearBillingReceiptDraft()">Clear Draft</button></div></div></div>
 
-  <div class="section"><h2>Method 2 — PO-wise Manual Date Selection <span class="badge">PO Controlled</span></h2><div class="card"><div class="notice"><b>Billing is PO-wise.</b> Select the Purchase Order first. WoodMaster will consider only Final Weighments/loads belonging to that PO. Rates, HSN, material and commercial values are taken from the selected PO. A load belonging to another PO will never enter this invoice.</div>
-    <div class="formgrid">
-      <div class="field"><label>Purchase Order *</label><select id="biManualPO" required onchange="saveBillingInvoiceDraft();refreshBillingInvoicePreview()"><option value="">Select Purchase Order</option>${state.pos.map(p=>`<option value="${esc(p.id)}" ${String(invoiceDraft.poId||'')===String(p.id)?'selected':''}>${esc(poLabel(p))}</option>`).join('')}</select><div class="small">One material invoice is created for one PO.</div></div>
-      <div class="field"><label>From Date *</label><input id="biManualFrom" type="date" value="${esc(invoiceDraft.manualFromDate||'')}" onchange="saveBillingInvoiceDraft()"></div>
-      <div class="field"><label>To Date / Cutoff *</label><input id="biManualTo" type="date" value="${esc(invoiceDraft.manualToDate||'')}" onchange="saveBillingInvoiceDraft()"></div>
-      <div class="field"><label>Invoice Date *</label><input id="biManualDate" type="date" value="${esc(invoiceDraft.invoiceDate||isoToday())}" onchange="saveBillingInvoiceDraft();refreshBillingInvoicePreview()"></div>
-      <div class="field"><label>Invoice Number</label><input id="biManualNo" class="readonly" readonly value="${esc(preview)}"><div class="small">Automatically assigned from the common Material + AMC invoice series.</div></div>
-    </div>
-    <div class="actions"><button class="btn primary" onclick="buildMaterialInvoiceDraft('manual')">Review & Confirm PO Billable Loads</button></div></div></div>
+  <div class="section"><h2>Method 2 — Manual Date Selection <span class="badge">Current Method</span></h2><div class="card"><div class="notice"><b>PO-wise billing:</b> Select the Purchase Order first. WoodMaster will consider only Final Weighments belonging to that PO, then apply the selected From/To dates. Rates are always taken from the selected PO. Select From Date and To Date. WoodMaster will take the billable Final Weighments from <b>your WoodMaster data</b> whose WC dates fall within this period. Before the selected From Date, WoodMaster also checks for any earlier load that is still unbilled and not already marked Waiting for Next Bill Cycle. Such loads must be accounted for before the draft bill can be prepared. Carry-forward loads already marked Waiting for Next Bill Cycle are automatically included.</div>
+    <div class="formgrid"><div class="field"><label>Purchase Order *</label><select id="biManualPo" onchange="saveBillingInvoiceDraft();refreshBillingInvoicePreview()"><option value="">— Select Purchase Order —</option>${(state.pos||[]).map(po=>`<option value="${esc(po.id)}" ${String(po.id)===String(invoiceDraft.poId||'')?'selected':''}>${esc(po.po_number||'')} — ${esc(po.area_name||'')} — ${esc(po.species_name||'')}</option>`).join('')}</select><div class="small">Billing is strictly PO-wise because rates can differ between POs.</div></div><div class="field"><label>From Date *</label><input id="biManualFrom" type="date" value="${esc(invoiceDraft.manualFromDate||'')}" onchange="saveBillingInvoiceDraft()"></div><div class="field"><label>To Date / Cutoff *</label><input id="biManualTo" type="date" value="${esc(invoiceDraft.manualToDate||'')}" onchange="saveBillingInvoiceDraft()"></div><div class="field"><label>Invoice Date *</label><input id="biManualDate" type="date" value="${esc(invoiceDraft.invoiceDate||isoToday())}" onchange="saveBillingInvoiceDraft();refreshBillingInvoicePreview()"></div><div class="field"><label>Invoice Number</label><input id="biManualNo" class="readonly" readonly value="${esc(preview)}"><div class="small">Automatically assigned from the common Material + AMC invoice series.</div></div></div>
+    <div class="actions"><button class="btn primary" onclick="buildMaterialInvoiceDraft('manual')">Review & Confirm Billable Loads</button></div></div></div>
 
-  <div class="section"><h2>Draft Material Invoices</h2><div class="notice">Draft invoices can be edited or deleted. Finalizing a draft marks its loads as Billed. Invoice numbers are never reused after allocation.</div><div class="tablewrap"><table><thead><tr><th>Invoice</th><th>PO</th><th>Method</th><th>Date</th><th>Period</th><th>Qty MT</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>${invoices.filter(i=>i.status==='Draft').length?invoices.filter(i=>i.status==='Draft').map(i=>`<tr><td>${esc(i.invoice_number)}</td><td>${esc(invoicePoLabel(i))}</td><td>${esc(i.billing_method||'—')}</td><td>${fmtDate(i.invoice_date)}</td><td>${fmtDate(i.from_date)} – ${fmtDate(i.to_date)}</td><td>${fmt(i.total_qty)}</td><td>${money(i.invoice_total)}</td><td><span class="badge">Draft</span></td><td><div class="rowactions"><button class="btn secondary mini" onclick="editMaterialInvoice('${i.id}')">Edit</button><button class="btn primary mini" onclick="finalizeMaterialInvoice('${i.id}')">Finalize</button><button class="btn secondary mini" onclick="downloadMaterialInvoice('${i.id}')">Download Draft PDF</button><button class="btn danger mini" onclick="deleteMaterialInvoice('${i.id}')">Delete</button></div></td></tr>`).join(''):`<tr><td colspan="9" class="empty">No draft material invoices.</td></tr>`}</tbody></table></div></div>
-  <div class="section"><h2>Final Material Invoices</h2><div class="notice">Final invoices are retained for history. Edit/Delete actions are currently enabled; later they can be restricted centrally by user role without redesigning the workflow.</div><div class="tablewrap"><table><thead><tr><th>Invoice</th><th>PO</th><th>Method</th><th>Date</th><th>Period</th><th>Qty MT</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>${invoices.filter(i=>i.status==='Finalized').length?invoices.filter(i=>i.status==='Finalized').map(i=>`<tr><td>${esc(i.invoice_number)}</td><td>${esc(invoicePoLabel(i))}</td><td>${esc(i.billing_method||'—')}</td><td>${fmtDate(i.invoice_date)}</td><td>${fmtDate(i.from_date)} – ${fmtDate(i.to_date)}</td><td>${fmt(i.total_qty)}</td><td>${money(i.invoice_total)}</td><td><span class="badge">Finalized</span></td><td><div class="rowactions"><button class="btn secondary mini" onclick="editMaterialInvoice('${i.id}')">Edit</button><button class="btn secondary mini" onclick="downloadMaterialInvoice('${i.id}')">Download Invoice PDF</button><button class="btn danger mini" onclick="deleteMaterialInvoice('${i.id}')">Delete</button></div></td></tr>`).join(''):`<tr><td colspan="9" class="empty">No final material invoices.</td></tr>`}</tbody></table></div></div>
-  <div class="section"><h2>Other / Cancelled Material Invoices</h2><div class="tablewrap"><table><thead><tr><th>Invoice</th><th>PO</th><th>Method</th><th>Date</th><th>Period</th><th>Qty MT</th><th>Total</th><th>Status</th><th>Action</th></tr></thead><tbody>${invoices.filter(i=>!['Draft','Finalized'].includes(i.status)).length?invoices.filter(i=>!['Draft','Finalized'].includes(i.status)).map(i=>`<tr><td>${esc(i.invoice_number)}</td><td>${esc(invoicePoLabel(i))}</td><td>${esc(i.billing_method||'—')}</td><td>${fmtDate(i.invoice_date)}</td><td>${fmtDate(i.from_date)} – ${fmtDate(i.to_date)}</td><td>${fmt(i.total_qty)}</td><td>${money(i.invoice_total)}</td><td><span class="badge">${esc(i.status)}</span></td><td>—</td></tr>`).join(''):`<tr><td colspan="9" class="empty">No cancelled/other invoices.</td></tr>`}</tbody></table></div></div>`;
+  <div class="section"><h2>Draft Material Invoices</h2><div class="notice">Draft and Final invoices share one common invoice-number sequence. A later draft may be created, but it cannot be finalized while any earlier invoice number is still Draft. If the highest retained invoice is deleted, its number becomes reusable; lower deleted/cancelled numbers remain blocked while a higher invoice exists.</div><div class="tablewrap"><table><thead><tr><th>Invoice</th><th>Method</th><th>Date</th><th>Period</th><th>Qty MT</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>${invoices.filter(i=>i.status==='Draft').length?invoices.filter(i=>i.status==='Draft').map(i=>`<tr><td>${esc(i.invoice_number)}</td><td>${esc(i.billing_method||'—')}</td><td>${fmtDate(i.invoice_date)}</td><td>${fmtDate(i.from_date)} – ${fmtDate(i.to_date)}</td><td>${fmt(i.total_qty)}</td><td>${money(i.invoice_total)}</td><td><span class="badge">Draft</span></td><td><div class="rowactions"><button class="btn secondary mini" onclick="editMaterialInvoice('${i.id}')">Edit</button><button class="btn primary mini" onclick="finalizeMaterialInvoice('${i.id}')">Finalize</button><button class="btn secondary mini" onclick="downloadMaterialInvoice('${i.id}')">Download Draft PDF</button><button class="btn danger mini" onclick="deleteMaterialInvoice('${i.id}')">Delete</button></div></td></tr>`).join(''):`<tr><td colspan="8" class="empty">No draft material invoices.</td></tr>`}</tbody></table></div></div>
+  <div class="section"><h2>Final Material Invoices</h2><div class="notice">Final invoices are retained for history. Edit/Delete actions are currently enabled; later they can be restricted centrally by user role without redesigning the workflow.</div><div class="tablewrap"><table><thead><tr><th>Invoice</th><th>Method</th><th>Date</th><th>Period</th><th>Qty MT</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>${invoices.filter(i=>i.status==='Finalized').length?invoices.filter(i=>i.status==='Finalized').map(i=>`<tr><td>${esc(i.invoice_number)}</td><td>${esc(i.billing_method||'—')}</td><td>${fmtDate(i.invoice_date)}</td><td>${fmtDate(i.from_date)} – ${fmtDate(i.to_date)}</td><td>${fmt(i.total_qty)}</td><td>${money(i.invoice_total)}</td><td><span class="badge">Finalized</span></td><td><div class="rowactions"><button class="btn secondary mini" onclick="editMaterialInvoice('${i.id}')">Edit</button><button class="btn secondary mini" onclick="downloadMaterialInvoice('${i.id}')">Download Invoice PDF</button><button class="btn danger mini" onclick="deleteMaterialInvoice('${i.id}')">Delete</button></div></td></tr>`).join(''):`<tr><td colspan="8" class="empty">No final material invoices.</td></tr>`}</tbody></table></div></div>
+  <div class="section"><h2>Other / Cancelled Material Invoices</h2><div class="tablewrap"><table><thead><tr><th>Invoice</th><th>Method</th><th>Date</th><th>Period</th><th>Qty MT</th><th>Total</th><th>Status</th><th>Action</th></tr></thead><tbody>${invoices.filter(i=>!['Draft','Finalized'].includes(i.status)).length?invoices.filter(i=>!['Draft','Finalized'].includes(i.status)).map(i=>`<tr><td>${esc(i.invoice_number)}</td><td>${esc(i.billing_method||'—')}</td><td>${fmtDate(i.invoice_date)}</td><td>${fmtDate(i.from_date)} – ${fmtDate(i.to_date)}</td><td>${fmt(i.total_qty)}</td><td>${money(i.invoice_total)}</td><td><span class="badge">${esc(i.status)}</span></td><td>—</td></tr>`).join(''):`<tr><td colspan="8" class="empty">No cancelled/other invoices.</td></tr>`}</tbody></table></div></div>`;
 }
 function saveBillingReceiptDraft(){const old=loadForm('billingReceipt')||{};const lines=old.lines||[];saveForm('billingReceipt',{receiptNumber:$('brNo')?.value||old.receiptNumber||'',receiptDate:$('brDate')?.value||old.receiptDate||'',fromDate:$('brFrom')?.value||old.fromDate||'',toDate:$('brTo')?.value||old.toDate||'',poNumber:$('brPo')?.value||old.poNumber||'',text:$('brText')?.value||old.text||'',lines});}
 function clearBillingReceiptDraft(){clearForm('billingReceipt');go('billing')}
-function saveBillingInvoiceDraft(){const old=loadForm('billingInvoice')||{};saveForm('billingInvoice',{...old,mode:'manual',poId:$('biManualPO')?.value||old.poId||'',manualFromDate:$('biManualFrom')?.value||old.manualFromDate||'',manualToDate:$('biManualTo')?.value||old.manualToDate||'',invoiceDate:$('biManualDate')?.value||old.invoiceDate||isoToday()});}
+function saveBillingInvoiceDraft(){const old=loadForm('billingInvoice')||{};saveForm('billingInvoice',{...old,mode:'manual',poId:$('biManualPo')?.value||old.poId||'',manualFromDate:$('biManualFrom')?.value||old.manualFromDate||'',manualToDate:$('biManualTo')?.value||old.manualToDate||'',invoiceDate:$('biManualDate')?.value||old.invoiceDate||isoToday()});}
 async function refreshBillingInvoicePreview(){const d=loadForm('billingInvoice')||{};const date=$('biManualDate')?.value||d.invoiceDate||isoToday();const r=await sb.rpc('peek_shared_invoice_number',{p_invoice_date:date});if(!$('biManualNo'))return;if(r.error){$('biManualNo').value='Run shared numbering migration';}else{$('biManualNo').value=r.data||'—';}}
 function receiptDateToISO(v){const m=String(v||'').trim().match(/^(\d{2})[.\/-](\d{2})[.\/-](\d{4})$/);return m?`${m[3]}-${m[2]}-${m[1]}`:''}
 function parseWoodReceiptSummary(text){const t=String(text||'').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();const unique=(t.match(/Unique\s*No\s*:\s*([A-Za-z0-9]+)/i)||[])[1]||'';const receiptDate=receiptDateToISO((t.match(/Date\s*:\s*(\d{2}[.\/-]\d{2}[.\/-]\d{4})/i)||[])[1]||'');const pm=t.match(/Period\s*From\s*:\s*(\d{2}[.\/-]\d{2}[.\/-]\d{4})\s*To\s*(\d{2}[.\/-]\d{2}[.\/-]\d{4})/i)||[];const fromDate=receiptDateToISO(pm[1]||''),toDate=receiptDateToISO(pm[2]||'');const poMatch=t.match(/Purchase\s+Order\s+NO\s*:\s*([0-9]+)/i);const poNumber=poMatch?poMatch[1]:'';const lines=[];const rowRe=/(\d+)\s+(\d{2}[.\/-]\d{2}[.\/-]\d{4})\s+(W[A-Z0-9]+)\s+([A-Z0-9]+)\s+([0-9]+(?:\.[0-9]+)?)\s+MT\b/gi;let m;while((m=rowRe.exec(t))){lines.push({sno:m[1],date:receiptDateToISO(m[2]),wc:m[3].toUpperCase(),vehicle:m[4].toUpperCase(),qty:Number(m[5])})}return {receiptNumber:unique,receiptDate,fromDate,toDate,poNumber,lines};}
@@ -522,11 +710,11 @@ async function markBillingWaiting(loadId,cutoff,mode){const l=state.loads.find(x
 async function buildMaterialInvoiceDraft(modeOverride){
   const mode=modeOverride||'manual';
   if(mode!=='manual')return alert('For now, Material Billing is being built using Manual Date Selection. GR upload/reconciliation remains available above for the next stage.');
-  const poId=$('biManualPO')?.value||'',fd=$('biManualFrom')?.value||'',td=$('biManualTo')?.value||'',idate=$('biManualDate')?.value||'';
+  const poId=$('biManualPo')?.value||'',fd=$('biManualFrom')?.value||'',td=$('biManualTo')?.value||'',idate=$('biManualDate')?.value||'';
   if(!poId||!fd||!td||!idate)return alert('Purchase Order, From Date, To Date and Invoice Date are required.');
-  const selectedPO=state.pos.find(p=>String(p.id)===String(poId));
-  if(!selectedPO)return alert('Please select a valid Purchase Order.');
   if(fd>td)return alert('From Date cannot be after To Date.');
+  const selectedPO=(state.pos||[]).find(p=>String(p.id)===String(poId));
+  if(!selectedPO)return alert('Selected Purchase Order was not found. Refresh Masters and try again.');
   saveBillingInvoiceDraft();
   const ids=state.loads.map(x=>x.id).filter(Boolean);if(!ids.length)return alert('No loads available.');
   const wr=await sb.from('itc_weighments').select('*').in('load_id',ids);if(wr.error)return alert(wr.error.message);
@@ -537,10 +725,11 @@ async function buildMaterialInvoiceDraft(modeOverride){
   const valid=[];
   for(const x of source){
     const {w,l}=x;
+    const loadPoId=l.po_id||l.po_master?.id||null;
+    if(String(loadPoId||'')!==String(poId))continue;
     if(billedOrDraftIds.has(l.id)||l.status==='Billed')continue;
-    if(String(l.po_id||'')!==String(poId))continue;
     const d=String(w.wc_date||l.load_date||'');
-    const carry=Boolean(l.billing_waiting_next_cycle) && String(l.po_id||'')===String(poId);
+    const carry=Boolean(l.billing_waiting_next_cycle);
     const inPeriod=d>=fd&&d<=td;
     if(carry||inPeriod)valid.push(billingLineFromLoad(l,w,null));
   }
@@ -553,7 +742,8 @@ async function buildMaterialInvoiceDraft(modeOverride){
   const pendingBeforeFrom=[];
   for(const l of state.loads){
     if(!l?.id)continue;
-    if(String(l.po_id||'')!==String(poId))continue;
+    const loadPoId=l.po_id||l.po_master?.id||null;
+    if(String(loadPoId||'')!==String(poId))continue;
     if(billedOrDraftIds.has(l.id)||l.status==='Billed'||l.billing_waiting_next_cycle===true)continue;
     const w=allW.find(x=>x.load_id===l.id);
     const businessDate=String(w?.wc_date||l.load_date||'');
@@ -582,9 +772,8 @@ async function buildMaterialInvoiceDraft(modeOverride){
     pendingHtml=`<div class="notice error" style="margin-top:12px"><b>⚠ Billing completeness warning</b><br>There are ${pendingBeforeFrom.length} earlier unbilled load(s) before the selected From Date (${fmtDate(fd)}). To avoid silently leaving a load out of billing, each must be accounted for before the draft can be prepared. You can mark a load as <b>Waiting for Next Bill Cycle</b>; it will automatically be included in the next billing cycle.</div><div class="tablewrap" style="margin-top:10px"><table><thead><tr><th>S.No</th><th>Date</th><th>WC Number</th><th>Truck Number</th><th>Approved Qty</th><th>DC Number</th><th>Reason</th><th>Action</th></tr></thead><tbody>${pRows}</tbody></table></div>`;
   }
   const blockNote=pendingBeforeFrom.length?`<div class="notice error" style="margin-top:12px"><b>Prepare Draft Bill is blocked</b> until the earlier pending loads are either billed/reserved in an invoice or explicitly marked Waiting for Next Bill Cycle.</div>`:'';
-  const body=`<div class="notice"><b>Billing Period:</b> ${fmtDate(fd)} to ${fmtDate(td)} &nbsp; | &nbsp; <b>Invoice Date:</b> ${fmtDate(idate)} &nbsp; | &nbsp; <b>Auto Invoice No:</b> ${esc(invoiceNo)}</div>${pendingHtml}<div class="sectionhead" style="margin-top:14px">Final Billable Loads — Verify Before Preparing Draft</div><div class="tablewrap"><table><thead><tr><th>S.No</th><th>Date</th><th>WC Number</th><th>Truck Number</th><th>Approved Quantity</th><th>UOM</th></tr></thead><tbody>${rows||`<tr><td colspan="6" class="empty">No loads selected for this period.</td></tr>`}</tbody><tfoot><tr><th colspan="4" style="text-align:right">Total Quantity</th><th>${fmt(totalQty)}</th><th>MT</th></tr></tfoot></table></div><div class="notice" style="margin-top:12px">Please verify that these are the final loads for this billing cycle. <b>Prepare Draft Bill</b> will create the Material Invoice as a Draft only; loads will not be marked Billed until the invoice is finalized.</div>${blockNote}`;
-  saveForm('billingInvoice',{mode:'manual',poId,poNumber:selectedPO.po_number,manualFromDate:fd,manualToDate:td,invoiceDate:idate,confirmationLines:unique.map(x=>({load_id:x.l.id,po_id:poId,wc_number:x.w.wc_number,approved_qty:x.qty,wood_rate:x.woodRate,wood_value:x.wood,handling_rate:x.handlingRate,handling_value:x.handling,gst:x.gst,total:x.total})),confirmationInvoiceNo:invoiceNo,pendingBeforeFrom:pendingBeforeFrom.map(x=>x.l.id)});
-  body=`<div class="notice"><b>Purchase Order:</b> ${esc(selectedPO.po_number||'')} &nbsp; | &nbsp; <b>PO Material:</b> ${esc(selectedPO.species_name||'')} &nbsp; | &nbsp; <b>Wood Rate:</b> ${money(selectedPO.wood_rate)} / MT &nbsp; | &nbsp; <b>Handling & Other:</b> ${money(selectedPO.handling_other_rate)} / MT</div>`+body;
+  const body=`<div class="notice"><b>Purchase Order:</b> ${esc(selectedPO.po_number||'')} &nbsp; | &nbsp; <b>Billing Period:</b> ${fmtDate(fd)} to ${fmtDate(td)} &nbsp; | &nbsp; <b>Invoice Date:</b> ${fmtDate(idate)} &nbsp; | &nbsp; <b>Auto Invoice No:</b> ${esc(invoiceNo)}</div>${pendingHtml}<div class="sectionhead" style="margin-top:14px">Final Billable Loads — Verify Before Preparing Draft</div><div class="tablewrap"><table><thead><tr><th>S.No</th><th>Date</th><th>WC Number</th><th>Truck Number</th><th>Approved Quantity</th><th>UOM</th></tr></thead><tbody>${rows||`<tr><td colspan="6" class="empty">No loads selected for this period.</td></tr>`}</tbody><tfoot><tr><th colspan="4" style="text-align:right">Total Quantity</th><th>${fmt(totalQty)}</th><th>MT</th></tr></tfoot></table></div><div class="notice" style="margin-top:12px">Please verify that these are the final loads for this billing cycle. <b>Prepare Draft Bill</b> will create the Material Invoice as a Draft only; loads will not be marked Billed until the invoice is finalized.</div>${blockNote}`;
+  saveForm('billingInvoice',{mode:'manual',poId,manualFromDate:fd,manualToDate:td,invoiceDate:idate,confirmationLines:unique.map(x=>({load_id:x.l.id,wc_number:x.w.wc_number,approved_qty:x.qty,wood_rate:x.woodRate,wood_value:x.wood,handling_rate:x.handlingRate,handling_value:x.handling,gst:x.gst,total:x.total})),confirmationInvoiceNo:invoiceNo,pendingBeforeFrom:pendingBeforeFrom.map(x=>x.l.id)});
   showModal('Material Billing — Final Confirmation',body,pendingBeforeFrom.length?'blockManualMaterialDraft()':'prepareManualMaterialDraft()','Prepare Draft Bill');
 }
 function blockManualMaterialDraft(){alert('Draft Bill cannot be prepared yet. Please account for every earlier unbilled load shown in the Billing completeness warning. Mark it Waiting for Next Bill Cycle if it should be carried forward.');}
@@ -603,16 +792,13 @@ async function prepareManualMaterialDraft(){
   const d=loadForm('billingInvoice')||{},lines=d.confirmationLines||[];if(!lines.length)return alert('No confirmed billing lines are available.');
   // Manual Date Selection bills the selected period and also enforces the earlier-load completeness control before the draft is prepared.
 
-  const fd=d.manualFromDate,td=d.manualToDate,idate=d.invoiceDate;
-  if(!fd||!td||!idate)return alert('Billing period and invoice date are required.');
+  const poId=d.poId,fd=d.manualFromDate,td=d.manualToDate,idate=d.invoiceDate;
+  if(!poId||!fd||!td||!idate)return alert('Purchase Order, billing period and invoice date are required.');
   const ids=lines.map(x=>x.load_id);const dup=await sb.from('invoice_items').select('load_id').in('load_id',ids);if(dup.error)return alert(dup.error.message);if(dup.data?.length)return alert('One or more loads are already reserved in a billing draft/invoice. Please refresh the billing screen.');
   const itc=state.itcs.find(x=>x.is_default)||state.itcs[0];if(!itc)return alert('No default ITC Master record is configured.');
   const numberRes=await sb.rpc('allocate_shared_invoice_number',{p_invoice_date:idate});if(numberRes.error)return alert(`Could not allocate the shared invoice number. ${numberRes.error.message}`);const ino=numberRes.data;
   const totals=lines.reduce((a,x)=>({qty:a.qty+x.approved_qty,mv:a.mv+x.wood_value,hv:a.hv+x.handling_value,gst:a.gst+x.gst,total:a.total+x.total}),{qty:0,mv:0,hv:0,gst:0,total:0});
-  const poId=d.poId||lines[0]?.po_id||null;
-  if(!poId)return alert('The selected Purchase Order is missing. Please restart PO-wise billing.');
-  if(lines.some(x=>String(x.po_id||'')!==String(poId)))return alert('PO mismatch detected in the confirmed billing lines. Draft creation was blocked.');
-  const inv={invoice_number:ino,invoice_date:idate,from_date:fd,to_date:td,itc_id:itc.id,po_id:poId,total_qty:totals.qty,material_value:totals.mv,handling_value:totals.hv,gst:totals.gst,invoice_total:totals.total,status:'Draft',billing_method:'PO-wise Manual Date Selection',created_by:state.session.user.id};
+  const inv={invoice_number:ino,invoice_date:idate,from_date:fd,to_date:td,po_id:poId,itc_id:itc.id,total_qty:totals.qty,material_value:totals.mv,handling_value:totals.hv,gst:totals.gst,invoice_total:totals.total,status:'Draft',billing_method:'Manual Date Selection',created_by:state.session.user.id};
   const ir=await sb.from('material_invoices').insert(inv).select().single();if(ir.error)return alert(`Draft bill was not created: ${ir.error.message}`);
   const rows=lines.map(x=>({...x,invoice_id:ir.data.id}));const rr=await sb.from('invoice_items').insert(rows);if(rr.error){await sb.from('material_invoices').delete().eq('id',ir.data.id);return alert(`Draft bill lines were not saved: ${rr.error.message}`)}
   clearForm('billingInvoice');closeModal();alert(`Material Draft Bill ${ino} prepared for ${fmt(totals.qty)} MT.`);await refreshLoads();await render();
@@ -683,6 +869,14 @@ async function finalizeMaterialInvoice(id){
     if(!invoiceActionAllowed('finalize',invoice.status))return alert('You do not have permission to finalize this invoice.');
     if(invoice.status!=='Draft')return alert('Only Draft invoices can be finalized.');
     if(!items.length)return alert('Cannot finalize an invoice with no lines.');
+    const fy=String(invoice.invoice_number||'').split('/')[1]||'';
+    const targetNo=parseInt(String(invoice.invoice_number||'').split('/')[0],10);
+    if(fy&&Number.isFinite(targetNo)){
+      const mr=await sb.from('material_invoices').select('id,invoice_number,status').eq('status','Draft').ilike('invoice_number',`%/${fy}`);
+      if(mr.error)return alert(`Could not verify invoice sequence: ${mr.error.message}`);
+      const earlierDraft=(mr.data||[]).find(x=>x.id!==id&&parseInt(String(x.invoice_number||'').split('/')[0],10)<targetNo);
+      if(earlierDraft)return alert(`Cannot finalize invoice ${invoice.invoice_number}. Invoice ${earlierDraft.invoice_number} is still in Draft status. Finalize or delete the earlier draft first.`);
+    }
     const dup=await sb.from('invoice_items').select('load_id,invoice_id').in('load_id',items.map(x=>x.load_id));
     if(dup.error)return alert(dup.error.message);
     const conflicts=(dup.data||[]).filter(x=>x.invoice_id!==id);
@@ -704,78 +898,10 @@ async function finalizeMaterialInvoice(id){
     alert(`Material Invoice ${invoice.invoice_number} is finalized.`);await refreshLoads();await render();
   }catch(e){alert(`Could not finalize invoice: ${e.message||e}`)}
 }
-
-function quantityWordsIndian(v){
-  const n=Math.max(0,Number(v)||0);
-  const whole=Math.floor(n+1e-9);
-  const frac=Math.round((n-whole)*1000);
-  const base=numberWordsIndian(whole).replace(/ Rupees Only$/,'').toUpperCase();
-  if(!frac)return `${base} (MT)`;
-  const f=String(frac).padStart(3,'0').split('').map(d=>numberWordsIndian(Number(d)).replace(/ Rupees Only$/,'').toUpperCase()).join(' ');
-  return `${base} POINT ${f} (MT)`;
-}
-function invoiceWordsWithPaise(amount){
-  const n=Math.max(0,Number(amount)||0);
-  const rupees=Math.floor(n+1e-9);
-  const paise=Math.round((n-rupees)*100);
-  let out=numberWordsIndian(rupees).replace(/ Rupees Only$/,'');
-  if(paise){
-    out += ` Rupees and ${numberWordsIndian(paise).replace(/ Rupees Only$/,'')} Paise Only`;
-  }else{
-    out += ' Rupees Only';
-  }
-  return out.toUpperCase();
-}
-function invoiceAddressLines(v){
-  let t=String(v||'').replace(/\r/g,'').trim();
-  t=t.replace(/^\s*\d{1,5}[-/]\d{1,5}[-/]\d{1,5}\s*,?\s*/,'');
-  t=t.replace(/^\s*\d{1,5}[-/]\d{1,5}\s*,?\s*/,'');
-  const raw=t.split(/\n|,\s*/).map(x=>x.trim()).filter(Boolean);
-  const lines=[];
-  raw.forEach(x=>{
-    if(!lines.length)lines.push(x);
-    else{
-      const last=lines[lines.length-1];
-      if((last+' '+x).length<=48)lines[lines.length-1]=last+', '+x;
-      else lines.push(x);
-    }
-  });
-  return lines.slice(0,5);
-}
-function pdfText(doc,text,x,y,maxW,opts={}){
-  const str=String(text??'');
-  const size=Number.isFinite(Number(opts.size))?Number(opts.size):10;
-  const leading=Number.isFinite(Number(opts.leading))?Number(opts.leading):size+2.5;
-  const lines=maxW?doc.splitTextToSize(str,Math.max(10,maxW)):str.split('\n');
-  doc.setFont('helvetica',opts.bold?'bold':'normal');
-  doc.setFontSize(size);
-  doc.setTextColor(0,0,0);
-  doc.text(lines,x,y,{align:opts.align||'left',baseline:'alphabetic'});
-  return lines.length*leading;
-}
-function pdfCellText(doc,text,x,y,w,h,opts={}){
-  const size=Number.isFinite(Number(opts.size))?Number(opts.size):9;
-  const pad=Number.isFinite(Number(opts.pad))?Number(opts.pad):4;
-  const align=opts.align||'left';
-  const maxW=Math.max(8,w-pad*2);
-  const lines=doc.splitTextToSize(String(text??''),maxW);
-  const leading=Number.isFinite(Number(opts.leading))?Number(opts.leading):size+2;
-  const total=lines.length*leading;
-  let ty=y+(h-total)/2+size;
-  if(ty<y+size)ty=y+size;
-  doc.setFont('helvetica',opts.bold?'bold':'normal');
-  doc.setFontSize(size);
-  doc.setTextColor(0,0,0);
-  const tx=align==='center'?x+w/2:align==='right'?x+w-pad:x+pad;
-  doc.text(lines,tx,ty,{align,baseline:'alphabetic'});
-}
-async function downloadMaterialInvoice(id){
+async function printMaterialInvoice(id){
   try{
-    if(!window.jspdf?.jsPDF)return alert('PDF generator is still loading. Please try again.');
-    const {jsPDF}=window.jspdf;
     const {invoice,items}=await getMaterialInvoiceBundle(id);
     if(!invoice)return;
-
     const contractor=active()||{};
     const itc=state.itcs.find(x=>x.id===invoice.itc_id)||state.itcs.find(x=>x.is_default)||state.itcs[0]||{};
     let customer={};
@@ -784,193 +910,24 @@ async function downloadMaterialInvoice(id){
       const pr=await sb.from('po_master').select('customer_id,customer_master(*)').in('id',poIds).limit(1);
       if(!pr.error&&pr.data?.[0]?.customer_master)customer=pr.data[0].customer_master;
     }
-    if(!customer.gstin){
-      customer={
-        customer_name:itc.company_name||'ITC LTD - PSPD',
-        gstin:itc.gstin||'',
-        pan:itc.pan||'',
-        address:itc.address||''
-      };
-    }
-
-    const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'a4',compress:true});
-    const PW=595.28,PH=841.89;
-    const M=38,R=PW-M,W=PW-2*M;
-    const black=[0,0,0], grey=[245,245,245];
-    const finite=v=>Number.isFinite(Number(v))?Number(v):0;
-    const moneyPlain=v=>Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
-    const qtyPlain=v=>Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:3,maximumFractionDigits:3});
-    const drawLine=(x1,y1,x2,y2)=>{doc.setDrawColor(0,0,0);doc.setLineWidth(0.65);doc.line(finite(x1),finite(y1),finite(x2),finite(y2));};
-    const drawRect=(x,y,w,h,fill=false)=>{doc.setDrawColor(0,0,0);doc.setLineWidth(0.65);if(fill){doc.setFillColor(245,245,245);doc.rect(finite(x),finite(y),finite(w),finite(h),'FD')}else doc.rect(finite(x),finite(y),finite(w),finite(h),'S');};
-    const center=(text,x,y,size=10,bold=false)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(0,0,0);doc.text(String(text??''),finite(x),finite(y),{align:'center'});};
-    const right=(text,x,y,size=10,bold=false)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(0,0,0);doc.text(String(text??''),finite(x),finite(y),{align:'right'});};
-    const left=(text,x,y,size=10,bold=false)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(0,0,0);doc.text(String(text??''),finite(x),finite(y));};
-
-    const contractorAddress=invoiceAddressLines(contractor.address||'');
-    const customerAddress=invoiceAddressLines(customer.address||itc.address||'');
-    const customerName=customer.customer_name||itc.company_name||'ITC LTD - PSPD';
-    const contractorName=contractor.contractor_name||'SRI VENKATESHWARA TRADERS';
-    const invoiceDate=fmtDate(invoice.invoice_date);
-    const fromDate=fmtDate(invoice.from_date),toDate=fmtDate(invoice.to_date);
-    const hsn=items[0]?.hsn_code||'44039800';
-    const material=items[0]?.material_description||items[0]?.species_name||'Eucalyptus Debarked Wood';
-    const place=itc.address?`${itc.company_name||'ITC LTD'} - PSPD, Sarapaka (Telangana State)`:'ITC Ltd - PSPD, Sarapaka (Telangana State)';
-    const poNo=items[0]?.po_number||'';
-    const totalQty=finite(invoice.total_qty);
-    const materialValue=finite(invoice.material_value);
-    const handlingValue=finite(invoice.handling_value);
-    const fsc=finite(invoice.fsc_premium);
-    const deduction=finite(invoice.deduction);
-    const base=materialValue+handlingValue+fsc;
-    const gross=Math.max(0,base-deduction);
-    const gst=finite(invoice.gst);
-    const cgst=gst/2,sgst=gst/2;
-    const total=finite(invoice.invoice_total)||gross+gst;
-    const woodRate=items.length?finite(items[0].wood_rate):0;
-    const handlingRate=items.length?finite(items[0].handling_rate):0;
-
-    // One-page reference layout. If there are unusually many lines, the load table
-    // continues onto additional pages while the financial summary remains on the last page.
-    const rowsPerPage=13;
-    const chunks=[];
-    for(let i=0;i<items.length;i+=rowsPerPage)chunks.push(items.slice(i,i+rowsPerPage));
-    if(!chunks.length)chunks.push([]);
-
-    const drawHeaderAndMeta=()=>{
-      let y=28;
-      center('TAX INVOICE',PW/2,y+1,17,true);
-      left('Tax Invoice NO:',M,y+25,10,true);
-      left(invoice.invoice_number||'',M+82,y+25,11,true);
-      right(`Date: ${invoiceDate}`,R,y+25,10,true);
-
-      const topY=y+39, topH=91, mid=PW/2;
-      drawRect(M,topY,W,topH,false);
-      drawLine(mid,topY,mid,topY+topH);
-      left('To',M+7,topY+16,10,false);
-      left('From',mid+7,topY+16,10,false);
-      left(customerName,M+7,topY+31,10,true);
-      let yy=topY+44;
-      customerAddress.forEach(line=>{left(line,M+7,yy,9,false);yy+=11});
-      left(`PAN No: ${customer.pan||''}`,M+7,topY+topH-22,9,false);
-      left(`GST NO: ${customer.gstin||''}`,M+7,topY+topH-10,9,false);
-
-      left(contractorName,mid+7,topY+31,10,true);
-      yy=topY+44;
-      contractorAddress.forEach(line=>{left(line,mid+7,yy,9,false);yy+=11});
-      left(`Telangana State (Code 36)`,mid+7,topY+topH-33,9,false);
-      left(`PAN NO: ${contractor.pan||''}`,mid+7,topY+topH-21,9,false);
-      left(`GST NO: ${contractor.gstin||''}`,mid+7,topY+topH-9,9,false);
-
-      y=topY+topH+11;
-      const metaH=80;
-      const labelX=M+2, valueX=M+100, rightLabel=PW/2+2, rightValue=PW/2+84;
-      left('1  Period From',labelX,y+12,9.5,true);left(`${fromDate} To ${toDate}`,valueX,y+12,9.5,false);
-      left('2  HSN Code',rightLabel,y+12,9.5,true);left(hsn,rightValue,y+12,9.5,false);
-      left('3  Material',labelX,y+28,9.5,true);left(material,valueX,y+28,9.5,false);
-      left('4  Place of Supply',rightLabel,y+28,9.5,true);left(place,rightValue,y+28,9.5,false);
-      left('5  Payment',labelX,y+44,9.5,true);left('E-Payment',valueX,y+44,9.5,false);
-      center(`Ref: Agreement / PO No: ${poNo}`,PW/2,y+62,9.5,true);
-      center('Direct supply to ITC Ltd PSPD Sarapaka (Telangana State)',PW/2,y+76,9,false);
-      return y+metaH+4;
-    };
-
-    const drawLoadTable=(startY,chunk,offset)=>{
-      const x=M, y=startY, widths=[45,72,150,125,67,58];
-      const headers=['S.No','Date','WC Number','Truck Number','Qty','UOM'];
-      const headerH=21,rowH=20,totalH=21;
-      let cx=x;
-      drawRect(x,y,W,headerH,false);
-      headers.forEach((h,i)=>{if(i){drawLine(cx,y,cx,y+headerH)};pdfCellText(doc,h,cx,y,widths[i],headerH,{size:8,bold:true,align:'center'});cx+=widths[i]});
-      let yy=y+headerH;
-      chunk.forEach((it,i)=>{
-        cx=x;drawRect(x,yy,W,rowH,false);
-        const vals=[String(offset+i+1),fmtDate(it.wc_date||it.date||''),it.wc_number||'',String(it.vehicle_number||'').toUpperCase(),qtyPlain(it.approved_qty), 'MT'];
-        vals.forEach((v,j)=>{if(j){drawLine(cx,yy,cx,yy+rowH)};pdfCellText(doc,v,cx,yy,widths[j],rowH,{size:8.7,align:j===0||j===4||j===5?'center':'left'});cx+=widths[j]});
-        yy+=rowH;
-      });
-      cx=x;drawRect(x,yy,W,totalH,false);
-      const totalWidths=widths;
-      for(let i=1;i<totalWidths.length;i++){cx+=totalWidths[i-1];drawLine(cx,yy,cx,yy+totalH)}
-      pdfCellText(doc,'Total Qty',x,yy,45+72+150+125,totalH,{size:8.7,bold:true,align:'right'});
-      pdfCellText(doc,qtyPlain(totalQty),x+45+72+150+125,yy,67,totalH,{size:8.7,bold:true,align:'center'});
-      pdfCellText(doc,'MT',x+45+72+150+125+67,yy,58,totalH,{size:8.7,bold:true,align:'center'});
-      return yy+totalH;
-    };
-
-    const drawSummary=(startY)=>{
-      const x=M,y=startY,w=W;
-      const cols=[218,90,90,w-398];
-      const headerH=20,rowH=20;
-      let cx=x;
-      drawRect(x,y,w,headerH,false);
-      ['Particulars','Quantity','Rate','Amount'].forEach((h,i)=>{if(i){drawLine(cx,y,cx,y+headerH)};pdfCellText(doc,h,cx,y,cols[i],headerH,{size:8.5,bold:true,align:'center'});cx+=cols[i]});
-      const rows=[
-        ['Material Cost (Price as determined by AMC)',qtyPlain(totalQty),moneyPlain(woodRate),moneyPlain(materialValue)],
-        ['Handling and Other Charges Cost',qtyPlain(totalQty),moneyPlain(handlingRate),moneyPlain(handlingValue)],
-        ['FSC Premium', '', fsc?'': '-', fsc?moneyPlain(fsc):'-'],
-        ['Total',qtyPlain(totalQty),moneyPlain(woodRate+handlingRate+(totalQty?fsc/totalQty:0)),moneyPlain(base)],
-        ['Deduction','','-',deduction?moneyPlain(deduction):'-'],
-        ['Gross Amount','','',moneyPlain(gross)],
-        ['SGST','9%','',moneyPlain(sgst)],
-        ['CGST','9%','',moneyPlain(cgst)],
-        ['Total Tax Amount','','',moneyPlain(gst)],
-        ['Total Invoice Value','','',moneyPlain(total)]
-      ];
-      let yy=y+headerH;
-      rows.forEach((r,ri)=>{
-        cx=x;drawRect(x,yy,w,rowH,false);
-        r.forEach((v,j)=>{if(j){drawLine(cx,yy,cx,yy+rowH)};pdfCellText(doc,v,cx,yy,cols[j],rowH,{size:8.5,bold:[3,5,8,9].includes(ri),align:j===0?'left':j===1||j===2?'center':'right'});cx+=cols[j]});
-        yy+=rowH;
-      });
-      return yy;
-    };
-
-    const drawWordsAndFooter=(y)=>{
-      const gap=14;
-      left('Qty:',M,y+gap+1,10,false);
-      pdfText(doc,`${qtyPlain(totalQty)} MT`,M+47,y+gap+1,430,{size:9.5,bold:true});
-      left('Qty in Words:',M,y+gap+19,10,false);
-      pdfText(doc,quantityWordsIndian(totalQty),M+77,y+gap+19,430,{size:9.2,bold:false});
-      left('Amount:',M,y+gap+37,10,false);
-      pdfText(doc,invoiceWordsWithPaise(total),M+47,y+gap+37,500,{size:9.2,bold:false});
-      left('Yours faithfully',M,y+gap+68,9.5,false);
-      left(`For ${contractorName}`,M,y+gap+96,9.5,false);
-      right('TAX INVOICE',R,y+gap+68,9.5,true);
-      return y+gap+108;
-    };
-
-    // First page
-    let y=drawHeaderAndMeta();
-    let rowEnd=drawLoadTable(y,chunks[0],0);
-    if(chunks.length===1){
-      y=drawSummary(rowEnd+12);
-      drawWordsAndFooter(y+10);
-    }else{
-      // Summary goes to last page.
-      for(let pno=1;pno<chunks.length;pno++){
-        doc.addPage();
-        left(`Tax Invoice NO: ${invoice.invoice_number}`,M,28,9.5,true);
-        right(`Page ${pno+1}`,R,28,9,false);
-        center('TAX INVOICE — CONTINUED',PW/2,48,14,true);
-        rowEnd=drawLoadTable(64,chunks[pno],pno*rowsPerPage);
-        if(pno===chunks.length-1){
-          y=drawSummary(rowEnd+12);
-          drawWordsAndFooter(y+10);
-        }
-      }
-    }
-
-    const blob=doc.output('blob');
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url;
-    a.download=`Tax_Invoice_${String(invoice.invoice_number||'').replace(/[^\w.-]+/g,'_')}.pdf`;
-    document.body.appendChild(a);a.click();a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),2000);
-  }catch(e){
-    console.error(e);
-    alert(`Could not generate Tax Invoice PDF. ${e?.message||e}`);
-  }
+    if(!customer.gstin)customer={customer_name:itc.company_name||'ITC LTD - PSPD',gstin:itc.gstin||'',pan:itc.pan||'',address:itc.address||''};
+    const totalQty=num(invoice.total_qty), mv=num(invoice.material_value), hv=num(invoice.handling_value), gst=num(invoice.gst), total=num(invoice.invoice_total);
+    const rows=items.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(fmtDate(x.wc_date))}</td><td>${esc(x.wc_number||'')}</td><td>${esc(String(x.vehicle_number||'').toUpperCase())}</td><td class="num">${fmt(x.approved_qty)}</td><td>MT</td></tr>`).join('');
+    const rate=items.length?num(items[0].wood_rate):0, handlingRate=items.length?num(items[0].handling_rate):0;
+    const html=`<!doctype html><html><head><meta charset="utf-8"><title>Tax Invoice ${esc(invoice.invoice_number)}</title><style>
+      @page{size:A4;margin:12mm}body{font-family:Arial,Helvetica,sans-serif;color:#111;font-size:11px;margin:0}.sheet{width:100%}h1{text-align:center;font-size:18px;margin:0 0 4px}.subtitle{text-align:center;font-weight:bold;font-size:13px;margin-bottom:10px}.top{display:grid;grid-template-columns:1fr 1fr;border:1px solid #111}.box{padding:7px;border-right:1px solid #111;min-height:85px}.box:last-child{border-right:0}.label{font-weight:bold}.meta{margin:8px 0}.meta table,.lines,.summary{width:100%;border-collapse:collapse}.meta td{padding:3px 5px}.lines th,.lines td,.summary th,.summary td{border:1px solid #111;padding:5px}.lines th{background:#f2f2f2}.num{text-align:right}.summary{margin-top:8px}.summary td:first-child{font-weight:bold}.footer{margin-top:18px;display:flex;justify-content:space-between}.draft{position:fixed;top:45%;left:20%;font-size:60px;color:#bbb;transform:rotate(-25deg);opacity:.25;z-index:-1}
+      @media print{button{display:none}}
+    </style></head><body><div class="sheet">${invoice.status==='Draft'?'<div class="draft">DRAFT</div>':''}<h1>TAX INVOICE</h1><div class="subtitle">Invoice No: ${esc(invoice.invoice_number)} &nbsp;&nbsp; Date: ${esc(fmtDate(invoice.invoice_date))}</div>
+      <div class="top"><div class="box"><div class="label">To</div><b>${esc(customer.customer_name||'ITC LTD - PSPD')}</b><br>${esc(customer.address||'')}<br>PAN: ${esc(customer.pan||'')}<br>GSTIN: ${esc(customer.gstin||'')}</div><div class="box"><div class="label">From</div><b>${esc(contractor.contractor_name||'')}</b><br>${esc(contractor.address||'')}<br>PAN: ${esc(contractor.pan||'')}<br>GSTIN: ${esc(contractor.gstin||'')}<br>Vendor Code: ${esc(contractor.contractor_code||'')}</div></div>
+      <div class="meta"><table><tr><td><b>1. Period From</b> ${esc(fmtDate(invoice.from_date))} To ${esc(fmtDate(invoice.to_date))}</td><td><b>2. HSN Code</b> ${esc(items[0]?.hsn_code||'44039800')}</td></tr><tr><td><b>3. Material</b> Eucalyptus Debarked Wood</td><td><b>4. Place of Supply</b> ITC Ltd - PSPD, Sarapaka (Telangana State)</td></tr><tr><td colspan="2"><b>5. Payment</b> E-Payment</td></tr></table></div>
+      <table class="lines"><thead><tr><th>S.No</th><th>Date</th><th>WC Number</th><th>Truck Number</th><th>Qty</th><th>UOM</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><th colspan="4" class="num">Total Quantity</th><th>${fmt(totalQty)}</th><th>MT</th></tr></tfoot></table>
+      <table class="summary"><tr><th>Particulars</th><th>Quantity</th><th>Rate</th><th>Amount</th></tr><tr><td>Material Cost</td><td class="num">${fmt(totalQty)}</td><td class="num">${money(rate)}</td><td class="num">${money(mv)}</td></tr><tr><td>Handling and Other Charges Cost</td><td class="num">${fmt(totalQty)}</td><td class="num">${money(handlingRate)}</td><td class="num">${money(hv)}</td></tr><tr><th>Total</th><th class="num">${fmt(totalQty)}</th><th class="num">${money(rate+handlingRate)}</th><th class="num">${money(mv+hv)}</th></tr><tr><td colspan="3">CGST 9%</td><td class="num">${money(gst/2)}</td></tr><tr><td colspan="3">SGST 9%</td><td class="num">${money(gst/2)}</td></tr><tr><th colspan="3">Total Invoice Value</th><th class="num">${money(total)}</th></tr></table>
+      <div class="meta"><b>Ref: Agreement / PO No:</b> ${esc(items[0]?.po_number||'')}</div><div class="meta"><b>Total Qty:</b> ${fmt(totalQty)} MT</div><div class="footer"><div>Yours faithfully<br><br>For ${esc(contractor.contractor_name||'')}</div><div><b>${invoice.status==='Draft'?'DRAFT INVOICE':'TAX INVOICE'}</b></div></div>
+      </div></body></html>`;
+    const w=window.open('','_blank','width=900,height=1100');
+    if(!w)return alert('Please allow pop-ups for WoodMaster to print the invoice.');
+    w.document.open();w.document.write(html);w.document.close();w.onload=()=>setTimeout(()=>w.print(),250);
+  }catch(e){alert(`Could not prepare invoice for printing: ${e.message||e}`)}
 }
 async function deleteMaterialInvoice(id){
   try{
