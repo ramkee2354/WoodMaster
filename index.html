@@ -18,6 +18,9 @@
 <script>
 // PDF font-size compatibility guard: older invoice code may reference fs directly.
 window.fs = 11;
+// Hard compatibility guard: some cached/older invoice code refers to fsSize directly.
+// Keep it as a real global identifier so the PDF generator cannot fail on that reference.
+var fsSize = 11;
 
 const SUPABASE_URL="https://betjenxaqebqhqvjotyd.supabase.co";
 const SUPABASE_KEY="sb_publishable_KVBkusGZfcoipZwCkHhJJg_O_u69I2p";
