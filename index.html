@@ -962,7 +962,7 @@ async function printMaterialInvoice(id){
     rect(left,rowY,width,rowH,0.8);
     line(cols[4],rowY,cols[4],rowY+rowH,0.8);
     line(cols[5],rowY,cols[5],rowY+rowH,0.8);
-    center('Total Qty',cols[3],cols[5],rowY+13,11,true);
+    center('Total Qty',cols[0],cols[4],rowY+13,11,true);
     center(qty3(invoice.total_qty),cols[5],cols[6],rowY+13,11,true);
     center('MT',cols[6],right,rowY+13,11,true);
     rowY+=rowH+9;
