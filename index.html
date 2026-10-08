@@ -946,7 +946,7 @@ async function printMaterialInvoice(id){
     const refY=metaY+5*18+2;
     const refText=`Ref: Agreement No: PO No: ${poNo}`;
     text(refText,PW/2,refY,fitSize(refText,width-40,11,9,false),true,'center');
-    text('Direct supply to ITC LTD PSPD',PW/2,refY+20,11,true,'center');
+    text('Direct supply to ITC Ltd PSPD Sarapaka (Telangana State)',PW/2,refY+20,11,true,'center');
 
     // First table. Total Qty / quantity / UOM are centered.
     const tableTop=refY+34, headerH=21, rowH=18;
@@ -962,17 +962,17 @@ async function printMaterialInvoice(id){
     ];
     rect(left,tableTop,width,headerH,0.8);
     for(let i=1;i<cols.length-1;i++)line(cols[i],tableTop,cols[i],tableTop+headerH,0.8);
-    ['S.No','Date','WC Number','Truck Number','Qty','UOM'].forEach((v,i)=>center(v,cols[i],cols[i+1],tableTop+17,11,true));
+    ['S.No','Date','WC Number','Truck Number','Qty','UOM'].forEach((v,i)=>center(v,cols[i],cols[i+1],tableTop+14,11,true));
     let rowY=tableTop+headerH;
     enriched.forEach((x,i)=>{
       rect(left,rowY,width,rowH,0.8);
       for(let c=1;c<cols.length-1;c++)line(cols[c],rowY,cols[c],rowY+rowH,0.8);
-      center(String(i+1),cols[0],cols[1],rowY+16,11);
-      center(fmtDate(x.wc_date||x.load?.load_date||invoice.from_date),cols[1],cols[2],rowY+16,11);
-      center(x.wc_number||x.weighment_card_number||'',cols[2],cols[3],rowY+16,11);
-      center(String(x.vehicle_number||x.load?.vehicle_master?.vehicle_number||'').toUpperCase(),cols[3],cols[4],rowY+16,11);
-      center(qty3(x.approved_qty),cols[4],cols[5],rowY+16,11);
-      center('MT',cols[5],cols[6],rowY+16,11);
+      center(String(i+1),cols[0],cols[1],rowY+13,11);
+      center(fmtDate(x.wc_date||x.load?.load_date||invoice.from_date),cols[1],cols[2],rowY+13,11);
+      center(x.wc_number||x.weighment_card_number||'',cols[2],cols[3],rowY+13,11);
+      center(String(x.vehicle_number||x.load?.vehicle_master?.vehicle_number||'').toUpperCase(),cols[3],cols[4],rowY+13,11);
+      center(qty3(x.approved_qty),cols[4],cols[5],rowY+13,11);
+      center('MT',cols[5],cols[6],rowY+13,11);
       rowY+=rowH;
     });
     rect(left,rowY,width,rowH,0.8);
@@ -1038,6 +1038,11 @@ async function printMaterialInvoice(id){
       }else if(i===1){
         line(left,y,sc[1],y,0.8);
         line(sc[2],y,right,y,0.8);
+      }else if(i===2){
+        // FSC Premium is part of the same vertically merged Quantity cell.
+        // Keep the horizontal divider out of the Quantity column.
+        line(left,y,sc[1],y,0.8);
+        line(sc[2],y,right,y,0.8);
       }else{
         line(left,y,right,y,0.8);
       }
@@ -1066,10 +1071,10 @@ async function printMaterialInvoice(id){
       return s;
     };
     rowY=y+14;
-    text('Qty:',left,rowY,11,false,'left');
+    text('Qty :',left,rowY,11,false,'left');
     text(qtyWords(invoice.total_qty),left+44,rowY,11,false,'left');
     rowY+=20;
-    text('Amount:',left,rowY,11,false,'left');
+    text('Amount :',left,rowY,11,false,'left');
     const aw=wrap(amountWords(invoice.invoice_total),right-(left+62),11,false);
     aw.forEach((ln,i)=>text(ln,left+62,rowY+i*13,11,false,'left'));
     rowY+=aw.length*13+22;
