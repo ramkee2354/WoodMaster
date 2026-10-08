@@ -83,7 +83,7 @@ async function generatePackage(id){
  try{
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'a4',compress:true});
-  const PW=595.28,PH=841.89,left=34,right=561,width=right-left;
+  const PW=595.28,PH=841.89,left=72,right=PW-72,width=right-left;
   const BLACK=[0,0,0], LIGHT=[238,238,238];
   const NORMAL=11;
   const safe=v=>String(v??'').replace(/₹/g,'Rs. ').replace(/\u00a0/g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'?');
@@ -855,7 +855,7 @@ async function printMaterialInvoice(id){
 
     const {jsPDF}=window.jspdf;
     const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'a4',compress:true});
-    const PW=595.28,PH=841.89,left=34,right=561,width=right-left;
+    const PW=595.28,PH=841.89,left=72,right=PW-72,width=right-left;
     const black=[0,0,0];
     const safe=v=>String(v??'').replace(/₹/g,'Rs. ').replace(/\u00a0/g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'?');
     const num=v=>Number(v||0);
@@ -888,7 +888,7 @@ async function printMaterialInvoice(id){
     const supplierCode='1025420';
 
     // TAX INVOICE heading and top metadata.
-    text('TAX INVOICE',PW/2,34,11,true,'center');
+    text('TAX INVOICE',PW/2,34,14,true,'center');
     text('Tax Invoice NO:',left,58,11,true);
     text(invoice.invoice_number||'',left+108,58,11,true);
     text('Date:',right-116,58,11,true,'left');
@@ -931,7 +931,7 @@ async function printMaterialInvoice(id){
       ['1','Period From',`${fmtDate(invoice.from_date)} To ${fmtDate(invoice.to_date)}`],
       ['2','HSN Code',hsn],
       ['3','Material',material],
-      ['4','Place of Supply','ITC LTD PSPD'],
+      ['4','Place of Supply','ITC Ltd - PSPD, Sarapaka (Telangana State)'],
       ['5','Payment','E-Payment']
     ];
     meta.forEach((m,i)=>{
@@ -967,20 +967,20 @@ async function printMaterialInvoice(id){
     enriched.forEach((x,i)=>{
       rect(left,rowY,width,rowH,0.8);
       for(let c=1;c<cols.length-1;c++)line(cols[c],rowY,cols[c],rowY+rowH,0.8);
-      center(String(i+1),cols[0],cols[1],rowY+13,11);
-      center(fmtDate(x.wc_date||x.load?.load_date||invoice.from_date),cols[1],cols[2],rowY+13,11);
-      center(x.wc_number||x.weighment_card_number||'',cols[2],cols[3],rowY+13,11);
-      center(String(x.vehicle_number||x.load?.vehicle_master?.vehicle_number||'').toUpperCase(),cols[3],cols[4],rowY+13,11);
-      center(qty3(x.approved_qty),cols[4],cols[5],rowY+13,11);
-      center('MT',cols[5],cols[6],rowY+13,11);
+      center(String(i+1),cols[0],cols[1],rowY+rowH/2+4,11);
+      center(fmtDate(x.wc_date||x.load?.load_date||invoice.from_date),cols[1],cols[2],rowY+rowH/2+4,11);
+      center(x.wc_number||x.weighment_card_number||'',cols[2],cols[3],rowY+rowH/2+4,11);
+      center(String(x.vehicle_number||x.load?.vehicle_master?.vehicle_number||'').toUpperCase(),cols[3],cols[4],rowY+rowH/2+4,11);
+      center(qty3(x.approved_qty),cols[4],cols[5],rowY+rowH/2+4,11);
+      center('MT',cols[5],cols[6],rowY+rowH/2+4,11);
       rowY+=rowH;
     });
     rect(left,rowY,width,rowH,0.8);
     line(cols[4],rowY,cols[4],rowY+rowH,0.8);
     line(cols[5],rowY,cols[5],rowY+rowH,0.8);
-    center('Total Qty',cols[0],cols[4],rowY+13,11,true);
-    center(qty3(invoice.total_qty),cols[4],cols[5],rowY+13,11,true);
-    center('MT',cols[5],cols[6],rowY+13,11,true);
+    center('Total Qty',cols[0],cols[4],rowY+rowH/2+4,11,true);
+    center(qty3(invoice.total_qty),cols[4],cols[5],rowY+rowH/2+4,11,true);
+    center('MT',cols[5],cols[6],rowY+rowH/2+4,11,true);
     rowY+=rowH+9;
 
     // Second table: reproduce the 34 reference structure, including merged Quantity cells.
@@ -1070,7 +1070,7 @@ async function printMaterialInvoice(id){
       else s+=' RUPEES ONLY';
       return s;
     };
-    rowY=y+14;
+    rowY=y+28;
     text('Qty :',left,rowY,11,false,'left');
     text(qtyWords(invoice.total_qty),left+44,rowY,11,false,'left');
     rowY+=20;
