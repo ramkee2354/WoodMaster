@@ -83,7 +83,7 @@ async function generatePackage(id){
  try{
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'a4',compress:true});
-  const PW=595.28,PH=841.89,left=72,right=PW-72,width=right-left;
+  const PW=595.28,PH=841.89,left=72,right=PW-20,width=right-left;
   const BLACK=[0,0,0], LIGHT=[238,238,238];
   const NORMAL=11;
   const safe=v=>String(v??'').replace(/₹/g,'Rs. ').replace(/\u00a0/g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'?');
@@ -896,7 +896,7 @@ async function printMaterialInvoice(id){
 
     // To / From blocks. Supplier address is intentionally four lines, including the house number.
     text('To',left,84,11);
-    text('From',316,84,11);
+    text('From',330,84,11);
     let cy=104;
     text(customerName,left,cy,11,true);cy+=16;
     const customerLines=[
@@ -911,18 +911,18 @@ async function printMaterialInvoice(id){
     text(`GST NO: ${customerGstin}`,left,cy,11);
 
     let sy=104;
-    text(supplierName,316,sy,11,true);sy+=16;
+    text(supplierName,330,sy,11,true);sy+=16;
     const supplierLines=[
       '15-8-539, Rama Devi Nilayam',
       'Rotary Nagar, Srinagar Colony',
       'Khammam District - 507002',
       'Telangana State (Code 36)'
     ];
-    supplierLines.forEach(v=>{text(v,316,sy,11);sy+=15;});
-    text(`Cell : ${phone}`,316,sy,11);sy+=15;
-    text(`Vendor Code: ${supplierCode}`,316,sy,11);sy+=15;
-    text(`PAN NO: ${supplierPan}`,316,sy,11);sy+=15;
-    text(`GST NO: ${supplierGstin}`,316,sy,11);
+    supplierLines.forEach(v=>{text(v,330,sy,11);sy+=15;});
+    text(`Cell : ${phone}`,330,sy,11);sy+=15;
+    text(`Vendor Code: ${supplierCode}`,330,sy,11);sy+=15;
+    text(`PAN NO: ${supplierPan}`,330,sy,11);sy+=15;
+    text(`GST NO: ${supplierGstin}`,330,sy,11);
 
     // Particulars with colon after every label, as requested.
     const metaY=sy+18;
