@@ -823,14 +823,15 @@ async function printMaterialInvoice(id){
     let loads=[];
     if(loadIds.length){
       const lr=await sb.from('loads').select(`
-        id,po_id,species_name,load_date,vehicle_number,
+        id,po_id,species_name,load_date,
+        vehicle_master(vehicle_number,owner_name,driver_name),
         po_master(po_number,area_name,species_name,wood_rate,handling_other_rate,hsn_code,customer_id,customer_master(*))
       `).in('id',loadIds);
       if(lr.error)throw lr.error;
       loads=lr.data||[];
     }
     const loadMap=new Map(loads.map(x=>[x.id,x]));
-    const enriched=(items||[]).map(x=>({...x,load:loadMap.get(x.load_id)||null}));
+    const enriched=(items||[]).map(x=>{const load=loadMap.get(x.load_id)||null;return {...x,load,vehicle_number:x.vehicle_number||load?.vehicle_master?.vehicle_number||''};});
     const firstLoad=enriched.find(x=>x.load)||{};
     const po=firstLoad.load?.po_master||{};
 
@@ -947,7 +948,7 @@ async function printMaterialInvoice(id){
       center(String(i+1),cols[0],cols[1],rowY+13,7.5);
       center(fmtDate(x.wc_date||x.load?.load_date||invoice.from_date),cols[1],cols[2],rowY+13,7.4);
       center(x.wc_number||x.weighment_card_number||'',cols[2],cols[3],rowY+13,7.2);
-      center(String(x.vehicle_number||x.load?.vehicle_number||'').toUpperCase(),cols[3],cols[4],rowY+13,7.2);
+      center(String(x.vehicle_number||x.load?.vehicle_master?.vehicle_number||'').toUpperCase(),cols[3],cols[4],rowY+13,7.2);
       center(qty3(x.approved_qty),cols[4],cols[5],rowY+13,7.5);
       center('MT',cols[5],cols[6],rowY+13,7.5);
       rowY+=rowH;
