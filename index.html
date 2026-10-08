@@ -16,6 +16,9 @@
 </style><script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <meta name="wm360-invoice-design" content="34-TAX-INVOICE-USER-ALIGNED"><!-- WM360-MATERIAL-INVOICE-34-USER-ALIGNMENT-FINAL --></head><body><div id="app"></div>
 <script>
+// PDF font-size compatibility guard: older invoice code may reference fs directly.
+window.fs = 11;
+
 const SUPABASE_URL="https://betjenxaqebqhqvjotyd.supabase.co";
 const SUPABASE_KEY="sb_publishable_KVBkusGZfcoipZwCkHhJJg_O_u69I2p";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
