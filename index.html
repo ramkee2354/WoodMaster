@@ -943,7 +943,16 @@ async function printMaterialInvoice(id){
 
     // First table. Total Qty / quantity / UOM are centered.
     const tableTop=refY+34, headerH=21, rowH=18;
-    const cols=[left,left+52,left+123,left+236,left+352,left+456,right];
+    // Column proportions match the 34/2026-27 reference invoice.
+    const cols=[
+      left,
+      left+width*0.1170,
+      left+width*0.2660,
+      left+width*0.4415,
+      left+width*0.6277,
+      left+width*0.8150,
+      right
+    ];
     rect(left,tableTop,width,headerH,0.8);
     for(let i=1;i<cols.length-1;i++)line(cols[i],tableTop,cols[i],tableTop+headerH,0.8);
     ['S.No','Date','WC Number','Truck Number','Qty','UOM'].forEach((v,i)=>center(v,cols[i],cols[i+1],tableTop+17,11,true));
@@ -968,7 +977,15 @@ async function printMaterialInvoice(id){
     rowY+=rowH+9;
 
     // Second table: reproduce the 34 reference structure, including merged Quantity cells.
-    const sc=[left,left+205,left+335,right];
+    // Table 2 column proportions match the 34/2026-27 reference:
+    // Particulars 44.15% | Quantity 18.62% | Rate 18.50% | Amount 18.73%.
+    const sc=[
+      left,
+      left+width*0.4415,
+      left+width*0.6277,
+      left+width*0.8130,
+      right
+    ];
     const h=21, rh=18;
     // Build the invoice rows before calculating the table height.
     // (The previous version referenced rows before initialization.)
@@ -997,11 +1014,9 @@ async function printMaterialInvoice(id){
     line(left,rowY+h,right,rowY+h,0.8);
     center('Particulars',sc[0],sc[1],rowY+17,11,true);
     center('Quantity',sc[1],sc[2],rowY+17,11,true);
-    center('Rate',sc[2],sc[3]-67,rowY+17,11,true);
-    center('Amount',sc[3]-67,sc[3],rowY+17,11,true);
-    // create a Rate/Amount split inside the right 67pt portion only for the header and all rows
-    const amountSplit=right-67;
-    line(amountSplit,rowY,amountSplit,rowY+totalBlockH,0.8);
+    center('Rate',sc[2],sc[3],rowY+17,11,true);
+    center('Amount',sc[3],sc[4],rowY+17,11,true);
+    const amountSplit=sc[3];
     // First 3 rows, quantity merged vertically as in reference image.
     let y=rowY+h;
     // Horizontal row lines.
@@ -1012,8 +1027,8 @@ async function printMaterialInvoice(id){
       const bold=[3,5,8,9].includes(i);
       center(rows[i][0],sc[0],sc[1],y+13,11,bold);
       if(i>=3)center(rows[i][1],sc[1],sc[2],y+13,11,bold);
-      center(rows[i][2],sc[2],amountSplit,y+13,11,bold);
-      text(rows[i][3],right-7,y+13,11,bold,'right');
+      center(rows[i][2],sc[2],sc[3],y+13,11,bold);
+      text(rows[i][3],sc[4]-7,y+13,11,bold,'right');
       y+=rhh;
     }
     // Merged quantity for the first three charge rows.
