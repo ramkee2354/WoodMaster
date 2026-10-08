@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta name="wm360-build" content="WM360-DOCUMENT-DESIGNS-LOCKED-PO-BILLING-RESTORED-FS-COMPAT-FINAL">
+  <meta name="wm360-build" content="WM360-DOCUMENT-DESIGNS-LOCKED-PO-BILLING-RESTORED-NO-FSSIZE">
   <!-- WM360-DOCUMENT-DESIGNS-LOCKED: LR / DC / INITIAL FL / FINAL FL -->
 <!-- WM360-PO-BILLING-RESTORED: Material Billing is strictly Purchase-Order based -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -16,12 +16,11 @@
 </style><script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <meta name="wm360-invoice-design" content="34-TAX-INVOICE-USER-ALIGNED"><!-- WM360-MATERIAL-INVOICE-34-USER-ALIGNMENT-FINAL --></head><body><div id="app"></div>
 <script>
-// WM360 runtime compatibility: keep the PDF font size globally available.
-// This is intentionally defined before every WoodMaster function so an older
-// cached function that still references fsSize cannot crash the page.
+// WM360 invoice PDF font size. No fs/WM360_INVOICE_FONT_SIZE global dependency.
+const WM360_INVOICE_FONT_SIZE = 11;
+// Final compatibility guard for any previously deployed/cached invoice code.
 window.fsSize = 11;
 var fsSize = 11;
-const WM360_INVOICE_FONT_SIZE = 11;
 
 const SUPABASE_URL="https://betjenxaqebqhqvjotyd.supabase.co";
 const SUPABASE_KEY="sb_publishable_KVBkusGZfcoipZwCkHhJJg_O_u69I2p";
@@ -874,6 +873,7 @@ async function printMaterialInvoice(id){
     const center=(t,x1,x2,y,size=11,bold=false)=>text(t,(x1+x2)/2,y,size,bold,'center');
     const wrap=(t,max,size=11,bold=false)=>{set(size,bold);return doc.splitTextToSize(safe(t),max);};
     const linesFrom=(v)=>String(v||'').split(/\r?\n|,/).map(s=>s.trim()).filter(Boolean);
+    const fitSize=(str,maxWidth,start=11,min=8,bold=false)=>{let size=start;set(size,bold);while(size>min&&doc.getTextWidth(safe(str))>maxWidth){size-=0.25;set(size,bold)}return size;};
 
     const poNo=po.po_number||'';
     const material=po.species_name||firstLoad.load?.species_name||'Eucalyptus Debarked Wood';
