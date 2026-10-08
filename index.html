@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta name="wm360-build" content="WM360-DOCUMENT-DESIGNS-LOCKED-PO-BILLING-RESTORED">
+  <meta name="wm360-build" content="WM360-DOCUMENT-DESIGNS-LOCKED-PO-BILLING-RESTORED-NO-FSSIZE">
   <!-- WM360-DOCUMENT-DESIGNS-LOCKED: LR / DC / INITIAL FL / FINAL FL -->
 <!-- WM360-PO-BILLING-RESTORED: Material Billing is strictly Purchase-Order based -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -16,11 +16,8 @@
 </style><script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <meta name="wm360-invoice-design" content="34-TAX-INVOICE-USER-ALIGNED"><!-- WM360-MATERIAL-INVOICE-34-USER-ALIGNMENT-FINAL --></head><body><div id="app"></div>
 <script>
-// PDF font-size compatibility guard: older invoice code may reference fs directly.
-window.fs = 11;
-// Hard compatibility guard: some cached/older invoice code refers to fsSize directly.
-// Keep it as a real global identifier so the PDF generator cannot fail on that reference.
-var fsSize = 11;
+// WM360 invoice PDF font size. No fs/WM360_INVOICE_FONT_SIZE global dependency.
+const WM360_INVOICE_FONT_SIZE = 11;
 
 const SUPABASE_URL="https://betjenxaqebqhqvjotyd.supabase.co";
 const SUPABASE_KEY="sb_publishable_KVBkusGZfcoipZwCkHhJJg_O_u69I2p";
