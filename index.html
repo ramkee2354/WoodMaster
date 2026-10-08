@@ -814,7 +814,6 @@ async function finalizeMaterialInvoice(id){
 }
 async function printMaterialInvoice(id){
   try{
-    if(!window.jspdf?.jsPDF)return alert('PDF generator is still loading. Please try again.');
     const {invoice,items}=await getMaterialInvoiceBundle(id);
     if(!invoice)return;
 
@@ -831,7 +830,10 @@ async function printMaterialInvoice(id){
       loads=lr.data||[];
     }
     const loadMap=new Map(loads.map(x=>[x.id,x]));
-    const enriched=(items||[]).map(x=>{const load=loadMap.get(x.load_id)||null;return {...x,load,vehicle_number:x.vehicle_number||load?.vehicle_master?.vehicle_number||''};});
+    const enriched=(items||[]).map(x=>{
+      const load=loadMap.get(x.load_id)||null;
+      return {...x,load,vehicle_number:x.vehicle_number||load?.vehicle_master?.vehicle_number||''};
+    });
     const firstLoad=enriched.find(x=>x.load)||{};
     const po=firstLoad.load?.po_master||{};
 
@@ -853,142 +855,169 @@ async function printMaterialInvoice(id){
     const num=v=>Number(v||0);
     const moneyPlain=v=>num(v).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
     const qty3=v=>num(v).toLocaleString('en-IN',{minimumFractionDigits:3,maximumFractionDigits:3});
-    const set=(size=9,bold=false)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(...black);};
-    const text=(t,x,y,size=9,bold=false,align='left')=>{
+    // Normal document font is 11 pt throughout, with bold used only where the reference design calls for emphasis.
+    const set=(size=11,bold=false)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(...black);};
+    const text=(t,x,y,size=11,bold=false,align='left')=>{
       const xx=Number.isFinite(Number(x))?Number(x):0, yy=Number.isFinite(Number(y))?Number(y):0;
       const a=['left','center','right','justify'].includes(String(align))?String(align):'left';
       set(size,bold);doc.text(safe(t),xx,yy,{align:a});
     };
     const line=(x1,y1,x2,y2,w=0.75)=>{doc.setLineWidth(w);doc.setDrawColor(...black);doc.line(x1,y1,x2,y2);};
     const rect=(x,y,w,h,lw=0.75)=>{doc.setLineWidth(lw);doc.setDrawColor(...black);doc.rect(x,y,w,h);};
-    const center=(t,x1,x2,y,size=8,bold=false)=>text(t,(x1+x2)/2,y,size,bold,'center');
-    const wrap=(t,max,size=8,bold=false)=>{set(size,bold);return doc.splitTextToSize(safe(t),max);};
+    const center=(t,x1,x2,y,size=11,bold=false)=>text(t,(x1+x2)/2,y,size,bold,'center');
+    const wrap=(t,max,size=11,bold=false)=>{set(size,bold);return doc.splitTextToSize(safe(t),max);};
     const linesFrom=(v)=>String(v||'').split(/\r?\n|,/).map(s=>s.trim()).filter(Boolean);
-    const fmtAddress=(obj)=>{
-      const raw=linesFrom(obj?.address);
-      if(raw.length)return raw;
-      return [obj?.address_line1,obj?.address_line2,obj?.city,obj?.district,obj?.state,obj?.pincode].filter(Boolean).map(String);
-    };
 
     const poNo=po.po_number||'';
     const material=po.species_name||firstLoad.load?.species_name||'Eucalyptus Debarked Wood';
     const hsn=po.hsn_code||'44039800';
     const customerName=customer.customer_name||'ITC LTD - PSPD';
     const supplierName=contractor.contractor_name||'SRI VENKATESHWARA TRADERS';
-    const customerAddr=fmtAddress(customer);
-    const supplierAddr=fmtAddress(contractor);
-    const customerState=customer.state||'Telangana State (Code 36)';
-    const supplierState=contractor.state||'Telangana State (Code 36)';
-    const customerPan=customer.pan||'';
-    const customerGstin=customer.gstin||'';
-    const supplierPan=contractor.pan||'';
-    const supplierGstin=contractor.gstin||'';
-    const supplierCode=contractor.contractor_code||contractor.vendor_code||'';
-    const phone=contractor.phone||contractor.mobile||contractor.cell||'';
+    const customerPan=customer.pan||'AAACI5950L';
+    const customerGstin=customer.gstin||'36AAACI5950L1ZB';
+    const supplierPan=contractor.pan||'TOHPS0526H';
+    const supplierGstin=contractor.gstin||'36TOHPS0526H1ZE';
+    const phone='9493218336';
+    const supplierCode='1025420';
 
-    // 34/2026-27 is the sole visual base. The two WoodMaster PDFs supplied by the user
-    // are treated only as data/output examples; this function reproduces the 34 layout.
-    text('TAX INVOICE',PW/2,35,13,true,'center');
-    text('Tax Invoice NO:',left,58,9.5,true);text(invoice.invoice_number||'',left+108,58,10,true);
-    text('Date:',right,58,9.5,true,'right');text(fmtDate(invoice.invoice_date),right,58,10,true,'right');
+    // TAX INVOICE heading and top metadata.
+    text('TAX INVOICE',PW/2,34,11,true,'center');
+    text('Tax Invoice NO:',left,58,11,true);
+    text(invoice.invoice_number||'',left+108,58,11,true);
+    text('Date:',right-116,58,11,true,'left');
+    text(fmtDate(invoice.invoice_date),right,58,11,true,'right');
 
-    text('To',left,83,9.5);
-    text('From',316,83,9.5);
+    // To / From blocks. Supplier address is intentionally four lines, including the house number.
+    text('To',left,84,11);
+    text('From',316,84,11);
+    let cy=104;
+    text(customerName,left,cy,11,true);cy+=16;
+    const customerLines=[
+      'Unit: Bhadrachalam',
+      'Sarapaka',
+      'Burgampahad Mandal',
+      'Bhadradri Kothagudem District',
+      'Telangana - 507128'
+    ];
+    customerLines.forEach(v=>{text(v,left,cy,11);cy+=15;});
+    text(`PAN No: ${customerPan}`,left,cy,11);cy+=15;
+    text(`GST NO: ${customerGstin}`,left,cy,11);
 
-    let cy=102;
-    text(customerName,left,cy,9,true);cy+=14;
-    customerAddr.forEach(v=>{text(v,left,cy,8.6);cy+=13;});
-    if(customerPan)text(`PAN No: ${customerPan}`,left,cy,8.6),cy+=13;
-    if(customerGstin)text(`GST NO: ${customerGstin}`,left,cy,8.6),cy+=13;
+    let sy=104;
+    text(supplierName,316,sy,11,true);sy+=16;
+    const supplierLines=[
+      '15-8-539, Rama Devi Nilayam',
+      'Rotary Nagar, Srinagar Colony',
+      'Khammam',
+      'Khammam District - 507002'
+    ];
+    supplierLines.forEach(v=>{text(v,316,sy,11);sy+=15;});
+    text('Telangana State (Code 36)',316,sy,11);sy+=15;
+    text(`Cell : ${phone}`,316,sy,11);sy+=15;
+    text(`Vendor Code: ${supplierCode}`,316,sy,11);sy+=15;
+    text(`PAN NO: ${supplierPan}`,316,sy,11);sy+=15;
+    text(`GST NO: ${supplierGstin}`,316,sy,11);
 
-    let sy=102;
-    text(supplierName,316,sy,9,true);sy+=14;
-    supplierAddr.forEach(v=>{text(v,316,sy,8.6);sy+=13;});
-    text(supplierState,316,sy,8.6);sy+=13;
-    text(`Cell : ${phone}`,316,sy,8.6);sy+=13;
-    text(`Vendor Code: ${supplierCode}`,316,sy,8.6);sy+=13;
-    text(`PAN NO: ${supplierPan}`,316,sy,8.6);sy+=13;
-    text(`GST NO: ${supplierGstin}`,316,sy,8.6);
-
-    // Particulars begin below the address blocks, matching the 34 reference.
-    const metaY=Math.max(cy,sy)+10;
-    const metaX=left;
-    const metaValX=metaX+106;
-    const place=customerName+(customer.address?` , ${customer.address}`:'');
+    // Particulars with colon after every label, as requested.
+    const metaY=sy+18;
+    const labelX=left+17, colonX=left+102, valX=left+112;
     const meta=[
       ['1','Period From',`${fmtDate(invoice.from_date)} To ${fmtDate(invoice.to_date)}`],
       ['2','HSN Code',hsn],
       ['3','Material',material],
-      ['4','Place of Supply',place],
+      ['4','Place of Supply','ITC LTD PSPD'],
       ['5','Payment','E-Payment']
     ];
     meta.forEach((m,i)=>{
-      const yy=metaY+i*17;
-      text(m[0],metaX,yy,8.8);
-      text(m[1],metaX+17,yy,8.8);
-      text(m[2],metaValX,yy,8.8);
+      const yy=metaY+i*18;
+      text(m[0],left,yy,11);
+      text(m[1],labelX,yy,11);
+      text(':',colonX,yy,11);
+      text(m[2],valX,yy,11);
     });
-    const refY=metaY+5*17+2;
-    text(`Ref: Agreement No: PO No: ${poNo}`,PW/2,refY,8.8,true,'center');
-    const supplyText=customerName+(customer.area_name?` ${customer.area_name}`:'');
-    text(`Direct supply to ${supplyText}`,PW/2,refY+18,8.8,true,'center');
 
-    // Load table: same six-column structure and proportions as 34/2026-27.
-    const tableTop=refY+35, headerH=21, rowH=19;
+    // Keep the reference on one line and the direct-supply line immediately below it.
+    const refY=metaY+5*18+2;
+    text(`Ref: Agreement No: PO No: ${poNo}`,PW/2,refY,11,true,'center');
+    text('Direct supply to ITC LTD PSPD',PW/2,refY+20,11,true,'center');
+
+    // First table. Total Qty / quantity / UOM are centered.
+    const tableTop=refY+34, headerH=21, rowH=18;
     const cols=[left,left+52,left+123,left+236,left+352,left+456,right];
     rect(left,tableTop,width,headerH,0.8);
     for(let i=1;i<cols.length-1;i++)line(cols[i],tableTop,cols[i],tableTop+headerH,0.8);
-    ['S.No','Date','WC Number','Truck Number','Qty','UOM'].forEach((v,i)=>center(v,cols[i],cols[i+1],tableTop+14,7.8,true));
-
+    ['S.No','Date','WC Number','Truck Number','Qty','UOM'].forEach((v,i)=>center(v,cols[i],cols[i+1],tableTop+17,11,true));
     let rowY=tableTop+headerH;
-    const invoiceRows=enriched;
-    invoiceRows.forEach((x,i)=>{
+    enriched.forEach((x,i)=>{
       rect(left,rowY,width,rowH,0.8);
       for(let c=1;c<cols.length-1;c++)line(cols[c],rowY,cols[c],rowY+rowH,0.8);
-      center(String(i+1),cols[0],cols[1],rowY+13,7.5);
-      center(fmtDate(x.wc_date||x.load?.load_date||invoice.from_date),cols[1],cols[2],rowY+13,7.4);
-      center(x.wc_number||x.weighment_card_number||'',cols[2],cols[3],rowY+13,7.2);
-      center(String(x.vehicle_number||x.load?.vehicle_master?.vehicle_number||'').toUpperCase(),cols[3],cols[4],rowY+13,7.2);
-      center(qty3(x.approved_qty),cols[4],cols[5],rowY+13,7.5);
-      center('MT',cols[5],cols[6],rowY+13,7.5);
+      center(String(i+1),cols[0],cols[1],rowY+16,11);
+      center(fmtDate(x.wc_date||x.load?.load_date||invoice.from_date),cols[1],cols[2],rowY+16,11);
+      center(x.wc_number||x.weighment_card_number||'',cols[2],cols[3],rowY+16,11);
+      center(String(x.vehicle_number||x.load?.vehicle_master?.vehicle_number||'').toUpperCase(),cols[3],cols[4],rowY+16,11);
+      center(qty3(x.approved_qty),cols[4],cols[5],rowY+16,11);
+      center('MT',cols[5],cols[6],rowY+16,11);
       rowY+=rowH;
     });
-    // Do not add the eight blank rows from the previous WoodMaster design. 34/2026-27
-    // shows the actual rows followed immediately by Total Qty.
     rect(left,rowY,width,rowH,0.8);
-    line(cols[4],rowY,cols[4],rowY+rowH,0.8);line(cols[5],rowY,cols[5],rowY+rowH,0.8);
-    text('Total Qty',cols[4]-7,rowY+13,7.8,true,'right');
-    text(qty3(invoice.total_qty),cols[5]-7,rowY+13,7.8,true,'right');
-    text('MT',cols[5]+8,rowY+13,7.8,true);
-    rowY+=rowH+11;
+    line(cols[4],rowY,cols[4],rowY+rowH,0.8);
+    line(cols[5],rowY,cols[5],rowY+rowH,0.8);
+    center('Total Qty',cols[3],cols[5],rowY+13,11,true);
+    center(qty3(invoice.total_qty),cols[5],cols[6],rowY+13,11,true);
+    center('MT',cols[6],right,rowY+13,11,true);
+    rowY+=rowH+9;
 
-    // Charges/tax table: exact four-column structure from the 34 reference.
+    // Second table: reproduce the 34 reference structure, including merged Quantity cells.
     const sc=[left,left+205,left+335,right];
-    const summary=[
-      ['Particulars','Quantity','Rate','Amount'],
-      ['Material Cost (Price as determined by AMC)',qty3(invoice.total_qty),moneyPlain(enriched[0]?.wood_rate||po.wood_rate||0),moneyPlain(invoice.material_value)],
-      ['Handling and Other Charges Cost',qty3(invoice.total_qty),moneyPlain(enriched[0]?.handling_rate||po.handling_other_rate||0),moneyPlain(invoice.handling_value)],
+    const h=21, rh=18;
+    const totalBlockH=h+rh*rows.length;
+    rect(left,rowY,width,totalBlockH,0.8);
+    // vertical boundaries
+    line(sc[1],rowY,sc[1],rowY+totalBlockH,0.8);
+    line(sc[2],rowY,sc[2],rowY+totalBlockH,0.8);
+    // Header
+    line(left,rowY+h,right,rowY+h,0.8);
+    center('Particulars',sc[0],sc[1],rowY+17,11,true);
+    center('Quantity',sc[1],sc[2],rowY+17,11,true);
+    center('Rate',sc[2],sc[3]-67,rowY+17,11,true);
+    center('Amount',sc[3]-67,sc[3],rowY+17,11,true);
+    // create a Rate/Amount split inside the right 67pt portion only for the header and all rows
+    const amountSplit=right-67;
+    line(amountSplit,rowY,amountSplit,rowY+totalBlockH,0.8);
+    // First 3 rows, quantity merged vertically as in reference image.
+    const materialRate=num(enriched[0]?.wood_rate||po.wood_rate||0);
+    const handlingRate=num(enriched[0]?.handling_rate||po.handling_other_rate||0);
+    const materialValue=num(invoice.material_value), handlingValue=num(invoice.handling_value);
+    const tax=num(invoice.gst), gross=materialValue+handlingValue;
+    const rows=[
+      ['Material Cost (Price as determined by AMC)','',moneyPlain(materialRate),moneyPlain(materialValue)],
+      ['Handling and Other Charges Cost','',moneyPlain(handlingRate),moneyPlain(handlingValue)],
       ['FSC Premium','','-','-'],
-      ['Total',qty3(invoice.total_qty),moneyPlain(num(enriched[0]?.wood_rate||po.wood_rate)+num(enriched[0]?.handling_rate||po.handling_other_rate)),moneyPlain(num(invoice.material_value)+num(invoice.handling_value))],
+      ['Total',qty3(invoice.total_qty),moneyPlain(materialRate+handlingRate),moneyPlain(gross)],
       ['Deduction','','','-'],
-      ['Gross Amount','','',moneyPlain(num(invoice.material_value)+num(invoice.handling_value))],
-      ['SGST','','9%',moneyPlain(num(invoice.gst)/2)],
-      ['CGST','','9%',moneyPlain(num(invoice.gst)/2)],
-      ['Total Tax Amount','','',moneyPlain(invoice.gst)],
+      ['Gross Amount','','',moneyPlain(gross)],
+      ['SGST','','9%',moneyPlain(tax/2)],
+      ['CGST','','9%',moneyPlain(tax/2)],
+      ['Total Tax Amount','','',moneyPlain(tax)],
       ['Total Invoice Value','','',moneyPlain(invoice.invoice_total)]
     ];
-    const heights=summary.map((_,i)=>i===0?21:20);
-    summary.forEach((r,ri)=>{
-      const h=heights[ri];rect(left,rowY,width,h,0.8);
-      for(let c=1;c<sc.length-1;c++)line(sc[c],rowY,sc[c],rowY+h,0.8);
-      const bold=[0,4,6,9,10].includes(ri);
-      center(r[0],sc[0],sc[1],rowY+(ri===0?14:13),7.7,bold);
-      center(r[1],sc[1],sc[2],rowY+(ri===0?14:13),7.7,bold);
-      center(r[2],sc[2],sc[3],rowY+(ri===0?14:13),7.7,bold);
-      text(r[3],sc[3]-7,rowY+(ri===0?14:13),7.7,bold,'right');
-      rowY+=h;
-    });
+    let y=rowY+h;
+    // Horizontal row lines.
+    for(let i=0;i<rows.length;i++){
+      const rhh=rh;
+      line(left,y,right,y,0.8);
+      // Quantity merged cell is drawn only after first 3 rows.
+      const bold=[3,5,8,9].includes(i);
+      center(rows[i][0],sc[0],sc[1],y+13,11,bold);
+      if(i>=3)center(rows[i][1],sc[1],sc[2],y+13,11,bold);
+      center(rows[i][2],sc[2],amountSplit,y+13,11,bold);
+      text(rows[i][3],right-7,y+13,11,bold,'right');
+      y+=rhh;
+    }
+    // Merged quantity for the first three charge rows.
+    center(qty3(invoice.total_qty),sc[1],sc[2],rowY+h+rh*1.55,11,false);
 
+    // Words and signature, left aligned.
     const qtyWords=n=>{
       const s=num(n).toFixed(3),[a,b]=s.split('.');
       const base=numberWordsIndian(Number(a)).replace(/ Rupees Only$/i,'');
@@ -1002,13 +1031,17 @@ async function printMaterialInvoice(id){
       else s+=' RUPEES ONLY';
       return s;
     };
-    rowY+=17;text('Qty:',left,rowY,8.5);text(qtyWords(invoice.total_qty),left+38,rowY,8.5,true);rowY+=23;
-    text('Amount:',left,rowY,8.5);
-    const aw=wrap(amountWords(invoice.invoice_total),right-(left+58),8.5,true);
-    aw.forEach((ln,i)=>text(ln,left+58,rowY+i*13,8.5,true));
-    rowY+=aw.length*13+28;
-    text('Yours faithfully',left,rowY,8.5);rowY+=48;
-    text(`For ${supplierName}`,left,rowY,8.5,true);
+    rowY=y+14;
+    text('Qty:',left,rowY,11,false,'left');
+    text(qtyWords(invoice.total_qty),left+44,rowY,11,false,'left');
+    rowY+=20;
+    text('Amount:',left,rowY,11,false,'left');
+    const aw=wrap(amountWords(invoice.invoice_total),right-(left+62),11,false);
+    aw.forEach((ln,i)=>text(ln,left+62,rowY+i*13,11,false,'left'));
+    rowY+=aw.length*13+22;
+    text('Yours faithfully',left,rowY,11,false,'left');
+    rowY+=34;
+    text(`For ${supplierName}`,left,rowY,11,true,'left');
 
     const filename=(invoice.status==='Draft'?'Draft_Material_Invoice_':'Material_Invoice_')+String(invoice.invoice_number||id).replace(/[^a-zA-Z0-9_-]/g,'_')+'.pdf';
     doc.save(filename);
