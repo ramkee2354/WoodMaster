@@ -970,21 +970,8 @@ async function printMaterialInvoice(id){
     // Second table: reproduce the 34 reference structure, including merged Quantity cells.
     const sc=[left,left+205,left+335,right];
     const h=21, rh=18;
-    const totalBlockH=h+rh*rows.length;
-    rect(left,rowY,width,totalBlockH,0.8);
-    // vertical boundaries
-    line(sc[1],rowY,sc[1],rowY+totalBlockH,0.8);
-    line(sc[2],rowY,sc[2],rowY+totalBlockH,0.8);
-    // Header
-    line(left,rowY+h,right,rowY+h,0.8);
-    center('Particulars',sc[0],sc[1],rowY+17,11,true);
-    center('Quantity',sc[1],sc[2],rowY+17,11,true);
-    center('Rate',sc[2],sc[3]-67,rowY+17,11,true);
-    center('Amount',sc[3]-67,sc[3],rowY+17,11,true);
-    // create a Rate/Amount split inside the right 67pt portion only for the header and all rows
-    const amountSplit=right-67;
-    line(amountSplit,rowY,amountSplit,rowY+totalBlockH,0.8);
-    // First 3 rows, quantity merged vertically as in reference image.
+    // Build the invoice rows before calculating the table height.
+    // (The previous version referenced rows before initialization.)
     const materialRate=num(enriched[0]?.wood_rate||po.wood_rate||0);
     const handlingRate=num(enriched[0]?.handling_rate||po.handling_other_rate||0);
     const materialValue=num(invoice.material_value), handlingValue=num(invoice.handling_value);
@@ -1001,6 +988,21 @@ async function printMaterialInvoice(id){
       ['Total Tax Amount','','',moneyPlain(tax)],
       ['Total Invoice Value','','',moneyPlain(invoice.invoice_total)]
     ];
+    const totalBlockH=h+rh*rows.length;
+    rect(left,rowY,width,totalBlockH,0.8);
+    // vertical boundaries
+    line(sc[1],rowY,sc[1],rowY+totalBlockH,0.8);
+    line(sc[2],rowY,sc[2],rowY+totalBlockH,0.8);
+    // Header
+    line(left,rowY+h,right,rowY+h,0.8);
+    center('Particulars',sc[0],sc[1],rowY+17,11,true);
+    center('Quantity',sc[1],sc[2],rowY+17,11,true);
+    center('Rate',sc[2],sc[3]-67,rowY+17,11,true);
+    center('Amount',sc[3]-67,sc[3],rowY+17,11,true);
+    // create a Rate/Amount split inside the right 67pt portion only for the header and all rows
+    const amountSplit=right-67;
+    line(amountSplit,rowY,amountSplit,rowY+totalBlockH,0.8);
+    // First 3 rows, quantity merged vertically as in reference image.
     let y=rowY+h;
     // Horizontal row lines.
     for(let i=0;i<rows.length;i++){
