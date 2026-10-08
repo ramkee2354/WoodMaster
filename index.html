@@ -855,7 +855,7 @@ async function printMaterialInvoice(id){
 
     const {jsPDF}=window.jspdf;
     const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'a4',compress:true});
-    const PW=595.28,PH=841.89,left=72,right=PW-72,width=right-left;
+    const PW=595.28,PH=841.89,left=72,right=PW-28,width=right-left;
     const black=[0,0,0];
     const safe=v=>String(v??'').replace(/₹/g,'Rs. ').replace(/\u00a0/g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'?');
     const num=v=>Number(v||0);
@@ -953,34 +953,34 @@ async function printMaterialInvoice(id){
     // Column proportions match the 34/2026-27 reference invoice.
     const cols=[
       left,
-      left+width*0.1244,
-      left+width*0.2450,
-      left+width*0.4410,
-      left+width*0.6270,
-      left+width*0.8130,
+      left+width*0.115,
+      left+width*0.275,
+      left+width*0.505,
+      left+width*0.700,
+      left+width*0.845,
       right
     ];
     rect(left,tableTop,width,headerH,0.8);
     for(let i=1;i<cols.length-1;i++)line(cols[i],tableTop,cols[i],tableTop+headerH,0.8);
-    ['S.No','Date','WC Number','Truck Number','Qty','UOM'].forEach((v,i)=>center(v,cols[i],cols[i+1],tableTop+14,11,true));
+    ['S.No','Date','WC Number','Truck Number','Qty','UOM'].forEach((v,i)=>center(v,cols[i],cols[i+1],tableTop+14,10,true));
     let rowY=tableTop+headerH;
     enriched.forEach((x,i)=>{
       rect(left,rowY,width,rowH,0.8);
       for(let c=1;c<cols.length-1;c++)line(cols[c],rowY,cols[c],rowY+rowH,0.8);
-      center(String(i+1),cols[0],cols[1],rowY+rowH/2+4,11);
-      center(fmtDate(x.wc_date||x.load?.load_date||invoice.from_date),cols[1],cols[2],rowY+rowH/2+4,11);
-      center(x.wc_number||x.weighment_card_number||'',cols[2],cols[3],rowY+rowH/2+4,11);
-      center(String(x.vehicle_number||x.load?.vehicle_master?.vehicle_number||'').toUpperCase(),cols[3],cols[4],rowY+rowH/2+4,11);
-      center(qty3(x.approved_qty),cols[4],cols[5],rowY+rowH/2+4,11);
-      center('MT',cols[5],cols[6],rowY+rowH/2+4,11);
+      center(String(i+1),cols[0],cols[1],rowY+rowH/2+4,10);
+      center(fmtDate(x.wc_date||x.load?.load_date||invoice.from_date),cols[1],cols[2],rowY+rowH/2+4,9.5);
+      center(x.wc_number||x.weighment_card_number||'',cols[2],cols[3],rowY+rowH/2+4,9.5);
+      center(String(x.vehicle_number||x.load?.vehicle_master?.vehicle_number||'').toUpperCase(),cols[3],cols[4],rowY+rowH/2+4,10);
+      center(qty3(x.approved_qty),cols[4],cols[5],rowY+rowH/2+4,10);
+      center('MT',cols[5],cols[6],rowY+rowH/2+4,10);
       rowY+=rowH;
     });
     rect(left,rowY,width,rowH,0.8);
     line(cols[4],rowY,cols[4],rowY+rowH,0.8);
     line(cols[5],rowY,cols[5],rowY+rowH,0.8);
-    center('Total Qty',cols[0],cols[4],rowY+rowH/2+4,11,true);
-    center(qty3(invoice.total_qty),cols[4],cols[5],rowY+rowH/2+4,11,true);
-    center('MT',cols[5],cols[6],rowY+rowH/2+4,11,true);
+    center('Total Qty',cols[0],cols[4],rowY+rowH/2+4,10,true);
+    center(qty3(invoice.total_qty),cols[4],cols[5],rowY+rowH/2+4,10,true);
+    center('MT',cols[5],cols[6],rowY+rowH/2+4,10,true);
     rowY+=rowH+9;
 
     // Second table: reproduce the 34 reference structure, including merged Quantity cells.
@@ -1047,10 +1047,11 @@ async function printMaterialInvoice(id){
         line(left,y,right,y,0.8);
       }
       const bold=[3,5,8,9].includes(i);
-      center(rows[i][0],sc[0],sc[1],y+13,11,bold);
+      const pSize=fitSize(rows[i][0],(sc[1]-sc[0])-8,11,8.5,bold);
+      center(rows[i][0],sc[0],sc[1],y+13,pSize,bold);
       if(i>=3)center(rows[i][1],sc[1],sc[2],y+13,11,bold);
       center(rows[i][2],sc[2],sc[3],y+13,11,bold);
-      text(rows[i][3],sc[3]+(sc[4]-sc[3])/2,y+13,11,bold,'center');
+      center(rows[i][3],sc[3],sc[4],y+13,11,bold);
       y+=rhh;
     }
     // One merged Quantity value centered vertically over Material + Handling + FSC rows.
