@@ -853,7 +853,7 @@ async function printMaterialInvoice(id){
     const moneyPlain=v=>Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
     const qty3=v=>Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:3,maximumFractionDigits:3});
     const set=(size=9,bold=false)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(...black);};
-    const text=(t,x,y,size=9,bold=false,align='left')=>{const a=['left','center','right','justify'].includes(String(align))?String(align):'left';set(size,bold);doc.text(safe(t),x,y,{align:a});};
+    const text=(t,x,y,size=9,bold=false,align='left')=>{const xx=Number.isFinite(Number(x))?Number(x):0;const yy=Number.isFinite(Number(y))?Number(y):0;const a=['left','center','right','justify'].includes(String(align))?String(align):'left';set(size,bold);doc.text(safe(t),xx,yy,{align:a});};
     const line=(x1,y1,x2,y2,w=0.8)=>{doc.setLineWidth(w);doc.setDrawColor(...black);doc.line(x1,y1,x2,y2);};
     const rect=(x,y,w,h,lw=0.8)=>{doc.setLineWidth(lw);doc.setDrawColor(...black);doc.rect(x,y,w,h);};
     const center=(t,x1,x2,y,size=8,bold=false)=>text(t,(x1+x2)/2,y,size,bold,'center');
@@ -905,7 +905,7 @@ async function printMaterialInvoice(id){
     y+=39;
 
     const tableTop=y, headerH=22, rowH=19;
-    const cols=[left,left+42,left+112,left+222,left+326,right];
+    const cols=[left,left+42,left+112,left+222,left+326,left+420,right];
     rect(left,tableTop,width,headerH,0.8);
     for(let i=1;i<cols.length-1;i++)line(cols[i],tableTop,cols[i],tableTop+headerH,0.8);
     center('S.No',cols[0],cols[1],tableTop+15,8,true);
@@ -996,7 +996,7 @@ async function printMaterialInvoice(id){
       text(`Invoice No: ${invoice.invoice_number}`,left,67,9,true);
       text(`Date: ${fmtDate(invoice.invoice_date)}`,right,67,9,true,'right');
       const ct=90, ch=22;
-      const cc=[left,left+42,left+112,left+222,left+326,right];
+      const cc=[left,left+42,left+112,left+222,left+326,left+420,right];
       rect(left,ct,width,ch,0.8);for(let c=1;c<cc.length-1;c++)line(cc[c],ct,cc[c],ct+ch,0.8);
       ['S.No','Date','WC Number','Truck Number','Qty','UOM'].forEach((v,i)=>center(v,cc[i],cc[i+1],ct+15,8,true));
       let cy=ct+ch;
