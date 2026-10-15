@@ -292,7 +292,7 @@ async function generatePackage(id){
     const totalTop=mergeStart;
     line(pg,left,totalTop,right,totalTop,1.05);
     const totalLabelX=left+dcCols.slice(0,5).reduce((a,b)=>a+b,0);
-    text(pg,'TOTAL',totalLabelX-6,totalTop-totalH/2-3,7.0,true,'right');
+    txt(pg,'TOTAL',totalLabelX-6,totalTop-totalH/2-3,7.0,true,'right');
     let ax=totalLabelX;
     [money(totalTaxable),money(totalCG),money(totalSG),money(totalValue)].forEach((v,i)=>{
       const cw=dcCols[5+i];txt(pg,v,ax+cw-3,totalTop-totalH/2-3,6.3,true,'right');ax+=cw;
