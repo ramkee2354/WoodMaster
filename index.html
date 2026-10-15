@@ -182,6 +182,8 @@ async function generatePackage(id){
   }
 
   function addInitialFL(){
+   // Reuse the Final Freight Letter layout for the initial-stage letter.
+   // Fields not available until final weighment/settlement are intentionally blank.
    doc.addPage();drawFrame('FREIGHT LETTER');
    const metaY=94;
    text('FROM',left+10,metaY,11,true);text('S V TRADERS',left+10,metaY+22,16,true);
@@ -190,34 +192,41 @@ async function generatePackage(id){
    text('Challan Date',405,metaY+23,11,true);text(':',469,metaY+23,11);text(challanDate,483,metaY+23,11,true);
    line(left,175,right,175,1.1);
 
-   // Match the Final Freight Letter's TO / REFERENCE block. At initial-load stage,
-   // no weighment card is available yet, so leave its value blank rather than guessing.
    rect(left,190,width,84,null,1.1);const mid=(left+right)/2;line(mid,190,mid,274,1.1);
    text('TO',left+10,211,11,true);text('Vehicle Number',left+10,232,11);text(vehicle,left+10,255,16,true);
    text('REFERENCE',mid+10,211,11,true);text('Weighment Card (WC) Number',mid+10,232,11);
+   // WC number is not available at initial document creation, so leave the value blank.
 
-   // Use the same four-column table design as the Final Freight Letter,
-   // showing only the values available before final weighment.
    const xs=[left,left+42,left+237,left+412,right];
-   const top=294,headerH=24,rowH=31,tableBottom=top+headerH+rowH*3;
-   rect(left,top,width,headerH,LIGHT,1.15);
-   for(let i=1;i<4;i++)line(xs[i],top,xs[i],top+headerH,1.15);
-   ['S.No.','PARTICULARS','QUANTITY / RATE','AMOUNT (Rs.)'].forEach((h,i)=>hcenter(h,xs[i],xs[i+1],top+17,9.2,true));
-   const rows=[
-    ['1','Freight Rate',money2(freightRate)+' / MT',''],
-    ['2','Advance','','Rs. '+money2(advance)],
-    ['3','Clerk Commission','','Rs. '+money2(300)]
-   ];
-   rows.forEach((r,i)=>{
-    const y=top+headerH+i*rowH,cy=y+rowH/2+4;
-    rect(left,y,width,rowH,null,1.05);
-    for(let j=1;j<4;j++)line(xs[j],y,xs[j],y+rowH,1.05);
-    hcenter(r[0],xs[0],xs[1],cy,11,false);
-    text(r[1],xs[1]+10,cy,11,false);
-    if(r[2])hcenter(r[2],xs[2],xs[3],cy,11,false);
-    if(r[3])hcenter(r[3],xs[3],xs[4],cy,11,false);
-   });
-   // Signature lines mirror the Final Freight Letter layout.
+   const drawHeader=(top)=>{rect(left,top,width,24,LIGHT,1.15);for(let i=1;i<4;i++)line(xs[i],top,xs[i],top+24,1.15);['S.No.','PARTICULARS','QUANTITY / RATE','AMOUNT (Rs.)'].forEach((h,i)=>hcenter(h,xs[i],xs[i+1],top+17,9.2,true));};
+   const row=(top,h,no,part,qty,amt,bold=false)=>{rect(left,top,width,h,null,1.05);for(let i=1;i<4;i++)line(xs[i],top,xs[i],top+h,1.05);const cy=top+h/2+4;if(no!==''&&no!=null)hcenter(no,xs[0],xs[1],cy,11,bold);text(part,xs[1]+10,cy,11,bold);if(qty)hcenter(qty,xs[2],xs[3],cy,fit(qty,xs[3]-xs[2]-14,11,8.5,false),false);if(amt)hcenter(amt,xs[3],xs[4],cy,fit(amt,xs[4]-xs[3]-14,11,8.5,false),bold);return top+h;};
+   const words=(top,h,label,value)=>{rect(left,top,width,h,null,1.05);line(xs[1],top,xs[1],top+h,1.05);line(xs[2],top,xs[2],top+h,1.05);const cy=top+h/2+4;text(label,xs[1]+10,cy,11);if(value)hcenter(value,xs[2],right,cy,9.5,true);return top+h;};
+   const totalRow=(top,h,no,label,amount)=>{rect(left,top,width,h,LIGHT,1.25);line(xs[1],top,xs[1],top+h,1.1);const cy=top+h/2+4;hcenter(no,xs[0],xs[1],cy,11,true);text(label,xs[1]+10,cy,11,true);if(amount)hcenter(amount,xs[3],xs[4],cy,11,true);return top+h;};
+
+   // Section 1: all Final Freight Letter rows are retained; unknown values stay blank.
+   let top=294;drawHeader(top);top+=24;
+   top=row(top,25,'1','Freight Rate',money2(freightRate)+' / MT','');
+   top=row(top,25,'2','Freightable / Approved Weight','','');
+   top=row(top,25,'3','Freight Charges','','');
+   top=row(top,25,'4','AMC Charges','','');
+   top=totalRow(top,26,'5','Gross Amount','');
+   top=words(top,30,'Gross Amount in Words','');
+
+   // Section 2: settlement rows, preserving the Final Freight Letter's structure.
+   top+=14;drawHeader(top);top+=24;
+   top=row(top,25,'6','Advance','',money(advance));
+   top=row(top,25,'7','Clerk Commission','',money(300));
+   top=row(top,25,'8','Shortage','','');
+   top=totalRow(top,26,'9','NET AMOUNT','');
+   top=words(top,30,'Net Amount in Words','');
+
+   // Payment details are present as in the Final Freight Letter, but blank at initial stage.
+   top+=14;const payTop=top,payHeader=22,payRow=20,payH=payHeader+payRow*3,payBottom=payTop+payH;
+   rect(left,payTop,width,payH,null,1.15);rect(left,payTop,width,payHeader,LIGHT,1.15);line(left,payTop+payHeader,right,payTop+payHeader,1.1);
+   const payMid=left+235;line(payMid,payTop+payHeader,payMid,payBottom,1.05);for(let i=1;i<3;i++)line(left,payTop+payHeader+payRow*i,right,payTop+payHeader+payRow*i,1);
+   text('PAYMENT DETAILS',left+10,payTop+16,10.5,true);text('(FOR FINAL PAYMENT)',left+117,payTop+16,8.5);
+   [['Account Number / UPI Number'],['Account Holder Name'],['Paid Date']].forEach((r,i)=>{const cy=payTop+payHeader+payRow*i+15;text(r[0],left+10,cy,10.5,true);text(':',payMid+10,cy,10.5);});
+
    const sigY=790;line(left+10,sigY,right/2-10,sigY,.9);line(PW/2+10,sigY,right-10,sigY,.9);
    text('For S V Traders',(left+right/2)/2,801,11,true,'center');text('Driver Signature',(right/2+right)/2,801,11,true,'center');
   }
