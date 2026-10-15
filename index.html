@@ -755,9 +755,26 @@ async function printMaterialInvoice(id){
       loads=lr.data||[];
     }
     const loadMap=new Map(loads.map(x=>[x.id,x]));
+    // For GR-based invoices, use the date recorded on the ITC Wood Receipt Summary
+    // for each WC line. WoodMaster WC/load dates are only the fallback for manual billing.
+    let itcGrDateByWc=new Map();
+    if(String(invoice.billing_method||'').toLowerCase().includes('gr')){
+      const wcs=[...new Set((items||[]).map(x=>String(x.wc_number||x.weighment_card_number||'').trim().replace(/\\s+/g,'').toUpperCase()).filter(Boolean))];
+      if(wcs.length){
+        const grRows=await sb.from('itc_receipt_items').select('wc_number,wc_date,receipt_id').in('wc_number',wcs).order('created_at',{ascending:false});
+        if(!grRows.error){
+          for(const row of (grRows.data||[])){
+            const key=String(row.wc_number||'').trim().replace(/\\s+/g,'').toUpperCase();
+            if(key&&!itcGrDateByWc.has(key)&&row.wc_date)itcGrDateByWc.set(key,row.wc_date);
+          }
+        }
+      }
+    }
     const enriched=(items||[]).map(x=>{
       const load=loadMap.get(x.load_id)||null;
-      return {...x,load,vehicle_number:x.vehicle_number||load?.vehicle_master?.vehicle_number||''};
+      const wcKey=String(x.wc_number||x.weighment_card_number||'').trim().replace(/\\s+/g,'').toUpperCase();
+      const itcGrDate=itcGrDateByWc.get(wcKey)||'';
+      return {...x,load,itcGrDate,vehicle_number:x.vehicle_number||load?.vehicle_master?.vehicle_number||''};
     });
     const firstLoad=enriched.find(x=>x.load)||{};
     const po=firstLoad.load?.po_master||{};
@@ -887,7 +904,7 @@ async function printMaterialInvoice(id){
       rect(left,rowY,width,rowH,0.8);
       for(let c=1;c<cols.length-1;c++)line(cols[c],rowY,cols[c],rowY+rowH,0.8);
       center(String(i+1),cols[0],cols[1],rowY+13,11);
-      center(fmtDate(x.wc_date||x.load?.load_date||invoice.from_date),cols[1],cols[2],rowY+13,11);
+      center(fmtDate((String(invoice.billing_method||'').toLowerCase().includes('gr')?(x.itcGrDate||x.wc_date):x.wc_date)||x.load?.load_date||invoice.from_date),cols[1],cols[2],rowY+13,11);
       center(x.wc_number||x.weighment_card_number||'',cols[2],cols[3],rowY+13,11);
       center(String(x.vehicle_number||x.load?.vehicle_master?.vehicle_number||'').toUpperCase(),cols[3],cols[4],rowY+13,11);
       center(qty3(x.approved_qty),cols[4],cols[5],rowY+13,11);
