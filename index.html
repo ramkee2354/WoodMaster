@@ -100,7 +100,7 @@ async function wmPreviewImport(input){
         <div class="card"><div class="label">Valid load rows</div><div class="metric">${valid.length}</div></div>
         <div class="card"><div class="label">Rows needing review</div><div class="metric">${noLR}</div></div>
       </div>
-      <div class="notice"><b>Load Details + Final Weighments:</b> loads are matched by LR number; POs are matched only by PO_Number. Gross/Tare are imported and Net is calculated as Gross − Tare. ITC WC Number and ITC weights are saved to Final Weighments. Existing PO masters are not changed. Existing LR numbers and Final Weighments are updated, not duplicated.</div>
+      <div class="notice"><b>Load Details + Final Weighments:</b> loads are matched using WoodMaster fields (date, vehicle, PO and weights); POs are matched only by PO_Number. Gross/Tare are imported and Net is calculated as Gross − Tare. ITC WC Number and ITC weights are saved to Final Weighments. Existing PO masters are not changed. Matching existing loads and Final Weighments are updated, not duplicated.</div>
       <div class="actions"><button class="btn primary" onclick="wmRunImport()">Import Load Details</button></div>
       <div id="wmImportProgress" style="margin-top:12px"></div></div>`;
   }catch(e){wmImpMsg(`Could not read Excel file: ${e.message||e}`,'notice error')}
@@ -142,91 +142,63 @@ async function wmRunImport(){
       try{
         const lrNo=wmImpText(r.LR_Number);
         const vn=wmImpVehicle(r.Truck_Number);
-        if(!lrNo)throw new Error('LR number missing');
-        if(!vn)throw new Error('Vehicle number missing');
-
-        // PO_Number is the only permitted PO matching key. Never fall back to Purchase_Order/area.
-        const poNo=wmImpPoNo(r.PO_Number);
-        let po=null;
-        if(poNo){
-          const q=await sb.from('po_master').select('*').eq('contractor_id',active().id).eq('po_number',poNo).maybeSingle();
-          if(q.error)throw q.error;
-          po=q.data;
-        }
-        const veh=await wmGetOrCreateVehicle(vn,'',r.Tare_Weight);
-        if(veh?.id&&!state.vehicles.some(v=>v.id===veh.id))out.vehiclesCreated++;
-
+        if(!lrNo)throw new Error('Excel LR_Number is blank; cannot safely identify this source row.');
+        if(!vn)throw new Error('Vehicle number is missing.');
+        const date=wmImpDate(r.LR_Date);
+        if(!date)throw new Error('Load date is missing or invalid.');
         const gross=wmImpNum(r.Gross_Weight), tare=wmImpNum(r.Tare_Weight);
+        if(gross<=0||tare<0||gross<tare)throw new Error('Gross/Tare weights are invalid.');
         const net=Math.round((gross-tare)*1000)/1000;
-        const existing=await sb.from('loads').select('*').eq('lr_number',lrNo).maybeSingle();
-        if(existing.error)throw existing.error;
-        const row={
-          lr_number:lrNo,
-          ...(po?{po_id:po.id}:{}),
-          vehicle_id:veh.id,
-          load_date:wmImpDate(r.LR_Date),
-          species_name:po?.species_name||null,
-          network_gross:gross,
-          network_tare:tare,
-          network_net:net,
-          eway_bill_no:wmImpText(r.eWay_Bill_Number)||null,
-          freight_rate:wmImpNum(r.Freight_Rate),
-          advance:wmImpNum(r.Advance),
-          advance_given_by:wmImpText(r.Advance_Paid_By)||null
-        };
-        let loadRec;
-        if(existing.data){
-          const u=await sb.from('loads').update(row).eq('id',existing.data.id).select('id,dc_number,load_date,load_number').single();
-          if(u.error)throw u.error;
-          loadRec=u.data;out.loadsUpdated++;
-        }else{
-          row.dc_number=await nextDc();
-          row.status='Load Created';
-          row.created_by=state.session.user.id;
-          const ins=await sb.from('loads').insert(row).select('id,dc_number,load_date,load_number').single();
-          if(ins.error)throw ins.error;
-          loadRec=ins.data;out.loadsCreated++;
-        }
-        const loadId=loadRec.id;
-        if(po)out.poLinked++;else out.poMissing++;
 
-        // Save a Final Weighment only when the workbook has ITC/WC information for this load.
+        // PO_Number is the ONLY matching key; never fall back to Purchase_Order.
+        const poNo=wmImpPoNo(r.PO_Number);
+        if(!poNo)throw new Error('PO_Number is missing; row not imported.');
+        const pq=await sb.from('po_master').select('*').eq('contractor_id',active().id).eq('po_number',poNo).maybeSingle();
+        if(pq.error)throw pq.error;
+        const po=pq.data;
+        if(!po)throw new Error(`PO ${poNo} was not found in the active contractor's existing PO Master. No PO was created.`);
+
+        const vq=await sb.from('vehicle_master').select('*').eq('vehicle_number',vn).maybeSingle();
+        if(vq.error)throw vq.error;
+        let veh=vq.data;
+        if(!veh)throw new Error(`Vehicle ${vn} was not found in Vehicle Master. Import stopped for this row; no master record was created.`);
+
+        // There is no loads.lr_number column in WoodMaster. Match using actual load fields.
+        const matches=await sb.from('loads').select('id,dc_number,load_number,network_weighment_id,load_date,po_id,vehicle_id,network_gross,network_tare,network_net,eway_bill_no,freight_rate,advance,advance_given_by').eq('load_date',date).eq('po_id',po.id).eq('vehicle_id',veh.id).eq('network_gross',gross).eq('network_tare',tare).limit(3);
+        if(matches.error)throw matches.error;
+        let existing=(matches.data||[]).find(x=>String(x.eway_bill_no||'')===String(wmImpText(r.eWay_Bill_Number)||''))||null;
+        if((matches.data||[]).length>1&&!existing)throw new Error('More than one possible matching WoodMaster load exists for this date/vehicle/PO/weights. Manual review required.');
+
+        const networkRow={weighment_date:date,vehicle_id:veh.id,gross_weight:gross,tare_weight:tare,po_id:po.id,eway_bill_no:wmImpText(r.eWay_Bill_Number)||null,freight_rate:wmImpNum(r.Freight_Rate),advance:wmImpNum(r.Advance),advance_given_by:wmImpText(r.Advance_Paid_By)||null,receipt_received:true,verified:true,created_by:state.session.user.id};
+        let nwId=existing?.network_weighment_id||null;
+        if(nwId){const nr=await sb.from('network_weighments').update(networkRow).eq('id',nwId);if(nr.error)throw nr.error;}
+        else {const nr=await sb.from('network_weighments').insert(networkRow).select('id').single();if(nr.error)throw nr.error;nwId=nr.data.id;}
+
+        const row={network_weighment_id:nwId,po_id:po.id,vehicle_id:veh.id,load_date:date,species_id:po.species_id||null,species_name:po.species_name||null,network_gross:gross,network_tare:tare,network_net:net,eway_bill_no:wmImpText(r.eWay_Bill_Number)||null,freight_rate:wmImpNum(r.Freight_Rate),advance:wmImpNum(r.Advance),advance_given_by:wmImpText(r.Advance_Paid_By)||null};
+        let loadRec;
+        if(existing){
+          const u=await sb.from('loads').update(row).eq('id',existing.id).select('id,dc_number,load_number,load_date').single();if(u.error)throw u.error;loadRec=u.data;out.loadsUpdated++;
+        }else{
+          row.dc_number=await nextDc();row.status='Load Created';row.created_by=state.session.user.id;
+          const ins=await sb.from('loads').insert(row).select('id,dc_number,load_number,load_date').single();if(ins.error)throw ins.error;loadRec=ins.data;out.loadsCreated++;
+        }
+        out.poLinked++;
+
         const wc=wmImpText(r.WC_Number).toUpperCase();
-        const itcGross=wmImpNum(r.ITC_Gross_Weight), itcTare=wmImpNum(r.ITC_Tare_Weight), itcNet=wmImpNum(r.ITC_Weight);
-        const hasItc=!!wc || itcGross>0 || itcTare>0 || itcNet>0;
+        const itcGross=wmImpNum(r.ITC_Gross_Weight),itcTare=wmImpNum(r.ITC_Tare_Weight),itcNet=wmImpNum(r.ITC_Weight);
+        const hasItc=!!wc||itcGross>0||itcTare>0||itcNet>0;
         if(hasItc){
-          const wrow={
-            load_id:loadId,
-            wc_number:wc||null,
-            wc_date:null,
-            vehicle_number:vn,
-            dc_number:loadRec.dc_number||null,
-            dc_date:wmImpDate(r.LR_Date),
-            material_description:po?.species_name||null,
-            gross_weight:itcGross||null,
-            tare_weight:itcTare||null,
-            net_weight:itcNet||((itcGross>0&&itcTare>0)?Math.round((itcGross-itcTare)*1000)/1000:null),
-            approved_weight:itcNet||((itcGross>0&&itcTare>0)?Math.round((itcGross-itcTare)*1000)/1000:null),
-            ocr_verified:false,
-            source:'AppSheet Import',
-            created_by:state.session?.user?.id||null
-          };
-          const oldW=await sb.from('itc_weighments').select('id').eq('load_id',loadId).maybeSingle();
-          if(oldW.error)throw oldW.error;
-          if(oldW.data){
-            const u=await sb.from('itc_weighments').update(wrow).eq('id',oldW.data.id);
-            if(u.error)throw u.error;out.weighmentsUpdated++;
-          }else{
-            const ins=await sb.from('itc_weighments').insert(wrow);
-            if(ins.error)throw ins.error;out.weighmentsCreated++;
-          }
+          const wrow={load_id:loadRec.id,wc_number:wc||null,wc_date:null,vehicle_number:vn,dc_number:loadRec.dc_number||null,dc_date:date,material_description:po.species_name||null,gross_weight:itcGross||null,tare_weight:itcTare||null,net_weight:itcNet||((itcGross>0&&itcTare>=0)?Math.round((itcGross-itcTare)*1000)/1000:null),approved_weight:itcNet||((itcGross>0&&itcTare>=0)?Math.round((itcGross-itcTare)*1000)/1000:null),ocr_verified:false,source:'AppSheet Import',created_by:state.session?.user?.id||null};
+          const oldW=await sb.from('itc_weighments').select('id').eq('load_id',loadRec.id).maybeSingle();if(oldW.error)throw oldW.error;
+          if(oldW.data){const u=await sb.from('itc_weighments').update(wrow).eq('id',oldW.data.id);if(u.error)throw u.error;out.weighmentsUpdated++;}
+          else {const ins=await sb.from('itc_weighments').insert(wrow);if(ins.error)throw ins.error;out.weighmentsCreated++;}
         }else out.weighmentsSkipped++;
         const prog=$('wmImportProgress');if(prog)prog.innerHTML=`<div class="notice">Processed ${i+1} of ${lrRows.length} load rows…</div>`;
-      }catch(e){out.errors.push(`Row ${i+2} (${wmImpText(r.LR_Number)||'no LR'}): ${e.message||e}`);}
+      }catch(e){out.errors.push(`Row ${i+2} (LR ${wmImpText(r.LR_Number)||'blank'}): ${e.message||e}`);}
     }
     await refreshAll();
-    const summary=`Import completed. Loads created ${out.loadsCreated}; loads updated ${out.loadsUpdated}; Final Weighments created ${out.weighmentsCreated}; Final Weighments updated ${out.weighmentsUpdated}; rows without ITC/WC data ${out.weighmentsSkipped}; vehicles created ${out.vehiclesCreated}; matched existing PO ${out.poLinked}; unmatched PO ${out.poMissing}; row errors ${out.errors.length}. PO masters, invoices, settlements and dashboards were not imported.`;
-    const errText=out.errors.length?`<div class="notice error" style="margin-top:10px"><b>Rows needing review:</b><br>${out.errors.slice(0,30).map(esc).join('<br>')}${out.errors.length>30?'<br>…':''}</div>`:'';
+    const summary=`Import completed. Loads created ${out.loadsCreated}; loads updated ${out.loadsUpdated}; Final Weighments created ${out.weighmentsCreated}; Final Weighments updated ${out.weighmentsUpdated}; rows without ITC/WC data ${out.weighmentsSkipped}; matched existing PO ${out.poLinked}; unmatched PO ${out.poMissing}; row errors ${out.errors.length}. PO masters, invoices, settlements and dashboards were not imported.`;
+    const errText=out.errors.length?`<div class="notice error" style="margin-top:10px"><b>Rows needing review:</b><br>${out.errors.slice(0,40).map(esc).join('<br>')}${out.errors.length>40?'<br>…':''}</div>`:'';
     if($('wmImportProgress'))$('wmImportProgress').innerHTML=`<div class="notice success">${esc(summary)}</div>${errText}`;else alert(summary);
   }catch(e){wmImpMsg(`Import stopped: ${e.message||e}`,'notice error');}
   finally{if(btn)btn.disabled=false;}
