@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>WoodMaster 360</title>
+<title>WoodMaster 360 — Shared Reservations, Original Invoice Design</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -739,32 +739,269 @@ async function printMaterialInvoice(id){
   try{
     const {invoice,items}=await getMaterialInvoiceBundle(id);
     if(!invoice)return;
+
     const contractor=active()||{};
-    const itc=state.itcs.find(x=>x.id===invoice.itc_id)||state.itcs.find(x=>x.is_default)||state.itcs[0]||{};
-    let customer={};
-    const poIds=items.map(x=>x.po_id).filter(Boolean);
-    if(poIds.length){
-      const pr=await sb.from('po_master').select('customer_id,customer_master(*)').in('id',poIds).limit(1);
-      if(!pr.error&&pr.data?.[0]?.customer_master)customer=pr.data[0].customer_master;
+    const loadIds=[...new Set((items||[]).map(x=>x.load_id).filter(Boolean))];
+    let loads=[];
+    if(loadIds.length){
+      const lr=await sb.from('loads').select(`
+        id,po_id,species_name,load_date,
+        vehicle_master(vehicle_number,owner_name,driver_name),
+        po_master(po_number,area_name,species_name,wood_rate,handling_other_rate,hsn_code,customer_id,customer_master(*))
+      `).in('id',loadIds);
+      if(lr.error)throw lr.error;
+      loads=lr.data||[];
     }
-    if(!customer.gstin)customer={customer_name:itc.company_name||'ITC LTD - PSPD',gstin:itc.gstin||'',pan:itc.pan||'',address:itc.address||''};
-    const totalQty=num(invoice.total_qty), mv=num(invoice.material_value), hv=num(invoice.handling_value), gst=num(invoice.gst), total=num(invoice.invoice_total);
-    const rows=items.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(fmtDate(x.wc_date))}</td><td>${esc(x.wc_number||'')}</td><td>${esc(String(x.vehicle_number||'').toUpperCase())}</td><td class="num">${fmt(x.approved_qty)}</td><td>MT</td></tr>`).join('');
-    const rate=items.length?num(items[0].wood_rate):0, handlingRate=items.length?num(items[0].handling_rate):0;
-    const html=`<!doctype html><html><head><meta charset="utf-8"><title>Tax Invoice ${esc(invoice.invoice_number)}</title><style>
-      @page{size:A4;margin:12mm}body{font-family:Arial,Helvetica,sans-serif;color:#111;font-size:11px;margin:0}.sheet{width:100%}h1{text-align:center;font-size:18px;margin:0 0 4px}.subtitle{text-align:center;font-weight:bold;font-size:13px;margin-bottom:10px}.top{display:grid;grid-template-columns:1fr 1fr;border:1px solid #111}.box{padding:7px;border-right:1px solid #111;min-height:85px}.box:last-child{border-right:0}.label{font-weight:bold}.meta{margin:8px 0}.meta table,.lines,.summary{width:100%;border-collapse:collapse}.meta td{padding:3px 5px}.lines th,.lines td,.summary th,.summary td{border:1px solid #111;padding:5px}.lines th{background:#f2f2f2}.num{text-align:right}.summary{margin-top:8px}.summary td:first-child{font-weight:bold}.footer{margin-top:18px;display:flex;justify-content:space-between}.draft{position:fixed;top:45%;left:20%;font-size:60px;color:#bbb;transform:rotate(-25deg);opacity:.25;z-index:-1}
-      @media print{button{display:none}}
-    </style></head><body><div class="sheet">${invoice.status==='Draft'?'<div class="draft">DRAFT</div>':''}<h1>TAX INVOICE</h1><div class="subtitle">Invoice No: ${esc(invoice.invoice_number)} &nbsp;&nbsp; Date: ${esc(fmtDate(invoice.invoice_date))}</div>
-      <div class="top"><div class="box"><div class="label">To</div><b>${esc(customer.customer_name||'ITC LTD - PSPD')}</b><br>${esc(customer.address||'')}<br>PAN: ${esc(customer.pan||'')}<br>GSTIN: ${esc(customer.gstin||'')}</div><div class="box"><div class="label">From</div><b>${esc(contractor.contractor_name||'')}</b><br>${esc(contractor.address||'')}<br>PAN: ${esc(contractor.pan||'')}<br>GSTIN: ${esc(contractor.gstin||'')}<br>Vendor Code: ${esc(contractor.contractor_code||'')}</div></div>
-      <div class="meta"><table><tr><td><b>1. Period From</b> ${esc(fmtDate(invoice.from_date))} To ${esc(fmtDate(invoice.to_date))}</td><td><b>2. HSN Code</b> ${esc(items[0]?.hsn_code||'44039800')}</td></tr><tr><td><b>3. Material</b> Eucalyptus Debarked Wood</td><td><b>4. Place of Supply</b> ITC Ltd - PSPD, Sarapaka (Telangana State)</td></tr><tr><td colspan="2"><b>5. Payment</b> E-Payment</td></tr></table></div>
-      <table class="lines"><thead><tr><th>S.No</th><th>Date</th><th>WC Number</th><th>Truck Number</th><th>Qty</th><th>UOM</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><th colspan="4" class="num">Total Quantity</th><th>${fmt(totalQty)}</th><th>MT</th></tr></tfoot></table>
-      <table class="summary"><tr><th>Particulars</th><th>Quantity</th><th>Rate</th><th>Amount</th></tr><tr><td>Material Cost</td><td class="num">${fmt(totalQty)}</td><td class="num">${money(rate)}</td><td class="num">${money(mv)}</td></tr><tr><td>Handling and Other Charges Cost</td><td class="num">${fmt(totalQty)}</td><td class="num">${money(handlingRate)}</td><td class="num">${money(hv)}</td></tr><tr><th>Total</th><th class="num">${fmt(totalQty)}</th><th class="num">${money(rate+handlingRate)}</th><th class="num">${money(mv+hv)}</th></tr><tr><td colspan="3">CGST 9%</td><td class="num">${money(gst/2)}</td></tr><tr><td colspan="3">SGST 9%</td><td class="num">${money(gst/2)}</td></tr><tr><th colspan="3">Total Invoice Value</th><th class="num">${money(total)}</th></tr></table>
-      <div class="meta"><b>Ref: Agreement / PO No:</b> ${esc(items[0]?.po_number||'')}</div><div class="meta"><b>Total Qty:</b> ${fmt(totalQty)} MT</div><div class="footer"><div>Yours faithfully<br><br>For ${esc(contractor.contractor_name||'')}</div><div><b>${invoice.status==='Draft'?'DRAFT INVOICE':'TAX INVOICE'}</b></div></div>
-      </div></body></html>`;
-    const w=window.open('','_blank','width=900,height=1100');
-    if(!w)return alert('Please allow pop-ups for WoodMaster to print the invoice.');
-    w.document.open();w.document.write(html);w.document.close();w.onload=()=>setTimeout(()=>w.print(),250);
-  }catch(e){alert(`Could not prepare invoice for printing: ${e.message||e}`)}
+    const loadMap=new Map(loads.map(x=>[x.id,x]));
+    const enriched=(items||[]).map(x=>{
+      const load=loadMap.get(x.load_id)||null;
+      return {...x,load,vehicle_number:x.vehicle_number||load?.vehicle_master?.vehicle_number||''};
+    });
+    const firstLoad=enriched.find(x=>x.load)||{};
+    const po=firstLoad.load?.po_master||{};
+
+    let customer=po.customer_master||{};
+    if(!customer?.customer_name && po.customer_id){
+      const cr=await sb.from('customer_master').select('*').eq('id',po.customer_id).maybeSingle();
+      if(!cr.error&&cr.data)customer=cr.data;
+    }
+    if(!customer?.customer_name){
+      const itc=state.itcs.find(x=>x.id===invoice.itc_id)||state.itcs.find(x=>x.is_default)||state.itcs[0]||{};
+      customer={customer_name:itc.company_name||'ITC LTD - PSPD',gstin:itc.gstin||'',pan:itc.pan||'',address:itc.address||''};
+    }
+
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'a4',compress:true});
+    const PW=595.28,PH=841.89,left=34,right=561,width=right-left;
+    const black=[0,0,0];
+    const safe=v=>String(v??'').replace(/₹/g,'Rs. ').replace(/\u00a0/g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'?');
+    const num=v=>Number(v||0);
+    const moneyPlain=v=>num(v).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const qty3=v=>num(v).toLocaleString('en-IN',{minimumFractionDigits:3,maximumFractionDigits:3});
+    // Normal document font is 11 pt throughout, with bold used only where the reference design calls for emphasis.
+    const set=(size=11,bold=false)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(...black);};
+    const text=(t,x,y,size=11,bold=false,align='left')=>{
+      const xx=Number.isFinite(Number(x))?Number(x):0, yy=Number.isFinite(Number(y))?Number(y):0;
+      const a=['left','center','right','justify'].includes(String(align))?String(align):'left';
+      set(size,bold);doc.text(safe(t),xx,yy,{align:a});
+    };
+    const line=(x1,y1,x2,y2,w=0.75)=>{doc.setLineWidth(w);doc.setDrawColor(...black);doc.line(x1,y1,x2,y2);};
+    const rect=(x,y,w,h,lw=0.75)=>{doc.setLineWidth(lw);doc.setDrawColor(...black);doc.rect(x,y,w,h);};
+    const center=(t,x1,x2,y,size=11,bold=false)=>text(t,(x1+x2)/2,y,size,bold,'center');
+    const wrap=(t,max,size=11,bold=false)=>{set(size,bold);return doc.splitTextToSize(safe(t),max);};
+    const linesFrom=(v)=>String(v||'').split(/\r?\n|,/).map(s=>s.trim()).filter(Boolean);
+    const fitSize=(str,maxWidth,start=11,min=8,bold=false)=>{let size=start;set(size,bold);while(size>min&&doc.getTextWidth(safe(str))>maxWidth){size-=0.25;set(size,bold)}return size;};
+
+    const poNo=po.po_number||'';
+    const material=po.species_name||firstLoad.load?.species_name||'Eucalyptus Debarked Wood';
+    const hsn=po.hsn_code||'44039800';
+    const customerName=customer.customer_name||'ITC LTD - PSPD';
+    const supplierName=contractor.contractor_name||'SRI VENKATESHWARA TRADERS';
+    const customerPan=customer.pan||'AAACI5950L';
+    const customerGstin=customer.gstin||'36AAACI5950L1ZB';
+    const supplierPan=contractor.pan||'TOHPS0526H';
+    const supplierGstin=contractor.gstin||'36TOHPS0526H1ZE';
+    const phone='9493218336';
+    const supplierCode='1025420';
+
+    // TAX INVOICE heading and top metadata.
+    text('TAX INVOICE',PW/2,34,11,true,'center');
+    text('Tax Invoice NO:',left,58,11,true);
+    text(invoice.invoice_number||'',left+108,58,11,true);
+    text('Date:',right-116,58,11,true,'left');
+    text(fmtDate(invoice.invoice_date),right,58,11,true,'right');
+
+    // To / From blocks. Supplier address is intentionally four lines, including the house number.
+    text('To',left,84,11);
+    text('From',316,84,11);
+    let cy=104;
+    text(customerName,left,cy,11,true);cy+=16;
+    const customerLines=[
+      'Unit: Bhadrachalam',
+      'Sarapaka',
+      'Burgampahad Mandal',
+      'Bhadradri Kothagudem District',
+      'Telangana - 507128'
+    ];
+    customerLines.forEach(v=>{text(v,left,cy,11);cy+=15;});
+    text(`PAN No: ${customerPan}`,left,cy,11);cy+=15;
+    text(`GST NO: ${customerGstin}`,left,cy,11);
+
+    let sy=104;
+    text(supplierName,316,sy,11,true);sy+=16;
+    const supplierLines=[
+      '15-8-539, Rama Devi Nilayam',
+      'Rotary Nagar, Srinagar Colony',
+      'Khammam District - 507002',
+      'Telangana State (Code 36)'
+    ];
+    supplierLines.forEach(v=>{text(v,316,sy,11);sy+=15;});
+    text(`Cell : ${phone}`,316,sy,11);sy+=15;
+    text(`Vendor Code: ${supplierCode}`,316,sy,11);sy+=15;
+    text(`PAN NO: ${supplierPan}`,316,sy,11);sy+=15;
+    text(`GST NO: ${supplierGstin}`,316,sy,11);
+
+    // Particulars with colon after every label, as requested.
+    const metaY=sy+18;
+    const labelX=left+17, colonX=left+102, valX=left+112;
+    const meta=[
+      ['1','Period From',`${fmtDate(invoice.from_date)} To ${fmtDate(invoice.to_date)}`],
+      ['2','HSN Code',hsn],
+      ['3','Material',material],
+      ['4','Place of Supply','ITC LTD PSPD'],
+      ['5','Payment','E-Payment']
+    ];
+    meta.forEach((m,i)=>{
+      const yy=metaY+i*18;
+      text(m[0],left,yy,11);
+      text(m[1],labelX,yy,11);
+      text(':',colonX,yy,11);
+      text(m[2],valX,yy,11);
+    });
+
+    // Keep the reference on one line and the direct-supply line immediately below it.
+    const refY=metaY+5*18+2;
+    const refText=`Ref: Agreement No: PO No: ${poNo}`;
+    text(refText,PW/2,refY,fitSize(refText,width-40,11,9,false),true,'center');
+    text('Direct supply to ITC Ltd PSPD Sarapaka (Telangana State)',PW/2,refY+20,11,true,'center');
+
+    // First table. Total Qty / quantity / UOM are centered.
+    const tableTop=refY+34, headerH=21, rowH=18;
+    // Column proportions match the 34/2026-27 reference invoice.
+    const cols=[
+      left,
+      left+width*0.1244,
+      left+width*0.2450,
+      left+width*0.4410,
+      left+width*0.6270,
+      left+width*0.8130,
+      right
+    ];
+    rect(left,tableTop,width,headerH,0.8);
+    for(let i=1;i<cols.length-1;i++)line(cols[i],tableTop,cols[i],tableTop+headerH,0.8);
+    ['S.No','Date','WC Number','Truck Number','Qty','UOM'].forEach((v,i)=>center(v,cols[i],cols[i+1],tableTop+14,11,true));
+    let rowY=tableTop+headerH;
+    enriched.forEach((x,i)=>{
+      rect(left,rowY,width,rowH,0.8);
+      for(let c=1;c<cols.length-1;c++)line(cols[c],rowY,cols[c],rowY+rowH,0.8);
+      center(String(i+1),cols[0],cols[1],rowY+13,11);
+      center(fmtDate(x.wc_date||x.load?.load_date||invoice.from_date),cols[1],cols[2],rowY+13,11);
+      center(x.wc_number||x.weighment_card_number||'',cols[2],cols[3],rowY+13,11);
+      center(String(x.vehicle_number||x.load?.vehicle_master?.vehicle_number||'').toUpperCase(),cols[3],cols[4],rowY+13,11);
+      center(qty3(x.approved_qty),cols[4],cols[5],rowY+13,11);
+      center('MT',cols[5],cols[6],rowY+13,11);
+      rowY+=rowH;
+    });
+    rect(left,rowY,width,rowH,0.8);
+    line(cols[4],rowY,cols[4],rowY+rowH,0.8);
+    line(cols[5],rowY,cols[5],rowY+rowH,0.8);
+    center('Total Qty',cols[0],cols[4],rowY+13,11,true);
+    center(qty3(invoice.total_qty),cols[4],cols[5],rowY+13,11,true);
+    center('MT',cols[5],cols[6],rowY+13,11,true);
+    rowY+=rowH+9;
+
+    // Second table: reproduce the 34 reference structure, including merged Quantity cells.
+    // Table 2 column proportions match the 34/2026-27 reference:
+    // Particulars 44.15% | Quantity 18.62% | Rate 18.50% | Amount 18.73%.
+    const sc=[
+      left,
+      left+width*0.4415,
+      left+width*0.6277,
+      left+width*0.8126,
+      right
+    ];
+    const h=21, rh=18;
+    // Build the invoice rows before calculating the table height.
+    // (The previous version referenced rows before initialization.)
+    const materialRate=num(enriched[0]?.wood_rate||po.wood_rate||0);
+    const handlingRate=num(enriched[0]?.handling_rate||po.handling_other_rate||0);
+    const materialValue=num(invoice.material_value), handlingValue=num(invoice.handling_value);
+    const tax=num(invoice.gst), gross=materialValue+handlingValue;
+    const rows=[
+      ['Material Cost (Price as determined by AMC)','',moneyPlain(materialRate),moneyPlain(materialValue)],
+      ['Handling and Other Charges Cost','',moneyPlain(handlingRate),moneyPlain(handlingValue)],
+      ['FSC Premium','','-','-'],
+      ['Total',qty3(invoice.total_qty),moneyPlain(materialRate+handlingRate),moneyPlain(gross)],
+      ['Deduction','','','-'],
+      ['Gross Amount','','',moneyPlain(gross)],
+      ['SGST','','9%',moneyPlain(tax/2)],
+      ['CGST','','9%',moneyPlain(tax/2)],
+      ['Total Tax Amount','','',moneyPlain(tax)],
+      ['Total Invoice Value','','',moneyPlain(invoice.invoice_total)]
+    ];
+    const totalBlockH=h+rh*rows.length;
+    rect(left,rowY,width,totalBlockH,0.8);
+    // vertical boundaries
+    line(sc[1],rowY,sc[1],rowY+totalBlockH,0.8);
+    line(sc[2],rowY,sc[2],rowY+totalBlockH,0.8);
+    // Header
+    line(left,rowY+h,right,rowY+h,0.8);
+    center('Particulars',sc[0],sc[1],rowY+17,11,true);
+    center('Quantity',sc[1],sc[2],rowY+17,11,true);
+    center('Rate',sc[2],sc[3],rowY+17,11,true);
+    center('Amount',sc[3],sc[4],rowY+17,11,true);
+    // Vertical boundaries, including the required Rate/Amount separator.
+    line(sc[3],rowY,sc[3],rowY+totalBlockH,0.8);
+
+    // First 3 rows: Quantity is one vertically merged cell, exactly as in the base design.
+    let y=rowY+h;
+    for(let i=0;i<rows.length;i++){
+      const rhh=rh;
+      // Do NOT draw the horizontal divider through the merged Quantity cell
+      // for the first three charge rows.
+      if(i===0){
+        line(left,y,sc[1],y,0.8);
+        line(sc[2],y,right,y,0.8);
+      }else if(i===1){
+        line(left,y,sc[1],y,0.8);
+        line(sc[2],y,right,y,0.8);
+      }else if(i===2){
+        // FSC Premium is part of the same vertically merged Quantity cell.
+        // Keep the horizontal divider out of the Quantity column.
+        line(left,y,sc[1],y,0.8);
+        line(sc[2],y,right,y,0.8);
+      }else{
+        line(left,y,right,y,0.8);
+      }
+      const bold=[3,5,8,9].includes(i);
+      center(rows[i][0],sc[0],sc[1],y+13,11,bold);
+      if(i>=3)center(rows[i][1],sc[1],sc[2],y+13,11,bold);
+      center(rows[i][2],sc[2],sc[3],y+13,11,bold);
+      text(rows[i][3],sc[3]+(sc[4]-sc[3])/2,y+13,11,bold,'center');
+      y+=rhh;
+    }
+    // One merged Quantity value centered vertically over Material + Handling + FSC rows.
+    center(qty3(invoice.total_qty),sc[1],sc[2],rowY+h+rh*1.5+1,11,false);
+
+    // Words and signature, left aligned.
+    const qtyWords=n=>{
+      const s=num(n).toFixed(3),[a,b]=s.split('.');
+      const base=numberWordsIndian(Number(a)).replace(/ Rupees Only$/i,'');
+      const names=['ZERO','ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE'];
+      return `${base.toUpperCase()} POINT ${b.split('').map(d=>names[Number(d)]).join(' ')} (MT)`;
+    };
+    const amountWords=n=>{
+      const v=Math.round(num(n)*100)/100, rupees=Math.floor(v), paise=Math.round((v-rupees)*100);
+      let s=numberWordsIndian(rupees).replace(/ Rupees Only$/i,'').toUpperCase();
+      if(paise>0)s+=` RUPEES AND ${numberWordsIndian(paise).replace(/ Rupees Only$/i,'').toUpperCase()} PAISA ONLY`;
+      else s+=' RUPEES ONLY';
+      return s;
+    };
+    rowY=y+14;
+    text('Qty :',left,rowY,11,false,'left');
+    text(qtyWords(invoice.total_qty),left+44,rowY,11,false,'left');
+    rowY+=20;
+    text('Amount :',left,rowY,11,false,'left');
+    const aw=wrap(amountWords(invoice.invoice_total),right-(left+62),11,false);
+    aw.forEach((ln,i)=>text(ln,left+62,rowY+i*13,11,false,'left'));
+    rowY+=aw.length*13+22;
+    text('Yours faithfully',left,rowY,11,false,'left');
+    rowY+=34;
+    text(`For ${supplierName}`,left,rowY,11,true,'left');
+
+    const filename=(invoice.status==='Draft'?'Draft_Material_Invoice_':'Material_Invoice_')+String(invoice.invoice_number||id).replace(/[^a-zA-Z0-9_-]/g,'_')+'.pdf';
+    doc.save(filename);
+  }catch(e){console.error(e);alert(`Could not download invoice PDF: ${e.message||e}`)}
 }
 async function deleteMaterialInvoice(id){
   try{
