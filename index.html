@@ -188,7 +188,7 @@ async function wmRunImport(){
         const itcGross=wmImpNum(r.ITC_Gross_Weight),itcTare=wmImpNum(r.ITC_Tare_Weight),itcNet=wmImpNum(r.ITC_Weight);
         const hasItc=!!wc||itcGross>0||itcTare>0||itcNet>0;
         if(hasItc){
-          const wrow={load_id:loadRec.id,wc_number:wc||null,wc_date:null,vehicle_number:vn,dc_number:loadRec.dc_number||null,dc_date:date,material_description:po.species_name||null,gross_weight:itcGross||null,tare_weight:itcTare||null,net_weight:itcNet||((itcGross>0&&itcTare>=0)?Math.round((itcGross-itcTare)*1000)/1000:null),approved_weight:itcNet||((itcGross>0&&itcTare>=0)?Math.round((itcGross-itcTare)*1000)/1000:null),ocr_verified:false,source:'AppSheet Import',created_by:state.session?.user?.id||null};
+          const wrow={load_id:loadRec.id,wc_number:wc||null,wc_date:wmImpDate(r.WC_Date)||date,vehicle_number:vn,dc_number:loadRec.dc_number||null,dc_date:date,material_description:po.species_name||null,gross_weight:itcGross||null,tare_weight:itcTare||null,net_weight:itcNet||((itcGross>0&&itcTare>=0)?Math.round((itcGross-itcTare)*1000)/1000:null),approved_weight:itcNet||((itcGross>0&&itcTare>=0)?Math.round((itcGross-itcTare)*1000)/1000:null),ocr_verified:false,source:'AppSheet Import',created_by:state.session?.user?.id||null};
           const oldW=await sb.from('itc_weighments').select('id').eq('load_id',loadRec.id).maybeSingle();if(oldW.error)throw oldW.error;
           if(oldW.data){const u=await sb.from('itc_weighments').update(wrow).eq('id',oldW.data.id);if(u.error)throw u.error;out.weighmentsUpdated++;}
           else {const ins=await sb.from('itc_weighments').insert(wrow);if(ins.error)throw ins.error;out.weighmentsCreated++;}
