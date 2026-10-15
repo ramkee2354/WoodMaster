@@ -951,14 +951,15 @@ async function printMaterialInvoice(id){
     // First table. Total Qty / quantity / UOM are centered.
     const tableTop=refY+34, headerH=21, rowH=18;
     // Column proportions match the 34/2026-27 reference invoice.
+    // Balanced widths prevent WC numbers and truck numbers from touching adjacent cells.
     const cols=[
       left,
-      left+width*0.1244,
-      left+width*0.2450,
-      left+width*0.4410,
-      left+width*0.6270,
-      left+width*0.8130,
-      right
+      left+width*0.09,   // S.No
+      left+width*0.25,   // Date
+      left+width*0.46,   // WC Number
+      left+width*0.68,   // Truck Number
+      left+width*0.86,   // Qty
+      right              // UOM
     ];
     rect(left,tableTop,width,headerH,0.8);
     for(let i=1;i<cols.length-1;i++)line(cols[i],tableTop,cols[i],tableTop+headerH,0.8);
@@ -994,6 +995,8 @@ async function printMaterialInvoice(id){
       right
     ];
     const h=21, rh=18;
+    // The first Particulars entry is wrapped inside its own cell; give that row extra height.
+    const rowHeights=[28,18,18,18,18,18,18,18,18,18];
     // Build the invoice rows before calculating the table height.
     // (The previous version referenced rows before initialization.)
     const materialRate=num(enriched[0]?.wood_rate||po.wood_rate||0);
@@ -1012,7 +1015,7 @@ async function printMaterialInvoice(id){
       ['Total Tax Amount','','',moneyPlain(tax)],
       ['Total Invoice Value','','',moneyPlain(invoice.invoice_total)]
     ];
-    const totalBlockH=h+rh*rows.length;
+    const totalBlockH=h+rowHeights.reduce((sum,v)=>sum+v,0);
     rect(left,rowY,width,totalBlockH,0.8);
     // vertical boundaries
     line(sc[1],rowY,sc[1],rowY+totalBlockH,0.8);
@@ -1029,7 +1032,7 @@ async function printMaterialInvoice(id){
     // First 3 rows: Quantity is one vertically merged cell, exactly as in the base design.
     let y=rowY+h;
     for(let i=0;i<rows.length;i++){
-      const rhh=rh;
+      const rhh=rowHeights[i];
       // Do NOT draw the horizontal divider through the merged Quantity cell
       // for the first three charge rows.
       if(i===0){
@@ -1047,14 +1050,22 @@ async function printMaterialInvoice(id){
         line(left,y,right,y,0.8);
       }
       const bold=[3,5,8,9].includes(i);
-      center(rows[i][0],sc[0],sc[1],y+13,11,bold);
-      if(i>=3)center(rows[i][1],sc[1],sc[2],y+13,11,bold);
-      center(rows[i][2],sc[2],sc[3],y+13,11,bold);
-      text(rows[i][3],sc[3]+(sc[4]-sc[3])/2,y+13,11,bold,'center');
+      if(i===0){
+        // Keep the full particulars label within the first cell and wrap at 11 pt.
+        const labelLines=wrap(rows[i][0],sc[1]-sc[0]-10,11,bold);
+        const lineStep=12;
+        const startY=y+(rhh-(labelLines.length-1)*lineStep)/2+3;
+        labelLines.forEach((ln,j)=>center(ln,sc[0]+3,sc[1]-3,startY+j*lineStep,11,bold));
+      }else{
+        center(rows[i][0],sc[0],sc[1],y+rhh/2+4,11,bold);
+      }
+      if(i>=3)center(rows[i][1],sc[1],sc[2],y+rhh/2+4,11,bold);
+      center(rows[i][2],sc[2],sc[3],y+rhh/2+4,11,bold);
+      center(rows[i][3],sc[3],sc[4],y+rhh/2+4,11,bold);
       y+=rhh;
     }
     // One merged Quantity value centered vertically over Material + Handling + FSC rows.
-    center(qty3(invoice.total_qty),sc[1],sc[2],rowY+h+rh*1.5+1,11,false);
+    center(qty3(invoice.total_qty),sc[1],sc[2],rowY+h+(rowHeights[0]+rowHeights[1]+rowHeights[2])/2+4,11,false);
 
     // Words and signature, left aligned.
     const qtyWords=n=>{
