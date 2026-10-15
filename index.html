@@ -1,9 +1,6 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta name="wm360-build" content="WM360-DOCUMENT-DESIGNS-LOCKED-PO-BILLING-RESTORED-NO-FSSIZE">
-  <!-- WM360-DOCUMENT-DESIGNS-LOCKED: LR / DC / INITIAL FL / FINAL FL -->
-<!-- WM360-PO-BILLING-RESTORED: Material Billing is strictly Purchase-Order based -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>WoodMaster 360</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -13,33 +10,8 @@
 :root{--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;--line:#e4e7ec;--primary:#1769aa;--primary2:#0f5d93;--success:#16845b;--danger:#c62828;--warn:#b26a00;--info:#eef7ff}
 *{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text)}button,input,select,textarea{font:inherit}header{height:64px;background:#123b5d;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:10}.brand{font-size:21px;font-weight:700}.user{font-size:13px;opacity:.9}.layout{display:flex;min-height:calc(100vh - 64px)}nav{width:215px;background:#fff;border-right:1px solid var(--line);padding:14px;flex:none}nav button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:11px 12px;border-radius:8px;margin:3px 0;color:#344054;cursor:pointer;font-size:14px}nav button:hover,nav button.active{background:#eaf3fb;color:#125a8d;font-weight:600}main{flex:1;padding:25px;max-width:1550px;margin:auto;width:100%}h1{font-size:25px;margin:0 0 6px}h2{font-size:19px;margin:0 0 14px}.sub{color:var(--muted);font-size:13px;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.card,.form{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:0 1px 2px #00000008}.metric{font-size:27px;font-weight:700;margin-top:7px}.label{font-size:12px;color:var(--muted)}.section{margin-top:18px}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff}table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:10px 11px;border-bottom:1px solid var(--line);text-align:left;font-size:13px;vertical-align:top}th{color:#475467;background:#fafafa}.empty{text-align:center;padding:28px;color:var(--muted)}.formgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.field label{display:block;font-size:12px;font-weight:600;color:#475467;margin-bottom:6px}.field input,.field select,.field textarea{width:100%;padding:10px 11px;border:1px solid #d0d5dd;border-radius:8px;background:#fff;outline:none}.field textarea{min-height:75px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px #1769aa18}.field.full{grid-column:1/-1}.readonly{background:#f2f4f7!important}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.btn{border:0;border-radius:8px;padding:10px 15px;cursor:pointer;font-weight:600}.primary{background:var(--primary);color:#fff}.primary:hover{background:var(--primary2)}.secondary{background:#eef2f6;color:#344054}.danger{background:#fff0f0!important;color:var(--danger)!important;border:1px solid #f3c3c3!important}.success{background:#effaf5!important;color:#11633f!important;border:1px solid #bde8d1!important}.notice{padding:12px 14px;border-radius:8px;background:#eef7ff;border:1px solid #cfe7fb;color:#17527c;font-size:13px;margin-bottom:15px}.notice.error{background:#fff1f1;border-color:#f3c3c3;color:#9d1c1c}.notice.success{background:#effaf5;border-color:#bde8d1;color:#11633f}.small{font-size:12px;color:var(--muted)}.badge{display:inline-block;padding:4px 8px;border-radius:99px;background:#eef4f8;font-size:11px;color:#355b73}.topbar{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;flex-wrap:wrap}.context{background:#eaf3fb;border:1px solid #c9e1f3;border-radius:9px;padding:10px 13px;margin-bottom:18px;color:#15527c;font-size:13px}.contractor-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.contractor-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;cursor:pointer}.contractor-card:hover{box-shadow:0 7px 22px #00000010;border-color:#9fc9e6}.contractor-name{font-size:18px;font-weight:700;margin-top:8px}.contractor-meta{font-size:12px;color:var(--muted);margin-top:5px}.quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.quick button{text-align:left;background:#fff;border:1px solid var(--line);border-radius:10px;padding:15px;cursor:pointer}.quick button:hover{border-color:#9fc9e6;background:#fafdff}.quick b{display:block;margin-bottom:4px}.login{min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#edf5fb,#f7fafc);padding:20px}.loginbox{width:min(440px,100%);background:#fff;border:1px solid var(--line);border-radius:15px;padding:28px;box-shadow:0 10px 30px #00000010}.loginbox h1{text-align:center;margin-bottom:4px}.loginbox .sub{text-align:center}.modal{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;padding:18px;z-index:100}.modalbox{width:min(950px,100%);max-height:94vh;overflow:auto;background:#fff;border-radius:14px;padding:20px;box-shadow:0 20px 60px #00000030}.modalhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px}.modalclose{border:0;background:#eef2f6;border-radius:8px;padding:8px 12px;cursor:pointer}.rowactions{display:flex;gap:6px;flex-wrap:wrap}.mini{padding:6px 9px;font-size:12px;border-radius:7px}.sectionhead{background:#eaf3fb;border:1px solid #c9e1f3;border-radius:10px;padding:11px 13px;font-weight:700;color:#15527c;margin-top:15px}.docgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.doccard{border:1px solid var(--line);background:#fff;border-radius:10px;padding:14px}.compare{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}.compare>div{padding:10px;border-bottom:1px solid var(--line)}.compare .head{font-weight:700;background:#f7f9fb}.compare .diff{background:#fff6e6}.statusbar{padding:10px;border-radius:8px;background:#f7f9fb;border:1px solid var(--line);font-size:12px}.sticky-actions{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);padding:12px 0;margin-top:15px}.hidden{display:none!important}
 @media(max-width:1050px){.grid{grid-template-columns:repeat(2,1fr)}.quick,.contractor-grid,.docgrid{grid-template-columns:repeat(2,1fr)}.formgrid{grid-template-columns:repeat(2,1fr)}}@media(max-width:700px){header{height:58px;padding:0 14px}.layout{display:block}nav{width:100%;display:flex;overflow:auto;border-right:0;border-bottom:1px solid var(--line);padding:7px}nav button{white-space:nowrap;width:auto}.grid,.quick,.contractor-grid,.docgrid,.formgrid{grid-template-columns:1fr}main{padding:14px}.field.full{grid-column:auto}.user{display:none}.compare{grid-template-columns:1fr}}
-
-/* Material Billing workflow UX: clear stages, responsive tables, and focused primary path */
-.billing-hero{background:linear-gradient(120deg,#123b5a,#1d6894);color:#fff;border-radius:14px;padding:22px;margin:8px 0 18px;box-shadow:0 8px 24px rgba(18,59,90,.15)}
-.billing-hero h1{color:#fff;margin:0 0 6px}.billing-hero .sub{color:#e4f1fa;max-width:900px}
-.billing-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0 0}
-.billing-step{border:1px solid rgba(255,255,255,.32);background:rgba(255,255,255,.09);border-radius:10px;padding:11px 12px;min-height:62px}
-.billing-step b{display:block;font-size:13px;margin-bottom:4px}.billing-step span{font-size:12px;color:#e4f1fa}
-.billing-primary{border:2px solid #b9d9ec;box-shadow:0 3px 12px rgba(15,73,112,.06)}
-.billing-primary>h2{display:flex;align-items:center;gap:9px}.billing-primary>h2:before{content:'1';display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#1c6ca4;color:white;font-size:14px}
-.billing-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:10px 0}
-.billing-statusline{padding:10px 12px;background:#edf7ff;border:1px solid #cce5f8;border-radius:9px;color:#174b70;margin:12px 0}
-.billing-actions-sticky{position:sticky;bottom:8px;z-index:4;background:rgba(255,255,255,.96);padding:10px;border:1px solid #dbe5ec;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.08)}
-#billingReconciliationPanel{scroll-margin-top:18px}#billingReconciliationPanel .grid{grid-template-columns:repeat(4,minmax(0,1fr))}
-#billingReconciliationPanel table{min-width:1050px}#billingReconciliationPanel th{position:sticky;top:0;z-index:1}
-#billingReconciliationPanel .badge.success{background:#dff5e8;color:#17663a}#billingReconciliationPanel .badge.warning{background:#fff0d5;color:#80500a}
-.billing-secondary{margin-top:22px}.billing-secondary>summary{cursor:pointer;font-weight:700;padding:15px;background:#f6f8fa;border:1px solid #dce4ea;border-radius:10px}
-@media(max-width:850px){.billing-steps{grid-template-columns:repeat(2,minmax(0,1fr))}#billingReconciliationPanel .grid{grid-template-columns:repeat(2,minmax(0,1fr))}.billing-hero{padding:16px}}
-@media(max-width:520px){.billing-steps{grid-template-columns:1fr}.billing-hero h1{font-size:22px}}
-</style><script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<meta name="wm360-invoice-design" content="34-TAX-INVOICE-USER-ALIGNED"><!-- WM360-MATERIAL-INVOICE-34-USER-ALIGNMENT-FINAL --></head><body><div id="app"></div>
+</style></head><body><div id="app"></div>
 <script>
-// WM360 invoice PDF font size. No fs/WM360_INVOICE_FONT_SIZE global dependency.
-const WM360_INVOICE_FONT_SIZE = 11;
-// Final compatibility guard for any previously deployed/cached invoice code.
-window.fsSize = 11;
-var fsSize = 11;
-
 const SUPABASE_URL="https://betjenxaqebqhqvjotyd.supabase.co";
 const SUPABASE_KEY="sb_publishable_KVBkusGZfcoipZwCkHhJJg_O_u69I2p";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -63,11 +35,11 @@ function shell(body){return `<header><div class="brand">🌲 WoodMaster</div><di
 async function refreshAll(){await refreshContractors();if(active())await refreshMasters();if(active())await refreshLoads();}
 async function refreshContractors(){const r=await sb.from('contractor_master').select('*').eq('is_active',true).order('contractor_name');if(r.error)throw r.error;state.contractors=r.data||[]}
 async function refreshMasters(){const [c,p,v,i]=await Promise.all([sb.from('customer_master').select('*').eq('is_active',true).order('customer_name'),sb.from('po_master').select('*,customer_master(customer_name,gstin)').eq('is_active',true).order('po_number'),sb.from('vehicle_master').select('*').eq('is_active',true).order('vehicle_number'),sb.from('itc_master').select('*').eq('is_active',true).order('company_name')]);if(c.error)throw c.error;if(p.error)throw p.error;if(v.error)throw v.error;if(i.error)throw i.error;state.customers=c.data||[];state.pos=(p.data||[]).filter(x=>!active()||x.contractor_id===active().id);state.vehicles=v.data||[];state.itcs=i.data||[]}
-async function refreshLoads(){if(!active()){state.loads=[];return}const r=await sb.from('loads').select('*,vehicle_master(vehicle_number,owner_name,driver_name,current_tare),po_master(po_number,contractor_id,area_name,species_name,wood_rate,handling_other_rate,amc_rate,hsn_code,customer_id,customer_master(customer_name,gstin))').order('load_date',{ascending:false}).order('load_number',{ascending:false}).limit(500);if(r.error)throw r.error;state.loads=(r.data||[]).filter(x=>x.po_master?.contractor_id===active().id||!x.po_master?.contractor_id)}
+async function refreshLoads(){if(!active()){state.loads=[];return}const all=[];for(let from=0;from<10000;from+=1000){const r=await sb.from('loads').select('*,vehicle_master(vehicle_number,owner_name,driver_name,current_tare),po_master(po_number,contractor_id,area_name,species_name,wood_rate,handling_other_rate,amc_rate,hsn_code,customer_id,customer_master(customer_name,gstin))').order('load_date',{ascending:false}).order('load_number',{ascending:false}).range(from,from+999);if(r.error)throw r.error;all.push(...(r.data||[]));if((r.data||[]).length<1000)break}state.loads=all.filter(x=>x.po_master?.contractor_id===active().id||!x.po_master?.contractor_id)}
 async function nextDc(){const now=new Date();const fy=(now.getMonth()+1)>=4?`${now.getFullYear()}-${String(now.getFullYear()+1).slice(-2)}`:`${now.getFullYear()-1}-${String(now.getFullYear()).slice(-2)}`;let max=0;const r=await sb.from('loads').select('dc_number').not('dc_number','is',null).limit(5000);if(!r.error)(r.data||[]).forEach(x=>{const parts=String(x.dc_number||'').split('/');if(parts.length===2&&parts[1]===fy)max=Math.max(max,Number(parts[0])||0)});return `${String(max+1).padStart(2,'0')}/${fy}`}
 function poLabel(p){const area=String(p.area_name||'').trim().replace(/\s+/g,'_');const mat=String(p.species_name||'').trim().replace(/[^A-Za-z0-9]+/g,'');const cust=String(p.customer_master?.customer_name||'').trim().replace(/[^A-Za-z0-9]+/g,'');return `${p.po_number}_${area}_${mat.slice(0,3).toUpperCase()}_${cust.slice(0,3).toUpperCase()}`}
 function dashboard(){const loads=state.loads||[];return `<div class="context">Active Contractor: <b>${esc(active()?.contractor_name)}</b> · ${esc(active()?.contractor_code||'')}</div><div class="topbar"><div><h1>${esc(active()?.contractor_name||'Contractor')}</h1><div class="sub">Contractor dashboard — all operational records below belong to the selected contractor.</div></div><button class="btn secondary" onclick="changeContractor()">⇄ Change Contractor</button></div><div class="grid"><div class="card"><div class="label">Loads</div><div class="metric">${loads.length}</div></div><div class="card"><div class="label">Network Net MT</div><div class="metric">${fmt(loads.reduce((a,x)=>a+num(x.network_net),0))}</div></div><div class="card"><div class="label">Open / Pending Loads</div><div class="metric">${loads.filter(x=>!['Billed','Exception'].includes(x.status)).length}</div></div><div class="card"><div class="label">Active POs</div><div class="metric">${state.pos.length}</div></div></div><div class="section"><h2>Quick Actions</h2><div class="quick"><button onclick="go('newload')"><b>＋ New Load</b><span class="small">Start from the network weighbridge slip.</span></button><button onclick="go('loads')"><b>🚚 Loads</b><span class="small">View, edit and generate documents.</span></button><button onclick="go('masters')"><b>⚙ Masters</b><span class="small">Customers and POs for this contractor.</span></button><button onclick="go('itc')"><b>⚖ Final Weighment</b><span class="small">Enter and verify ITC card data.</span></button></div></div><div class="section"><h2>Recent Loads</h2>${loadTable(loads.slice(0,10))}</div>`}
-function loadTable(loads){if(!loads.length)return `<div class="card empty">No loads for this contractor.</div>`;return `<div class="tablewrap"><table><thead><tr><th>DC Number</th><th>LR Serial</th><th>LR Date</th><th>Vehicle</th><th>Net MT</th><th>Freight Rate</th><th>Advance</th><th>E-way</th><th>Status</th><th>Documents</th></tr></thead><tbody>${loads.map((x,i)=>{const docAction=x.status==='Load Created'?`<button class="btn primary mini" onclick="openDocsModal('${x.id}')">Generate Documents</button>`:`<button class="btn secondary mini" onclick="viewDocuments('${x.id}')">View Documents</button>`;return `<tr><td><button class="btn secondary mini" onclick="loadDetails('${x.id}')">${esc(x.dc_number||'—')}</button></td><td>${i+1}</td><td>${fmtDate(x.load_date)}</td><td>${esc(x.vehicle_master?.vehicle_number||'')}</td><td>${fmt(x.network_net)}</td><td>${money(x.freight_rate)}</td><td>${money(x.advance)}</td><td>${esc(x.eway_bill_no||'')}</td><td><span class="badge">${esc(x.status||'')}</span></td><td>${docAction}</td></tr>`}).join('')}</tbody></table></div>`}
+function loadTable(loads){if(!loads.length)return `<div class="card empty">No loads for this contractor.</div>`;return `<div class="tablewrap"><table><thead><tr><th>DC Number</th><th>Serial</th><th>Date</th><th>Vehicle</th><th>Net MT</th><th>Freight Rate</th><th>Advance</th><th>E-way</th><th>Status</th><th>Documents</th></tr></thead><tbody>${loads.map((x,i)=>{const docAction=x.status==='Load Created'?`<button class="btn primary mini" onclick="openDocsModal('${x.id}')">Generate Documents</button>`:`<button class="btn secondary mini" onclick="viewDocuments('${x.id}')">View Documents</button>`;return `<tr><td><button class="btn secondary mini" onclick="loadDetails('${x.id}')">${esc(x.dc_number||'—')}</button></td><td>${i+1}</td><td>${fmtDate(x.load_date)}</td><td>${esc(x.vehicle_master?.vehicle_number||'')}</td><td>${fmt(x.network_net)}</td><td>${money(x.freight_rate)}</td><td>${money(x.advance)}</td><td>${esc(x.eway_bill_no||'')}</td><td><span class="badge">${esc(x.status||'')}</span></td><td>${docAction}</td></tr>`}).join('')}</tbody></table></div>`}
 function loadDetails(id){state.selectedLoad=state.loads.find(x=>x.id===id)||null;state.page='loaddetail';render()}
 async function loadDetailPage(){const x=state.selectedLoad;if(!x)return `<div class="notice error">Load not found.</div>`;return `<div class="back" onclick="go('loads')">← Back to Loads</div><div class="topbar"><div><h1>Load ${esc(x.dc_number||x.load_number)}</h1><div class="sub">Complete load details and document workflow.</div></div><div class="rowactions"><button class="btn primary" onclick="editLoad('${x.id}')">Edit Load</button><button class="btn danger" onclick="deleteLoad('${x.id}')">Delete Load</button></div></div>${loadSummary(x)}<div class="section"><h2>Documents</h2><div class="docgrid"><div class="doccard"><b>LR / DC / FL</b><p class="small">Generate draft operational documents.</p><button class="btn primary mini" onclick="openDocsModal('${x.id}')">Generate Documents</button></div><div class="doccard"><b>Final Weighment</b><p class="small">Enter final weighment and compare against load.</p><button class="btn secondary mini" onclick="startItc('${x.id}')">Open Final Weighment</button></div><div class="doccard"><b>Freight Settlement</b><p class="small">Create final freight letter after ITC card.</p><button class="btn secondary mini" onclick="openFreight('${x.id}')">Open Final Freight Letter</button></div><div class="doccard"><b>Billing</b><p class="small">Receipt and material invoice workflow.</p><button class="btn secondary mini" onclick="go('billing')">Open Billing</button></div></div></div>`}
 function loadSummary(x){const p=x.po_master||{};return `<div class="card"><div class="sectionhead">Load Details</div><div class="formgrid"><div class="field"><label>DC Number</label><input class="readonly" readonly value="${esc(x.dc_number||'')}"/></div><div class="field"><label>Date</label><input class="readonly" readonly value="${fmtDate(x.load_date)}"/></div><div class="field"><label>Vehicle</label><input class="readonly" readonly value="${esc(x.vehicle_master?.vehicle_number||'')}"/></div><div class="field"><label>Driver / Owner</label><input class="readonly" readonly value="${esc(x.vehicle_master?.driver_name||x.vehicle_master?.owner_name||'')}"/></div><div class="field"><label>Gross MT</label><input class="readonly" readonly value="${fmt(x.network_gross)}"/></div><div class="field"><label>Tare MT</label><input class="readonly" readonly value="${fmt(x.network_tare)}"/></div><div class="field"><label>Net MT</label><input class="readonly" readonly value="${fmt(x.network_net)}"/></div><div class="field"><label>PO</label><input class="readonly" readonly value="${esc(poLabel(p))}"/></div><div class="field"><label>Material</label><input class="readonly" readonly value="${esc(x.species_name||p.species_name||'')}"/></div><div class="field"><label>E-way Bill</label><input class="readonly" readonly value="${esc(x.eway_bill_no||'')}"/></div><div class="field"><label>Wood Rate / MT</label><input class="readonly" readonly value="${num(p.wood_rate||x.wood_rate)}"/></div><div class="field"><label>Handling & Other / MT</label><input class="readonly" readonly value="${num(p.handling_other_rate||x.handling_other_rate)}"/></div><div class="field"><label>AMC / MT</label><input class="readonly" readonly value="${num(p.amc_rate||x.amc_rate)}"/></div><div class="field"><label>Freight Rate / MT</label><input class="readonly" readonly value="${num(x.freight_rate)}"/></div><div class="field"><label>Advance</label><input class="readonly" readonly value="${money(x.advance)}"/></div><div class="field"><label>Advance Given By</label><input class="readonly" readonly value="${esc(x.advance_given_by||'')}"/></div></div></div>`}
@@ -480,309 +452,140 @@ async function downloadFreightLetter(id){
   const filename=`Final_Freight_Letter_${String(challan||id).replace(/[^A-Za-z0-9_-]/g,'_')}.pdf`;doc.save(filename);
  }catch(e){alert('Could not generate Freight Letter PDF.\n\n'+(e?.message||e));console.error(e);}
 }
-async function getMaterialInvoiceStates(loadIds){
-  const ids=[...new Set((loadIds||[]).filter(Boolean).map(String))];
-  if(!ids.length)return {items:[],liveItems:[],liveByLoad:new Map(),allByLoad:new Map()};
-  const ir=await sb.from('invoice_items').select('id,load_id,invoice_id,is_active').in('load_id',ids);
-  if(ir.error)throw ir.error;
-  const raw=ir.data||[];
-  const invoiceIds=[...new Set(raw.map(x=>x.invoice_id).filter(Boolean))];
-  let headers=[];
-  if(invoiceIds.length){
-    const hr=await sb.from('material_invoices').select('id,invoice_number,status,invoice_date,from_date,to_date').in('id',invoiceIds);
-    if(hr.error)throw hr.error;
-    headers=hr.data||[];
-  }
-  const hmap=new Map(headers.map(h=>[String(h.id),h]));
-  const items=raw.map(x=>({...x,material_invoices:hmap.get(String(x.invoice_id))||null}));
-  const liveStatuses=new Set(['draft','verified','finalized']);
-  const liveItems=items.filter(x=>{
-    const st=String(x.material_invoices?.status||'').trim().toLowerCase();
-    return x.is_active!==false && liveStatuses.has(st);
-  });
-  const liveByLoad=new Map();
-  for(const x of liveItems){
-    const key=String(x.load_id);
-    const old=liveByLoad.get(key);
-    // Any Finalized invoice is authoritative as Billed; otherwise keep a live Draft/Verified reservation.
-    const st=String(x.material_invoices?.status||'').trim().toLowerCase();
-    if(!old || st==='finalized' || String(old.material_invoices?.status||'').toLowerCase()!=='finalized') liveByLoad.set(key,x);
-  }
-  const allByLoad=new Map();
-  for(const x of items){
-    const key=String(x.load_id);
-    const old=allByLoad.get(key);
-    if(!old || new Date(x.material_invoices?.invoice_date||0)>new Date(old.material_invoices?.invoice_date||0)) allByLoad.set(key,x);
-  }
-  return {items,liveItems,liveByLoad,allByLoad};
-}
 async function billingPage(){
   const ids=state.loads.map(x=>x.id).filter(Boolean);
   let finalRows=[],invRows=[],invoices=[],receipts=[];
-  let invoiceState={items:[],liveItems:[],liveByLoad:new Map(),allByLoad:new Map()};
   if(ids.length){
-    const [w,mi,rr]=await Promise.all([
+    const [w,ii,mi,rr]=await Promise.all([
       sb.from('itc_weighments').select('*').in('load_id',ids),
+      sb.from('invoice_items').select('*').in('load_id',ids),
       sb.from('material_invoices').select('*').order('created_at',{ascending:false}).limit(50),
       sb.from('itc_receipts').select('*').order('created_at',{ascending:false}).limit(50)
     ]);
-    if(w.error)throw w.error;if(mi.error)throw mi.error;if(rr.error)throw rr.error;
-    finalRows=w.data||[];invoices=mi.data||[];receipts=rr.data||[];
-    invoiceState=await getMaterialInvoiceStates(ids);
+    if(w.error)throw w.error;if(ii.error)throw ii.error;if(mi.error)throw mi.error;if(rr.error)throw rr.error;
+    finalRows=w.data||[];invRows=ii.data||[];invoices=mi.data||[];receipts=rr.data||[];
   }
   const byLoad=new Map(state.loads.map(x=>[x.id,x]));
-  // A load is BILLED only when its linked Material Invoice header is Finalized.
-  // Draft/Verified = reservation only. Cancelled/deleted/no-header = free.
-  const billedByLoad=new Map();
-  for(const [loadId,item] of invoiceState.liveByLoad.entries()){
-    if(String(item.material_invoices?.status||'').trim().toLowerCase()==='finalized') billedByLoad.set(loadId,item);
-  }
-  const invoiceByLoad=billedByLoad;
+  const invoiceByLoad=new Map(invRows.map(x=>[x.load_id,x]));
   const eligible=finalRows.filter(w=>byLoad.has(w.load_id)).map(w=>({w,l:byLoad.get(w.load_id),ii:invoiceByLoad.get(w.load_id)}));
-  const billed=eligible.filter(x=>x.ii);
+  const billed=eligible.filter(x=>x.ii||x.l.status==='Billed');
   const waiting=state.loads.filter(x=>x.billing_waiting_next_cycle===true);
   const receiptDraft=loadForm('billingReceipt')||{};
   const invoiceDraft=loadForm('billingInvoice')||{};
-  const activeReceiptId=localStorage.getItem('wm360:activeReceipt')||(receipts[0]?.id||'');if(activeReceiptId&&!localStorage.getItem('wm360:activeReceipt'))localStorage.setItem('wm360:activeReceipt',activeReceiptId);
+  const activeReceiptId=localStorage.getItem('wm360:activeReceipt')||'';
   const receiptOptions=receipts.map(r=>`<option value="${esc(r.id)}" ${String(r.id)===String(activeReceiptId)?'selected':''}>${esc(r.receipt_number)} — ${fmtDate(r.from_date)} to ${fmtDate(r.to_date)} — ${esc(r.reconciliation_status||'Pending')}</option>`).join('');
-  const reconciliationPanel=await renderBillingReconciliationPanel(activeReceiptId,receipts,finalRows,byLoad);
   let preview='—';
   if(invoiceDraft.invoiceDate){
     const pr=await sb.rpc('peek_shared_invoice_number',{p_invoice_date:invoiceDraft.invoiceDate});
     if(!pr.error)preview=pr.data||'—';
   }
   return `<div class="context">Active Contractor: <b>${esc(active()?.contractor_name)}</b></div>
-  <div class="billing-hero"><h1>Material Billing</h1><div class="sub">Recommended workflow: start with ITC's Wood Receipt Summary, compare every receipt line against your Final Weighments, resolve differences, then prepare the invoice. Your original records remain available for audit.</div><div class="billing-steps"><div class="billing-step"><b>① Upload ITC GR</b><span>Extract and verify receipt lines</span></div><div class="billing-step"><b>② Reconcile</b><span>Compare ITC and WoodMaster</span></div><div class="billing-step"><b>③ Resolve exceptions</b><span>Fix mismatches or carry forward</span></div><div class="billing-step"><b>④ Prepare invoice</b><span>Use verified loads and PO rates</span></div></div></div>${renderBillingFlowMessage()}
+  <div class="topbar"><div><h1>Material Billing</h1><div class="sub">Choose how to select loads. Both methods use the same Material + AMC invoice sequence and the same Draft / Final invoice workflow.</div></div></div>
   <div class="grid"><div class="card"><div class="label">Final Weighments</div><div class="metric">${eligible.length}</div></div><div class="card"><div class="label">Billed Loads</div><div class="metric">${billed.length}</div></div><div class="card"><div class="label">Waiting for Next Cycle</div><div class="metric">${waiting.length}</div></div><div class="card"><div class="label">Next Shared Invoice No.</div><div class="metric">${esc(preview)}</div><div class="small">Material + AMC share one sequence.</div></div></div>
 
-  <div class="section billing-primary"><h2>Method 1 — ITC Receipt Billing <span class="badge success">Recommended</span></h2><div class="card"><div class="notice">Upload the ITC Wood Receipt Summary. The GR lines are the customer's data and will be reconciled against WoodMaster Final Weighments. The GR method will identify customer-received loads missing from our data, our eligible loads missing from the GR, quantity/vehicle/PO differences, duplicates, and loads to carry forward to the next bill cycle.</div>
-    <div class="formgrid"><div class="field"><label>Receipt / GR Number</label><input id="brNo" value="${esc(receiptDraft.receiptNumber||'')}" oninput="saveBillingReceiptDraft()"></div><div class="field"><label>Receipt Date</label><input id="brDate" type="date" value="${esc(receiptDraft.receiptDate||'')}" onchange="saveBillingReceiptDraft()"></div><div class="field"><label>From Date</label><input id="brFrom" type="date" value="${esc(receiptDraft.fromDate||'')}" onchange="saveBillingReceiptDraft()"></div><div class="field"><label>To Date</label><input id="brTo" type="date" value="${esc(receiptDraft.toDate||'')}" onchange="saveBillingReceiptDraft()"></div><div class="field"><label>Purchase Order</label><input id="brPo" value="${esc(receiptDraft.poNumber||'')}" oninput="saveBillingReceiptDraft()"></div><div class="field"><label>Invoice Date *</label><input id="brInvoiceDate" type="date" value="${esc(receiptDraft.invoiceDate||isoToday())}" onchange="saveBillingReceiptDraft()"><div class="small">Invoice number is allocated from the same shared Material + AMC sequence used by Method 2, only when a draft is created.</div></div><div class="field"><label>Wood Receipt Summary PDF</label><input id="brFile" type="file" accept="application/pdf" onchange="extractBillingReceipt(event)"><div id="brFileStatus" class="small">Upload the actual ITC receipt PDF for automatic extraction.</div></div></div>
+  <div class="section"><h2>Method 1 — ITC GR Letter</h2><div class="card"><div class="notice">Upload the ITC Wood Receipt Summary. Click <b>Reconcile All Lines</b> to open one comparison popup showing ITC data beside WoodMaster data. Review cautions, then save a draft using the common invoice sequence.</div>
+    <div class="formgrid"><div class="field"><label>Receipt / GR Number</label><input id="brNo" value="${esc(receiptDraft.receiptNumber||'')}" oninput="saveBillingReceiptDraft()"></div><div class="field"><label>Receipt Date</label><input id="brDate" type="date" value="${esc(receiptDraft.receiptDate||'')}" onchange="saveBillingReceiptDraft()"></div><div class="field"><label>From Date</label><input id="brFrom" type="date" value="${esc(receiptDraft.fromDate||'')}" onchange="saveBillingReceiptDraft()"></div><div class="field"><label>To Date</label><input id="brTo" type="date" value="${esc(receiptDraft.toDate||'')}" onchange="saveBillingReceiptDraft()"></div><div class="field"><label>Purchase Order</label><input id="brPo" value="${esc(receiptDraft.poNumber||'')}" oninput="saveBillingReceiptDraft()"></div><div class="field"><label>Wood Receipt Summary PDF</label><input id="brFile" type="file" accept="application/pdf" onchange="extractBillingReceipt(event)"><div id="brFileStatus" class="small">Upload the actual ITC receipt PDF for automatic extraction.</div></div></div>
     <div id="billingReceiptPreview" style="margin-top:14px">${renderBillingReceiptPreview(receiptDraft.lines||[])}</div><div class="field" style="margin-top:10px"><details><summary>Raw extracted text (verification)</summary><textarea id="brText" rows="5" oninput="saveBillingReceiptDraft()" placeholder="Extracted receipt text">${esc(receiptDraft.text||'')}</textarea></details></div>
-    <div class="actions billing-actions-sticky"><button class="btn primary" onclick="saveAndReconcileBillingReceipt()">Reconcile All Lines</button><button class="btn secondary" onclick="openBillingReconciliation()">Open Reconciliation Popup</button><button class="btn secondary" onclick="clearBillingReceiptDraft()">Clear Unsaved Upload</button></div></div></div>
-  ${reconciliationPanel}
+    <div class="actions"><button class="btn primary" onclick="saveAndReconcileBillingReceipt()">Reconcile All Lines</button><button class="btn secondary" onclick="clearBillingReceiptDraft()">Clear Draft</button></div></div></div>
 
-  <details class="billing-secondary"><summary>Method 2 — Manual Date Selection (alternative workflow)</summary><div class="section"><h2>Manual Date Selection</h2><div class="card"><div class="notice"><b>PO-wise billing:</b> Select the Purchase Order first. WoodMaster will consider only Final Weighments belonging to that PO, then apply the selected From/To dates. Rates are always taken from the selected PO. Select From Date and To Date. WoodMaster will take the billable Final Weighments from <b>your WoodMaster data</b> whose WC dates fall within this period. Before the selected From Date, WoodMaster also checks for any earlier load that is still unbilled and not already marked Waiting for Next Bill Cycle. Such loads must be accounted for before the draft bill can be prepared. Carry-forward loads already marked Waiting for Next Bill Cycle are automatically included.</div>
-    <div class="formgrid"><div class="field"><label>Purchase Order *</label><select id="biManualPo" onchange="saveBillingInvoiceDraft();refreshBillingInvoicePreview()"><option value="">— Select Purchase Order —</option>${(state.pos||[]).map(po=>`<option value="${esc(po.id)}" ${String(po.id)===String(invoiceDraft.poId||'')?'selected':''}>${esc(po.po_number||'')} — ${esc(po.area_name||'')} — ${esc(po.species_name||'')}</option>`).join('')}</select><div class="small">Billing is strictly PO-wise because rates can differ between POs.</div></div><div class="field"><label>From Date *</label><input id="biManualFrom" type="date" value="${esc(invoiceDraft.manualFromDate||'')}" onchange="saveBillingInvoiceDraft()"></div><div class="field"><label>To Date / Cutoff *</label><input id="biManualTo" type="date" value="${esc(invoiceDraft.manualToDate||'')}" onchange="saveBillingInvoiceDraft()"></div><div class="field"><label>Invoice Date *</label><input id="biManualDate" type="date" value="${esc(invoiceDraft.invoiceDate||isoToday())}" onchange="saveBillingInvoiceDraft();refreshBillingInvoicePreview()"></div><div class="field"><label>Invoice Number</label><input id="biManualNo" class="readonly" readonly value="${esc(preview)}"><div class="small">Automatically assigned from the same shared Material + AMC invoice series used by Method 1.</div></div></div>
-    <div class="actions"><button class="btn primary" onclick="buildMaterialInvoiceDraft('manual')">Review & Confirm Billable Loads</button></div></div></div></details>
+  <div class="section"><h2>Method 2 — Manual Date Selection</h2><div class="card"><div class="notice">Select a date range to choose loads from WoodMaster. Earlier unbilled loads are shown in the confirmation popup so they cannot be missed. Both methods save drafts to the same list below and share one invoice-number sequence.</div>
+    <div class="formgrid"><div class="field"><label>From Date *</label><input id="biManualFrom" type="date" value="${esc(invoiceDraft.manualFromDate||'')}" onchange="saveBillingInvoiceDraft()"></div><div class="field"><label>To Date / Cutoff *</label><input id="biManualTo" type="date" value="${esc(invoiceDraft.manualToDate||'')}" onchange="saveBillingInvoiceDraft()"></div><div class="field"><label>Invoice Date *</label><input id="biManualDate" type="date" value="${esc(invoiceDraft.invoiceDate||isoToday())}" onchange="saveBillingInvoiceDraft();refreshBillingInvoicePreview()"></div><div class="field"><label>Invoice Number</label><input id="biManualNo" class="readonly" readonly value="${esc(preview)}"><div class="small">Automatically assigned from the common Material + AMC invoice series.</div></div></div>
+    <div class="actions"><button class="btn primary" onclick="buildMaterialInvoiceDraft('manual')">Review & Confirm Billable Loads</button></div></div></div>
 
-  <div class="section"><h2>Draft Material Invoices</h2><div class="notice">Method 1 (GR-based) and Method 2 (manual date selection) both create drafts in this same list and use the same shared Material + AMC invoice-number sequence. Draft invoices can be edited or deleted. Finalizing a draft marks its loads as Billed. Invoice numbers follow the shared sequence rules.</div><div class="tablewrap"><table><thead><tr><th>Invoice</th><th>Method</th><th>Date</th><th>Period</th><th>Qty MT</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>${invoices.filter(i=>i.status==='Draft').length?invoices.filter(i=>i.status==='Draft').map(i=>`<tr><td>${esc(i.invoice_number)}</td><td>${esc(i.billing_method||'—')}</td><td>${fmtDate(i.invoice_date)}</td><td>${fmtDate(i.from_date)} – ${fmtDate(i.to_date)}</td><td>${fmt(i.total_qty)}</td><td>${money(i.invoice_total)}</td><td><span class="badge">Draft</span></td><td><div class="rowactions"><button class="btn secondary mini" onclick="editMaterialInvoice('${i.id}')">Edit</button><button class="btn primary mini" onclick="finalizeMaterialInvoice('${i.id}')">Finalize</button><button class="btn secondary mini" onclick="printMaterialInvoice('${i.id}')">Download Draft PDF</button><button class="btn danger mini" onclick="deleteMaterialInvoice('${i.id}')">Delete</button></div></td></tr>`).join(''):`<tr><td colspan="8" class="empty">No draft material invoices.</td></tr>`}</tbody></table></div></div>
-  <div class="section"><h2>Final Material Invoices</h2><div class="notice">Final invoices are retained for history. Edit/Delete actions are currently enabled; later they can be restricted centrally by user role without redesigning the workflow.</div><div class="tablewrap"><table><thead><tr><th>Invoice</th><th>Method</th><th>Date</th><th>Period</th><th>Qty MT</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>${invoices.filter(i=>i.status==='Finalized').length?invoices.filter(i=>i.status==='Finalized').map(i=>`<tr><td>${esc(i.invoice_number)}</td><td>${esc(i.billing_method||'—')}</td><td>${fmtDate(i.invoice_date)}</td><td>${fmtDate(i.from_date)} – ${fmtDate(i.to_date)}</td><td>${fmt(i.total_qty)}</td><td>${money(i.invoice_total)}</td><td><span class="badge">Finalized</span></td><td><div class="rowactions"><button class="btn secondary mini" onclick="editMaterialInvoice('${i.id}')">Edit</button><button class="btn secondary mini" onclick="printMaterialInvoice('${i.id}')">Download Invoice PDF</button><button class="btn danger mini" onclick="deleteMaterialInvoice('${i.id}')">Delete</button></div></td></tr>`).join(''):`<tr><td colspan="8" class="empty">No final material invoices.</td></tr>`}</tbody></table></div></div>
+  <div class="section"><h2>Draft Material Invoices</h2><div class="notice">Draft invoices can be edited or deleted. Finalizing a draft marks its loads as Billed. Invoice numbers are never reused after allocation.</div><div class="tablewrap"><table><thead><tr><th>Invoice</th><th>Method</th><th>Date</th><th>Period</th><th>Qty MT</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>${invoices.filter(i=>i.status==='Draft').length?invoices.filter(i=>i.status==='Draft').map(i=>`<tr><td>${esc(i.invoice_number)}</td><td>${esc(i.billing_method||'—')}</td><td>${fmtDate(i.invoice_date)}</td><td>${fmtDate(i.from_date)} – ${fmtDate(i.to_date)}</td><td>${fmt(i.total_qty)}</td><td>${money(i.invoice_total)}</td><td><span class="badge">Draft</span></td><td><div class="rowactions"><button class="btn secondary mini" onclick="editMaterialInvoice('${i.id}')">Edit</button><button class="btn primary mini" onclick="finalizeMaterialInvoice('${i.id}')">Finalize</button><button class="btn secondary mini" onclick="printMaterialInvoice('${i.id}')">Print Draft</button><button class="btn danger mini" onclick="deleteMaterialInvoice('${i.id}')">Delete</button></div></td></tr>`).join(''):`<tr><td colspan="8" class="empty">No draft material invoices.</td></tr>`}</tbody></table></div></div>
+  <div class="section"><h2>Final Material Invoices</h2><div class="notice">Final invoices are retained for history. Edit/Delete actions are currently enabled; later they can be restricted centrally by user role without redesigning the workflow.</div><div class="tablewrap"><table><thead><tr><th>Invoice</th><th>Method</th><th>Date</th><th>Period</th><th>Qty MT</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>${invoices.filter(i=>i.status==='Finalized').length?invoices.filter(i=>i.status==='Finalized').map(i=>`<tr><td>${esc(i.invoice_number)}</td><td>${esc(i.billing_method||'—')}</td><td>${fmtDate(i.invoice_date)}</td><td>${fmtDate(i.from_date)} – ${fmtDate(i.to_date)}</td><td>${fmt(i.total_qty)}</td><td>${money(i.invoice_total)}</td><td><span class="badge">Finalized</span></td><td><div class="rowactions"><button class="btn secondary mini" onclick="editMaterialInvoice('${i.id}')">Edit</button><button class="btn secondary mini" onclick="printMaterialInvoice('${i.id}')">Print Invoice</button><button class="btn danger mini" onclick="deleteMaterialInvoice('${i.id}')">Delete</button></div></td></tr>`).join(''):`<tr><td colspan="8" class="empty">No final material invoices.</td></tr>`}</tbody></table></div></div>
   <div class="section"><h2>Other / Cancelled Material Invoices</h2><div class="tablewrap"><table><thead><tr><th>Invoice</th><th>Method</th><th>Date</th><th>Period</th><th>Qty MT</th><th>Total</th><th>Status</th><th>Action</th></tr></thead><tbody>${invoices.filter(i=>!['Draft','Finalized'].includes(i.status)).length?invoices.filter(i=>!['Draft','Finalized'].includes(i.status)).map(i=>`<tr><td>${esc(i.invoice_number)}</td><td>${esc(i.billing_method||'—')}</td><td>${fmtDate(i.invoice_date)}</td><td>${fmtDate(i.from_date)} – ${fmtDate(i.to_date)}</td><td>${fmt(i.total_qty)}</td><td>${money(i.invoice_total)}</td><td><span class="badge">${esc(i.status)}</span></td><td>—</td></tr>`).join(''):`<tr><td colspan="8" class="empty">No cancelled/other invoices.</td></tr>`}</tbody></table></div></div>`;
 }
-function saveBillingReceiptDraft(){const old=loadForm('billingReceipt')||{};const lines=old.lines||[];saveForm('billingReceipt',{receiptNumber:$('brNo')?.value||old.receiptNumber||'',receiptDate:$('brDate')?.value||old.receiptDate||'',fromDate:$('brFrom')?.value||old.fromDate||'',toDate:$('brTo')?.value||old.toDate||'',poNumber:$('brPo')?.value||old.poNumber||'',invoiceDate:$('brInvoiceDate')?.value||old.invoiceDate||isoToday(),text:$('brText')?.value||old.text||'',lines});}
+function saveBillingReceiptDraft(){const old=loadForm('billingReceipt')||{};const lines=old.lines||[];saveForm('billingReceipt',{receiptNumber:$('brNo')?.value||old.receiptNumber||'',receiptDate:$('brDate')?.value||old.receiptDate||'',fromDate:$('brFrom')?.value||old.fromDate||'',toDate:$('brTo')?.value||old.toDate||'',poNumber:$('brPo')?.value||old.poNumber||'',text:$('brText')?.value||old.text||'',lines});}
 function clearBillingReceiptDraft(){clearForm('billingReceipt');go('billing')}
-function saveBillingInvoiceDraft(){const old=loadForm('billingInvoice')||{};saveForm('billingInvoice',{...old,mode:'manual',poId:$('biManualPo')?.value||old.poId||'',manualFromDate:$('biManualFrom')?.value||old.manualFromDate||'',manualToDate:$('biManualTo')?.value||old.manualToDate||'',invoiceDate:$('biManualDate')?.value||old.invoiceDate||isoToday()});}
+function saveBillingInvoiceDraft(){const old=loadForm('billingInvoice')||{};saveForm('billingInvoice',{...old,mode:'manual',manualFromDate:$('biManualFrom')?.value||old.manualFromDate||'',manualToDate:$('biManualTo')?.value||old.manualToDate||'',invoiceDate:$('biManualDate')?.value||old.invoiceDate||isoToday()});}
 async function refreshBillingInvoicePreview(){const d=loadForm('billingInvoice')||{};const date=$('biManualDate')?.value||d.invoiceDate||isoToday();const r=await sb.rpc('peek_shared_invoice_number',{p_invoice_date:date});if(!$('biManualNo'))return;if(r.error){$('biManualNo').value='Run shared numbering migration';}else{$('biManualNo').value=r.data||'—';}}
 function receiptDateToISO(v){const m=String(v||'').trim().match(/^(\d{2})[.\/-](\d{2})[.\/-](\d{4})$/);return m?`${m[3]}-${m[2]}-${m[1]}`:''}
 function parseWoodReceiptSummary(text){const t=String(text||'').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();const unique=(t.match(/Unique\s*No\s*:\s*([A-Za-z0-9]+)/i)||[])[1]||'';const receiptDate=receiptDateToISO((t.match(/Date\s*:\s*(\d{2}[.\/-]\d{2}[.\/-]\d{4})/i)||[])[1]||'');const pm=t.match(/Period\s*From\s*:\s*(\d{2}[.\/-]\d{2}[.\/-]\d{4})\s*To\s*(\d{2}[.\/-]\d{2}[.\/-]\d{4})/i)||[];const fromDate=receiptDateToISO(pm[1]||''),toDate=receiptDateToISO(pm[2]||'');const poMatch=t.match(/Purchase\s+Order\s+NO\s*:\s*([0-9]+)/i);const poNumber=poMatch?poMatch[1]:'';const lines=[];const rowRe=/(\d+)\s+(\d{2}[.\/-]\d{2}[.\/-]\d{4})\s+(W[A-Z0-9]+)\s+([A-Z0-9]+)\s+([0-9]+(?:\.[0-9]+)?)\s+MT\b/gi;let m;while((m=rowRe.exec(t))){lines.push({sno:m[1],date:receiptDateToISO(m[2]),wc:m[3].toUpperCase(),vehicle:m[4].toUpperCase(),qty:Number(m[5])})}return {receiptNumber:unique,receiptDate,fromDate,toDate,poNumber,lines};}
-function openBillingReconciliation(){
-  const panel=document.getElementById('billingReconciliationPanel');
-  if(!panel){alert('Reconciliation is not ready yet. Save or select an ITC receipt first.');return;}
-  const receiptSelect=panel.querySelector('#activeBillingReceipt');
-  if(receiptSelect?.value)localStorage.setItem('wm360:activeReceipt',receiptSelect.value);
-  const card=panel.querySelector('.card');
-  if(!card){alert('No saved receipt lines are available to compare.');return;}
-  const tmp=document.createElement('div');tmp.innerHTML=card.innerHTML;
-  // The popup is a focused comparison only: hide the receipt selector and page-level buttons.
-  const selectorGrid=tmp.querySelector('.formgrid');if(selectorGrid)selectorGrid.remove();
-  const oldActions=tmp.querySelector('.actions');if(oldActions)oldActions.remove();
-  const status=tmp.querySelector('.billing-statusline');if(status)status.innerHTML='Review each row below. <b>Only fully Verified lines can be saved as a draft invoice.</b> Any WC, quantity, date, vehicle, PO, duplicate, or missing-load warning must be resolved first.';
-  const summary=tmp.querySelector('.grid');
-  let caution='';
-  const badgeTexts=[...tmp.querySelectorAll('tbody .badge')].map(x=>x.textContent.trim());
-  const nonVerified=badgeTexts.filter(x=>x!=='Verified'&&x!=='WoodMaster Only');
-  const wmOnly=badgeTexts.filter(x=>x==='WoodMaster Only').length;
-  if(nonVerified.length||wmOnly){caution=`<div class="notice error"><b>⚠ Reconciliation caution</b><br>${nonVerified.length?`${nonVerified.length} receipt line(s) have exceptions. `:''}${wmOnly?`${wmOnly} WoodMaster load(s) are not present in this ITC receipt. `:''}Do not create a draft until the ITC lines are verified. Loads missing from this GR may be carried forward if eligible.</div>`}
-  else {caution='<div class="notice success"><b>✓ No visible reconciliation exceptions.</b> Confirm the WC numbers, quantities and PO before saving the draft.</div>';}
-  const body=`${caution}${tmp.innerHTML}<div class="actions sticky-actions"><button class="btn secondary" onclick="closeModal();recheckActiveBillingReceipt()">Re-check All Lines</button><button class="btn secondary" onclick="closeModal()">Close Comparison</button></div>`;
-  showModal('Reconcile All Lines — ITC vs WoodMaster',body,'prepareReceiptMaterialInvoiceDraft()','Save Draft Invoice');
-  const box=document.querySelector('#wmModal .modalbox');if(box){box.style.width='min(1400px,100%)';box.style.maxHeight='92vh';}
-}
-async function renderBillingReconciliationPanel(activeReceiptId,receipts,finalRows,byLoad){
-  const receipt=(receipts||[]).find(r=>String(r.id)===String(activeReceiptId));
-  if(!receipt)return `<div class="section" id="billingReconciliationPanel"><div class="flex-between"><h2>ITC vs WoodMaster Reconciliation</h2><button class="btn primary" type="button" onclick="openBillingReconciliation()">Open Reconciliation</button></div><div class="card"><div class="empty">Upload and save an ITC Wood Receipt Summary to open the reconciliation comparison here.</div></div></div>`;
-  const ir=await sb.from('itc_receipt_items').select('*').eq('receipt_id',receipt.id).order('wc_date',{ascending:true});
-  if(ir.error)return `<div class="section" id="billingReconciliationPanel"><div class="flex-between"><h2>ITC vs WoodMaster Reconciliation</h2><button class="btn primary" type="button" onclick="openBillingReconciliation()">Open Reconciliation</button></div><div class="notice error">Could not load reconciliation lines: ${esc(ir.error.message)}</div></div>`;
-  const items=ir.data||[], receiptWcs=new Set(items.map(i=>String(i.wc_number||'').trim().toUpperCase()));
-  const statusCounts={};items.forEach(i=>statusCounts[i.match_status||'Pending']=(statusCounts[i.match_status||'Pending']||0)+1);
-  const ownOnly=(finalRows||[]).filter(w=>{
-    const l=byLoad.get(w.load_id); if(!l)return false;
-    const d=String(w.wc_date||w.weighment_date||l.load_date||'').slice(0,10);
-    return d>=String(receipt.from_date||'').slice(0,10)&&d<=String(receipt.to_date||'').slice(0,10)&&!receiptWcs.has(String(w.wc_number||'').trim().toUpperCase())&&!['Finalized'].includes(String(w.material_invoice_status||''));
-  });
-  const countBad=items.filter(i=>i.match_status!=='Verified').length;
-  const summary=`<div class="grid"><div class="card"><div class="label">ITC Receipt Lines</div><div class="metric">${items.length}</div></div><div class="card"><div class="label">Matched</div><div class="metric">${items.filter(i=>i.match_status==='Verified').length}</div></div><div class="card"><div class="label">Exceptions</div><div class="metric">${countBad}</div></div><div class="card"><div class="label">WoodMaster Only</div><div class="metric">${ownOnly.length}</div></div></div>`;
-  const itcRows=items.map((i,n)=>{const l=i.load_id?byLoad.get(i.load_id):null;const w=(finalRows||[]).find(x=>x.load_id===i.load_id)||null;const po=l?.po_master?.po_number||l?.po_number||'—';const wcQty=w?num(w.approved_weight):null;const qtyOk=wcQty!==null&&Math.abs(wcQty-num(i.quantity))<=0.001;const vehicleOk=!!w&&String(w.vehicle_number||'').toUpperCase()===String(i.vehicle_number||'').toUpperCase();return `<tr><td>${n+1}</td><td>${esc(i.wc_date?fmtDate(i.wc_date):'—')}</td><td>${esc(w?.wc_date?fmtDate(w.wc_date):'—')}</td><td>${esc(i.wc_number||'—')}</td><td>${esc(i.vehicle_number||'—')}</td><td class="num">${fmt(i.quantity)}</td><td>${esc(l?.dc_number||l?.load_number||'—')}</td><td>${esc(w?.wc_number||'Not found')}</td><td>${w?fmt(w.approved_weight):'—'}</td><td>${esc(l?.vehicle_master?.vehicle_number||l?.vehicle_number||'—')}</td><td>${esc(po)}</td><td><span class="badge ${i.match_status==='Verified'?'success':'warning'}">${esc(i.match_status||'Pending')}</span>${i.exception_reason?`<div class="small">${esc(i.exception_reason)}</div>`:''}</td><td>${l?`<button class="btn secondary mini" onclick="markBillingWaiting('${l.id}','${receipt.to_date}','GR')">Carry Forward</button>`:'—'}</td></tr>`}).join('');
-  const ownRows=ownOnly.map((w,n)=>{const l=byLoad.get(w.load_id);return `<tr><td>${n+1}</td><td>${esc(fmtDate(w.wc_date||w.weighment_date||l?.load_date))}</td><td>${esc(w.wc_number||'—')}</td><td>${esc(w.vehicle_number||l?.vehicle_master?.vehicle_number||'—')}</td><td class="num">${fmt(w.approved_weight)}</td><td>${esc(l?.dc_number||l?.load_number||'—')}</td><td colspan="4">Not present in this ITC receipt</td><td><span class="badge warning">WoodMaster Only</span></td><td>${l?`<button class="btn secondary mini" onclick="markBillingWaiting('${l.id}','${receipt.to_date}','GR')">Carry Forward</button>`:'—'}</td></tr>`}).join('');
-  return `<div class="section" id="billingReconciliationPanel"><div class="flex-between"><h2>ITC vs WoodMaster Reconciliation</h2><button class="btn primary" type="button" onclick="openBillingReconciliation()">Open Reconciliation</button></div><div class="card"><div class="formgrid"><div class="field"><label>Receipt / GR</label><select id="activeBillingReceipt" onchange="localStorage.setItem('wm360:activeReceipt',this.value);render()">${(receipts||[]).map(r=>`<option value="${esc(r.id)}" ${String(r.id)===String(receipt.id)?'selected':''}>${esc(r.receipt_number)} — ${esc(r.reconciliation_status||'Pending')}</option>`).join('')}</select></div><div class="field"><label>Receipt period</label><input readonly value="${esc(fmtDate(receipt.from_date))} to ${esc(fmtDate(receipt.to_date))}"></div><div class="field"><label>Overall status</label><div><span class="badge">${esc(receipt.reconciliation_status||'Pending')}</span></div></div></div>${summary}<div class="notice">Compare ITC's WC, date, vehicle and received quantity with WoodMaster Final Weighments, approved quantity, vehicle, linked load and PO. Resolve exceptions before creating the invoice.</div><h3>ITC receipt lines</h3><div class="tablewrap"><table><thead><tr><th>#</th><th>ITC Date</th><th>Our WC Date</th><th>ITC WC</th><th>ITC Vehicle</th><th>ITC Qty MT</th><th>Our Load / DC</th><th>Our WC</th><th>Approved MT</th><th>Our Vehicle</th><th>Our PO</th><th>Result / Reason</th><th>Action</th></tr></thead><tbody>${itcRows||`<tr><td colspan="13" class="empty">No saved receipt lines.</td></tr>`}</tbody></table></div><h3>WoodMaster Final Weighments missing from this ITC receipt</h3><div class="tablewrap"><table><thead><tr><th>#</th><th>Our WC Date</th><th>Our WC</th><th>Our Vehicle</th><th>Approved MT</th><th>Load / DC</th><th colspan="4">Comparison</th><th>Status</th><th>Action</th></tr></thead><tbody>${ownRows||`<tr><td colspan="12" class="empty">No additional WoodMaster weighments found for this receipt period.</td></tr>`}</tbody></table></div><div class="billing-statusline">Next step: correct any differences in Final Weighments / load records, then run <b>Re-check Receipt</b>. Draft creation is enabled only when every ITC line is verified, linked to a WoodMaster load, and belongs to one Purchase Order.</div><div class="actions"><button class="btn secondary" onclick="refreshLoads().then(render)">Refresh Comparison</button><button class="btn secondary" onclick="recheckActiveBillingReceipt()">Re-check Receipt</button><button class="btn primary" onclick="prepareReceiptMaterialInvoiceDraft()">Save Draft Invoice</button></div></div></div>`;
-}
 function renderBillingReceiptPreview(lines){if(!lines?.length)return `<div class="empty">No receipt lines extracted yet. Upload the Wood Receipt Summary PDF.</div>`;return `<div class="notice"><b>${lines.length}</b> receipt line(s) extracted. Review/correct them before saving.</div><div class="tablewrap"><table><thead><tr><th>S.No</th><th>Date</th><th>WC Number</th><th>Vehicle</th><th>Qty MT</th></tr></thead><tbody>${lines.map((r,i)=>`<tr><td>${esc(r.sno||String(i+1))}</td><td><input id="grDate${i}" type="date" value="${esc(r.date||'')}" onchange="saveBillingReceiptLineDraft(${i})"></td><td><input id="grWc${i}" value="${esc(r.wc||'')}" oninput="this.value=this.value.toUpperCase();saveBillingReceiptLineDraft(${i})"></td><td><input id="grVeh${i}" value="${esc(r.vehicle||'')}" oninput="this.value=this.value.toUpperCase();saveBillingReceiptLineDraft(${i})"></td><td><input id="grQty${i}" type="number" step="0.001" value="${esc(r.qty??'')}" onchange="saveBillingReceiptLineDraft(${i})"></td></tr>`).join('')}</tbody></table></div>`}
 function saveBillingReceiptLineDraft(i){const d=loadForm('billingReceipt')||{};const lines=d.lines||[];if(!lines[i])return;lines[i]={...lines[i],date:$(`grDate${i}`)?.value||'',wc:($(`grWc${i}`)?.value||'').toUpperCase(),vehicle:($(`grVeh${i}`)?.value||'').toUpperCase(),qty:num($(`grQty${i}`)?.value)};saveForm('billingReceipt',{...d,lines})}
 async function extractBillingReceipt(e){const f=e.target.files?.[0];if(!f)return;const st=$('brFileStatus');if(st)st.textContent=`Selected ${f.name}. Extracting…`;try{if(f.type!=='application/pdf')throw new Error('Please upload the ITC Wood Receipt Summary PDF.');let text='';const pdf=await pdfjsFromFile(f);for(let i=1;i<=pdf.numPages;i++){const pg=await pdf.getPage(i),tc=await pg.getTextContent({normalizeWhitespace:true});text+=' '+tc.items.map(x=>x.str).join(' ')}const parsed=parseWoodReceiptSummary(text);if(!parsed.receiptNumber||!parsed.receiptDate||!parsed.fromDate||!parsed.toDate||!parsed.lines.length)throw new Error('The PDF was read, but the Wood Receipt Summary fields/lines could not be reliably extracted.');const d={receiptNumber:parsed.receiptNumber,receiptDate:parsed.receiptDate,fromDate:parsed.fromDate,toDate:parsed.toDate,poNumber:parsed.poNumber,text,lines:parsed.lines};saveForm('billingReceipt',d);if($('brNo'))$('brNo').value=parsed.receiptNumber;if($('brDate'))$('brDate').value=parsed.receiptDate;if($('brFrom'))$('brFrom').value=parsed.fromDate;if($('brTo'))$('brTo').value=parsed.toDate;if($('brPo'))$('brPo').value=parsed.poNumber;if($('brText'))$('brText').value=text;if($('billingReceiptPreview'))$('billingReceiptPreview').innerHTML=renderBillingReceiptPreview(parsed.lines);if(st)st.textContent=`Extracted ${parsed.lines.length} WC line(s). Review them before saving.`}catch(err){console.error(err);if(st)st.textContent=err.message||'Could not extract automatically.';alert(err.message||'Could not extract automatically.')}}
 async function createBillingReceipt(){return saveAndReconcileBillingReceipt()}
-async function saveAndReconcileBillingReceipt(){const d=loadForm('billingReceipt')||{};const no=($('brNo')?.value||d.receiptNumber||'').trim(),rd=$('brDate')?.value||d.receiptDate||'',fd=$('brFrom')?.value||d.fromDate||'',td=$('brTo')?.value||d.toDate||'',poNumber=($('brPo')?.value||d.poNumber||'').trim(),lines=d.lines||[];if(!no||!rd||!fd||!td)return alert('Receipt number, receipt date, From Date and To Date are required.');if(fd>td)return alert('From Date cannot be after To Date.');if(!lines.length)return alert('No receipt lines are available. Upload and verify the GR first.');const existingReceipt=await sb.from('itc_receipts').select('id').eq('receipt_number',no).limit(1);if(existingReceipt.error)return alert(existingReceipt.error.message);if(existingReceipt.data?.length){localStorage.setItem('wm360:activeReceipt',existingReceipt.data[0].id);localStorage.setItem('wm360:billingFlowMessage',`Receipt ${no} already exists. Opened its saved comparison; it was not imported again.`);await render();setTimeout(openBillingReconciliation,250);return;}let poId=null;if(poNumber){const p=state.pos.find(x=>String(x.po_number||'')===poNumber);if(p)poId=p.id}const hdr={receipt_number:no,receipt_date:rd,from_date:fd,to_date:td,po_id:poId,ocr_verified:true,reconciliation_status:'Pending',created_by:state.session.user.id};const hr=await sb.from('itc_receipts').insert(hdr).select().single();if(hr.error)return alert(`Receipt header was not saved: ${hr.error.message}`);const receiptId=hr.data.id;const wcs=lines.map(x=>String(x.wc||x.w||'').toUpperCase()).filter(Boolean);const wr=await sb.from('itc_weighments').select('*').in('wc_number',wcs);if(wr.error){await sb.from('itc_receipts').delete().eq('id',receiptId);return alert(`Could not read Final Weighments: ${wr.error.message}`)}const byWc=new Map((wr.data||[]).map(w=>[String(w.wc_number||'').toUpperCase(),w]));const rows=[];let verifiedCount=0,exceptionCount=0;for(const r of lines){let match='Verified',reasons=[],loadId=null;const w=byWc.get(String(r.wc||'').toUpperCase());const l=w?state.loads.find(x=>x.id===w.load_id):null;if(!w||!l){match='WC Not Found';reasons.push('No matching Final Weighment/WC found in WoodMaster.')}else{loadId=w.load_id;const approved=num(w.approved_weight);if(poNumber&&String(l.po_master?.po_number||'')!==poNumber){match='PO Mismatch';reasons.push(`Receipt PO ${poNumber} vs Load PO ${l.po_master?.po_number||'—'}.`)}if(Math.abs(approved-num(r.qty))>0.001){if(match==='Verified')match='Quantity Difference';reasons.push(`Receipt ${num(r.qty).toFixed(3)} MT vs Approved ${approved.toFixed(3)} MT.`)}if(String(w.vehicle_number||'').toUpperCase()!==String(r.vehicle||'').toUpperCase()){if(match==='Verified')match='Vehicle Mismatch';reasons.push(`Receipt vehicle ${r.vehicle} vs Final Weighment ${w.vehicle_number||'—'}.`)}}const dup=await sb.from('itc_receipt_items').select('id,receipt_id').eq('wc_number',String(r.wc||'').toUpperCase()).limit(1);if(dup.error){await sb.from('itc_receipts').delete().eq('id',receiptId);return alert(`Could not check duplicate WC ${r.wc}: ${dup.error.message}`)}if(dup.data?.length){match='Duplicate WC';reasons.push('This WC already exists in another receipt import.')}if(match==='Verified')verifiedCount++;else exceptionCount++;rows.push({receipt_id:receiptId,wc_number:String(r.wc||'').toUpperCase(),wc_date:r.date,vehicle_number:String(r.vehicle||'').toUpperCase(),quantity:num(r.qty),load_id:loadId,match_status:match,exception_reason:reasons.join(' ')||null});}const ir=await sb.from('itc_receipt_items').insert(rows);if(ir.error){await sb.from('itc_receipts').delete().eq('id',receiptId);return alert(`Receipt lines were not saved: ${ir.error.message}`)}for(const row of rows){if(row.load_id&&row.match_status==='Verified')await sb.from('loads').update({status:'Receipt Verified'}).eq('id',row.load_id);else if(row.load_id&&['Quantity Difference','Duplicate WC','PO Mismatch','Vehicle Mismatch'].includes(row.match_status))await sb.from('loads').update({status:'Exception'}).eq('id',row.load_id)}const recStatus=exceptionCount===0?'Verified':(verifiedCount>0?'Partially Verified':'Exception');await sb.from('itc_receipts').update({reconciliation_status:recStatus}).eq('id',receiptId);localStorage.setItem('wm360:activeReceipt',receiptId);localStorage.setItem('wm360:billingFlowMessage',`Receipt ${no} saved. ${verifiedCount} line(s) verified; ${exceptionCount} exception(s) need review.`);const selectedInvoiceDate=$('brInvoiceDate')?.value||d.invoiceDate||isoToday();clearForm('billingReceipt');saveForm('billingReceipt',{invoiceDate:selectedInvoiceDate,lines:[]});await render();setTimeout(openBillingReconciliation,250);}
-function renderBillingFlowMessage(){const m=localStorage.getItem('wm360:billingFlowMessage');if(!m)return '';localStorage.removeItem('wm360:billingFlowMessage');return `<div class="billing-statusline" role="status">${esc(m)}</div>`}
-async function recheckActiveBillingReceipt(){
-  const rid=localStorage.getItem('wm360:activeReceipt');if(!rid)return alert('Select a saved Receipt / GR first.');
-  const hr=await sb.from('itc_receipts').select('*').eq('id',rid).maybeSingle();if(hr.error||!hr.data)return alert(`Could not load receipt: ${hr.error?.message||'not found'}`);const receipt=hr.data;
-  const ir=await sb.from('itc_receipt_items').select('*').eq('receipt_id',rid);if(ir.error)return alert(ir.error.message);const items=ir.data||[];if(!items.length)return alert('This receipt has no saved lines.');
-  const wcs=[...new Set(items.map(i=>String(i.wc_number||'').trim().toUpperCase()).filter(Boolean))];const wr=await sb.from('itc_weighments').select('*').in('wc_number',wcs);if(wr.error)return alert(`Could not load Final Weighments: ${wr.error.message}`);
-  const byWc=new Map((wr.data||[]).map(w=>[String(w.wc_number||'').trim().toUpperCase(),w]));let verified=0,exceptions=0;
-  for(const item of items){let status='Verified',reasons=[];const wc=String(item.wc_number||'').trim().toUpperCase();const w=byWc.get(wc);const l=w?state.loads.find(x=>String(x.id)===String(w.load_id)):null;
-    if(!w||!l){status='WC Not Found';reasons.push('No matching Final Weighment/load found.')}else{
-      if(receipt.po_id&&String(l.po_id||l.po_master?.id||'')!==String(receipt.po_id)){status='PO Mismatch';reasons.push('Load Purchase Order differs from receipt PO.')}
-      const ourDate=String(w.wc_date||w.weighment_date||'').slice(0,10),itcDate=String(item.wc_date||'').slice(0,10);if(ourDate&&itcDate&&ourDate!==itcDate){if(status==='Verified')status='Date Mismatch';reasons.push(`ITC date ${itcDate} vs WoodMaster WC date ${ourDate}.`)}
-      if(Math.abs(num(w.approved_weight)-num(item.quantity))>0.001){if(status==='Verified')status='Quantity Difference';reasons.push(`ITC ${num(item.quantity).toFixed(3)} MT vs approved ${num(w.approved_weight).toFixed(3)} MT.`)}
-      const ourVehicle=String(w.vehicle_number||l.vehicle_master?.vehicle_number||l.vehicle_number||'').toUpperCase();if(ourVehicle!==String(item.vehicle_number||'').toUpperCase()){if(status==='Verified')status='Vehicle Mismatch';reasons.push(`ITC vehicle ${item.vehicle_number||'—'} vs WoodMaster ${ourVehicle||'—'}.`)}
-    }
-    const dup=await sb.from('itc_receipt_items').select('id,receipt_id').eq('wc_number',wc).neq('receipt_id',rid).limit(1);if(dup.error)return alert(`Could not check duplicate WC ${wc}: ${dup.error.message}`);if(dup.data?.length){status='Duplicate WC';reasons.push('This WC also appears in another receipt.')}
-    const upd=await sb.from('itc_receipt_items').update({load_id:w?.load_id||null,match_status:status,exception_reason:reasons.join(' ')||null}).eq('id',item.id);if(upd.error)return alert(`Could not update reconciliation for ${wc}: ${upd.error.message}`);if(status==='Verified')verified++;else exceptions++;
-  }
-  const status=exceptions===0?'Verified':(verified>0?'Partially Verified':'Exception');const upd=await sb.from('itc_receipts').update({reconciliation_status:status}).eq('id',rid);if(upd.error)return alert(`Lines checked, but receipt status could not update: ${upd.error.message}`);
-  localStorage.setItem('wm360:billingFlowMessage',`Re-check complete: ${verified} verified, ${exceptions} exception(s).`);await refreshLoads();await render();setTimeout(openBillingReconciliation,200);
+async function saveAndReconcileBillingReceipt(){const d=loadForm('billingReceipt')||{};const no=($('brNo')?.value||d.receiptNumber||'').trim(),rd=$('brDate')?.value||d.receiptDate||'',fd=$('brFrom')?.value||d.fromDate||'',td=$('brTo')?.value||d.toDate||'',poNumber=($('brPo')?.value||d.poNumber||'').trim(),lines=d.lines||[];if(!no||!rd||!fd||!td)return alert('Receipt number, receipt date, From Date and To Date are required.');if(fd>td)return alert('From Date cannot be after To Date.');if(!lines.length)return alert('No receipt lines are available. Upload and verify the GR first.');const existingReceipt=await sb.from('itc_receipts').select('id').eq('receipt_number',no).limit(1);if(existingReceipt.error)return alert(existingReceipt.error.message);if(existingReceipt.data?.length){localStorage.setItem('wm360:activeReceipt',existingReceipt.data[0].id);return openGrReconciliation(existingReceipt.data[0].id);}let poId=null;if(poNumber){const p=state.pos.find(x=>String(x.po_number||'')===poNumber);if(p)poId=p.id}const hdr={receipt_number:no,receipt_date:rd,from_date:fd,to_date:td,po_id:poId,ocr_verified:true,reconciliation_status:'Pending',created_by:state.session.user.id};const hr=await sb.from('itc_receipts').insert(hdr).select().single();if(hr.error)return alert(`Receipt header was not saved: ${hr.error.message}`);const receiptId=hr.data.id;const wcs=lines.map(x=>x.w);const wr=await sb.from('itc_weighments').select('*').in('wc_number',wcs);if(wr.error){await sb.from('itc_receipts').delete().eq('id',receiptId);return alert(`Could not read Final Weighments: ${wr.error.message}`)}const byWc=new Map((wr.data||[]).map(w=>[String(w.wc_number||'').toUpperCase(),w]));const rows=[];let verifiedCount=0,exceptionCount=0;for(const r of lines){let match='Verified',reasons=[],loadId=null;const w=byWc.get(String(r.wc||'').toUpperCase());const l=w?state.loads.find(x=>x.id===w.load_id):null;if(!w||!l){match='WC Not Found';reasons.push('No matching Final Weighment/WC found in WoodMaster.')}else{loadId=w.load_id;const approved=num(w.approved_weight);if(poNumber&&String(l.po_master?.po_number||'')!==poNumber){match='PO Mismatch';reasons.push(`Receipt PO ${poNumber} vs Load PO ${l.po_master?.po_number||'—'}.`)}if(Math.abs(approved-num(r.qty))>0.001){if(match==='Verified')match='Quantity Difference';reasons.push(`Receipt ${num(r.qty).toFixed(3)} MT vs Approved ${approved.toFixed(3)} MT.`)}if(String(w.vehicle_number||'').toUpperCase()!==String(r.vehicle||'').toUpperCase()){if(match==='Verified')match='Vehicle Mismatch';reasons.push(`Receipt vehicle ${r.vehicle} vs Final Weighment ${w.vehicle_number||'—'}.`)}}const dup=await sb.from('itc_receipt_items').select('id,receipt_id').eq('wc_number',String(r.wc||'').toUpperCase()).limit(1);if(dup.error){await sb.from('itc_receipts').delete().eq('id',receiptId);return alert(`Could not check duplicate WC ${r.wc}: ${dup.error.message}`)}if(dup.data?.length){match='Duplicate WC';reasons.push('This WC already exists in another receipt import.')}if(match==='Verified')verifiedCount++;else exceptionCount++;rows.push({receipt_id:receiptId,wc_number:String(r.wc||'').toUpperCase(),wc_date:r.date,vehicle_number:String(r.vehicle||'').toUpperCase(),quantity:num(r.qty),load_id:loadId,match_status:match,exception_reason:reasons.join(' ')||null});}const ir=await sb.from('itc_receipt_items').insert(rows);if(ir.error){await sb.from('itc_receipts').delete().eq('id',receiptId);return alert(`Receipt lines were not saved: ${ir.error.message}`)}for(const row of rows){if(row.load_id&&row.match_status==='Verified')await sb.from('loads').update({status:'Receipt Verified'}).eq('id',row.load_id);else if(row.load_id&&['Quantity Difference','Duplicate WC','PO Mismatch','Vehicle Mismatch'].includes(row.match_status))await sb.from('loads').update({status:'Exception'}).eq('id',row.load_id)}const recStatus=exceptionCount===0?'Verified':(verifiedCount>0?'Partially Verified':'Exception');await sb.from('itc_receipts').update({reconciliation_status:recStatus}).eq('id',receiptId);localStorage.setItem('wm360:activeReceipt',receiptId);clearForm('billingReceipt');await render();return openGrReconciliation(receiptId);}
+async function openGrReconciliation(receiptId){
+  const hr=await sb.from('itc_receipts').select('*').eq('id',receiptId).maybeSingle();if(hr.error)return alert(hr.error.message);if(!hr.data)return alert('GR receipt not found.');
+  const ir=await sb.from('itc_receipt_items').select('*').eq('receipt_id',receiptId).order('wc_date',{ascending:true});if(ir.error)return alert(ir.error.message);
+  const items=ir.data||[];const loadIds=[...new Set(items.map(x=>x.load_id).filter(Boolean))];let weights=[];
+  if(loadIds.length){const wr=await sb.from('itc_weighments').select('*').in('load_id',loadIds);if(wr.error)return alert(wr.error.message);weights=wr.data||[];}
+  const byLoad=new Map(state.loads.map(l=>[l.id,l]));const byWc=new Map(weights.map(w=>[String(w.wc_number||'').toUpperCase(),w]));
+  const rows=items.map((it,i)=>{const w=byWc.get(String(it.wc_number||'').toUpperCase());const l=it.load_id?byLoad.get(it.load_id):null;const ourDate=w?.wc_date||l?.load_date||'';const ourWc=w?.wc_number||'';const ourVeh=String(w?.vehicle_number||l?.vehicle_master?.vehicle_number||l?.vehicle_number||'').toUpperCase();const ourQty=w?num(w.approved_weight):null;let reasons=[];if(!w||!l)reasons.push('WC not found in WoodMaster');if(w&&Math.abs(num(it.quantity)-ourQty)>0.001)reasons.push(`Quantity differs: ITC ${num(it.quantity).toFixed(3)} MT / ours ${ourQty.toFixed(3)} MT`);if(w&&String(it.vehicle_number||'').toUpperCase()!==ourVeh)reasons.push('Truck number differs');if(w&&String(it.wc_date||'')!==String(ourDate||''))reasons.push('WC date differs');if(it.match_status==='Duplicate WC')reasons.push('Duplicate WC receipt line');if(it.exception_reason&&!reasons.length&&it.match_status!=='Verified')reasons.push(it.exception_reason);return {it,w,l,ourDate,ourWc,ourVeh,ourQty,reasons,status:reasons.length?'Caution':'Matched',i};});
+  const seen=new Set(items.map(x=>String(x.wc_number||'').toUpperCase()));const unbilled=await sb.from('invoice_items').select('load_id').not('load_id','is',null);if(unbilled.error)return alert(unbilled.error.message);const reserved=new Set((unbilled.data||[]).map(x=>x.load_id));const grOnly=[];
+  for(const l of state.loads){const w=weights.find(x=>x.load_id===l.id)||null;const date=String(w?.wc_date||l.load_date||'');if(date<hr.data.from_date||date>hr.data.to_date||!w||num(w.approved_weight)<=0||reserved.has(l.id)||l.status==='Billed')continue;if(!seen.has(String(w.wc_number||'').toUpperCase()))grOnly.push({l,w});}
+  const warningCount=rows.filter(x=>x.reasons.length).length;const totalQty=rows.reduce((a,x)=>a+num(x.it.quantity),0);
+  const tableRows=rows.map(x=>`<tr><td>${x.i+1}</td><td>${fmtDate(x.it.wc_date)}</td><td>${esc(x.it.wc_number||'—')}</td><td>${esc(x.it.vehicle_number||'—')}</td><td>${fmt(x.it.quantity)} MT</td><td>${fmtDate(x.ourDate)||'—'}</td><td>${esc(x.ourWc||'—')}</td><td>${esc(x.ourVeh||'—')}</td><td>${x.ourQty===null?'—':fmt(x.ourQty)+' MT'}</td><td><span class="badge ${x.reasons.length?'warn':''}">${esc(x.status)}</span>${x.reasons.length?`<div class="small" style="color:#b42318;max-width:260px">${x.reasons.map(esc).join('; ')}</div>`:''}</td></tr>`).join('');
+  const grOnlyHtml=grOnly.length?`<div class="notice error" style="margin-top:12px"><b>WoodMaster-only loads (${grOnly.length})</b> — these eligible loads are in our records for this period but are not listed in this ITC GR. They will not be silently added to this GR invoice; check whether they belong to the next bill cycle.</div><div class="tablewrap"><table><thead><tr><th>Date</th><th>WC</th><th>Truck</th><th>Approved MT</th><th>DC</th></tr></thead><tbody>${grOnly.map(x=>`<tr><td>${fmtDate(x.w.wc_date)}</td><td>${esc(x.w.wc_number||'—')}</td><td>${esc(x.w.vehicle_number||'—')}</td><td>${fmt(x.w.approved_weight)}</td><td>${esc(x.l.dc_number||x.l.load_number||'—')}</td></tr>`).join('')}</tbody></table></div>`:'';
+  const warning=warningCount?`<div class="notice error"><b>⚠ ${warningCount} line(s) need attention.</b> Check the comparison below. Draft creation is blocked until every ITC line matches a WoodMaster Final Weighment with the same WC, truck and quantity. Correct the GR input and reconcile again, or fix the underlying WoodMaster data first.</div>`:`<div class="notice success"><b>All ${rows.length} ITC lines matched.</b> No WC, truck or quantity cautions were detected.</div>`;
+  const body=`<div class="notice"><b>GR:</b> ${esc(hr.data.receipt_number)} &nbsp; | &nbsp; <b>Period:</b> ${fmtDate(hr.data.from_date)} – ${fmtDate(hr.data.to_date)} &nbsp; | &nbsp; <b>Invoice date:</b> ${fmtDate(hr.data.receipt_date)}</div>${warning}<div class="tablewrap" style="max-height:48vh;overflow:auto;margin-top:12px"><table style="min-width:1050px"><thead><tr><th colspan="5" style="text-align:center;background:#eaf3ff">ITC GR DATA</th><th colspan="4" style="text-align:center;background:#e8f7ee">OUR WOODMASTER DATA</th><th rowspan="2">Comparison / Caution</th></tr><tr><th>S.No</th><th>Date</th><th>WC No.</th><th>Truck No.</th><th>Qty</th><th>Our Date</th><th>Our WC No.</th><th>Our Truck No.</th><th>Approved Qty</th></tr></thead><tbody>${tableRows||'<tr><td colspan="10">No receipt lines found.</td></tr>'}</tbody><tfoot><tr><th colspan="4" style="text-align:right">ITC Total</th><th>${fmt(totalQty)} MT</th><th colspan="4" style="text-align:right">Matched WoodMaster Total</th><th>${fmt(rows.reduce((a,x)=>a+(x.ourQty===null?0:x.ourQty),0))} MT</th></tr></tfoot></table></div>${grOnlyHtml}<div class="notice" style="margin-top:12px">The GR method selects loads from the ITC GR. Method 2 selects loads by WoodMaster date range. Both create a Draft Material Invoice in the same shared invoice-number sequence; finalizing either method uses that same sequence.</div>`;
+  saveForm('billingInvoice',{mode:'gr',receiptId,invoiceDate:hr.data.receipt_date,grFromDate:hr.data.from_date,grToDate:hr.data.to_date});
+  showModal('Method 1 — ITC vs WoodMaster Reconciliation',body,warningCount?'blockGrMaterialDraft()':`prepareGrMaterialDraft('${receiptId}')`,'Save Draft');
 }
-async function prepareReceiptMaterialInvoiceDraft(){
-  const rid=localStorage.getItem('wm360:activeReceipt');if(!rid)return alert('Select a saved Receipt / GR in the reconciliation panel.');
-  const date=$('brInvoiceDate')?.value||(loadForm('billingReceipt')||{}).invoiceDate||isoToday();
-  const receiptRes=await sb.from('itc_receipts').select('*').eq('id',rid).maybeSingle();if(receiptRes.error||!receiptRes.data)return alert(`Could not load receipt: ${receiptRes.error?.message||'not found'}`);const receipt=receiptRes.data;
-  const itemRes=await sb.from('itc_receipt_items').select('*').eq('receipt_id',rid).order('wc_date',{ascending:true});if(itemRes.error)return alert(itemRes.error.message);const items=itemRes.data||[];
-  if(!items.length)return alert('There are no receipt lines to bill.');const bad=items.filter(i=>i.match_status!=='Verified'||!i.load_id);if(bad.length)return alert(`Draft creation is blocked: ${bad.length} receipt line(s) are not Verified or are not linked to a WoodMaster load. Re-check after correcting the differences.`);
-  const loadIds=[...new Set(items.map(i=>i.load_id))];if(loadIds.length!==items.length)return alert('Duplicate load links were found in the receipt. Resolve duplicates before billing.');
-  const loadsRes=await sb.from('loads').select('*,vehicle_master(vehicle_number,owner_name,driver_name,current_tare),po_master(po_number,contractor_id,area_name,species_name,wood_rate,handling_other_rate,amc_rate,hsn_code,customer_id,customer_master(customer_name,gstin)').in('id',loadIds);if(loadsRes.error)return alert(`Could not load linked WoodMaster records: ${loadsRes.error.message}`);const loads=loadsRes.data||[];const loadMap=new Map(loads.map(l=>[String(l.id),l]));
-  if(loads.length!==loadIds.length)return alert('Some linked loads could not be found. Refresh the reconciliation before billing.');
-  const poIds=[...new Set(loads.map(l=>String(l.po_id||l.po_master?.id||'')).filter(Boolean))];if(poIds.length!==1)return alert('This receipt contains loads from more than one Purchase Order. Create separate receipts/invoices PO-wise so each invoice uses the correct PO rates.');
-  if(receipt.po_id&&String(receipt.po_id)!==poIds[0])return alert('The receipt PO differs from the linked loads. Resolve the PO mismatch before billing.');
-  const selectedPO=loads[0].po_master;if(!selectedPO)return alert('PO details are missing for one or more loads.');
-  const weighRes=await sb.from('itc_weighments').select('*').in('load_id',loadIds);if(weighRes.error)return alert(weighRes.error.message);const byLoad=new Map((weighRes.data||[]).map(w=>[String(w.load_id),w]));
-  const source=items.map(i=>({i,l:loadMap.get(String(i.load_id)),w:byLoad.get(String(i.load_id))}));if(source.some(x=>!x.w||num(x.w.approved_weight)<=0))return alert('At least one linked load has no valid Approved Weight in Final Weighments.');
-  for(const x of source){if(Math.abs(num(x.w.approved_weight)-num(x.i.quantity))>0.001)return alert(`WC ${x.i.wc_number}: ITC quantity and Approved Weight differ. Re-check reconciliation before billing.`)}
-  let invoiceState;try{invoiceState=await getMaterialInvoiceStates(loadIds)}catch(e){return alert(`Could not check existing invoice reservations: ${e.message||e}`)}if(invoiceState.liveItems.length)return alert('One or more receipt loads are already reserved by a live invoice. Refresh billing and remove already billed/draft loads from this receipt before proceeding.');
-  const lines=source.map(x=>{const b=billingLineFromLoad(x.l,x.w,null);return {load_id:x.l.id,wc_number:x.w.wc_number,approved_qty:b.qty,wood_rate:b.woodRate,wood_value:b.wood,handling_rate:b.handlingRate,handling_value:b.handling,gst:b.gst,total:b.total}});
-  const numberRes=await sb.rpc('allocate_shared_invoice_number',{p_invoice_date:date});if(numberRes.error)return alert(`Could not allocate shared invoice number: ${numberRes.error.message}`);const ino=numberRes.data;
-  const totals=lines.reduce((a,x)=>({qty:a.qty+num(x.approved_qty),mv:a.mv+num(x.wood_value),hv:a.hv+num(x.handling_value),gst:a.gst+num(x.gst),total:a.total+num(x.total)}),{qty:0,mv:0,hv:0,gst:0,total:0});const itc=state.itcs.find(x=>x.is_default)||state.itcs[0];if(!itc)return alert('No default ITC Master record is configured.');
-  const hdr={invoice_number:ino,invoice_date:date,from_date:receipt.from_date,to_date:receipt.to_date,itc_id:itc.id,total_qty:totals.qty,material_value:totals.mv,handling_value:totals.hv,gst:totals.gst,invoice_total:totals.total,status:'Draft',billing_method:'GR / Wood Receipt Summary',created_by:state.session.user.id};const inv=await sb.from('material_invoices').insert(hdr).select().single();if(inv.error)return alert(`Draft invoice was not created: ${inv.error.message}`);
-  const rows=lines.map(x=>({...x,invoice_id:inv.data.id}));const ins=await sb.from('invoice_items').insert(rows);if(ins.error){await sb.from('material_invoices').delete().eq('id',inv.data.id);return alert(`Draft header created but invoice lines failed; header rollback attempted: ${ins.error.message}`)}
-  localStorage.setItem('wm360:billingFlowMessage',`Draft invoice ${ino} created from ITC receipt ${receipt.receipt_number}. Review it in Draft Material Invoices.`);closeModal();await refreshLoads();await render();setTimeout(()=>{const h=[...document.querySelectorAll('h2')].find(x=>x.textContent.includes('Draft Material Invoices'));h?.scrollIntoView({behavior:'smooth',block:'start'});},100);
+function blockGrMaterialDraft(){alert('Draft not saved: one or more ITC lines have a reconciliation caution. Correct the GR data or WoodMaster Final Weighment details, then click Reconcile All Lines again.');}
+async function prepareGrMaterialDraft(receiptId){
+  const hr=await sb.from('itc_receipts').select('*').eq('id',receiptId).maybeSingle();if(hr.error)return alert(hr.error.message);if(!hr.data)return alert('GR receipt not found.');
+  const rr=await sb.from('itc_receipt_items').select('*').eq('receipt_id',receiptId).order('wc_date',{ascending:true});if(rr.error)return alert(rr.error.message);const items=rr.data||[];if(!items.length)return alert('This GR has no receipt lines.');
+  if(items.some(x=>x.match_status!=='Verified'||!x.load_id))return blockGrMaterialDraft();
+  const ids=[...new Set(items.map(x=>x.load_id))];const reserved=await sb.from('invoice_items').select('load_id').in('load_id',ids);if(reserved.error)return alert(reserved.error.message);if(reserved.data?.length)return alert('One or more GR loads are already reserved in a Draft or Final invoice. Refresh the billing page and review existing invoices.');
+  const itc=state.itcs.find(x=>x.is_default)||state.itcs[0];if(!itc)return alert('No default ITC Master record is configured.');const idate=hr.data.receipt_date||isoToday();const nr=await sb.rpc('allocate_shared_invoice_number',{p_invoice_date:idate});if(nr.error)return alert(`Could not allocate the shared invoice number. ${nr.error.message}`);const ino=nr.data;
+  const lineRows=[];for(const it of items){const l=state.loads.find(x=>x.id===it.load_id);if(!l)return alert(`WoodMaster load for WC ${it.wc_number} is not loaded. Refresh data and retry.`);const wr=await sb.from('itc_weighments').select('*').eq('load_id',l.id).maybeSingle();if(wr.error)return alert(wr.error.message);if(!wr.data)return alert(`Final Weighment missing for WC ${it.wc_number}.`);const x=billingLineFromLoad(l,wr.data,null);lineRows.push({load_id:l.id,wc_number:wr.data.wc_number,approved_qty:x.qty,wood_rate:x.woodRate,wood_value:x.wood,handling_rate:x.handlingRate,handling_value:x.handling,gst:x.gst,total:x.total});}
+  const totals=lineRows.reduce((a,x)=>({qty:a.qty+x.approved_qty,mv:a.mv+x.wood_value,hv:a.hv+x.handling_value,gst:a.gst+x.gst,total:a.total+x.total}),{qty:0,mv:0,hv:0,gst:0,total:0});
+  const inv={invoice_number:ino,invoice_date:idate,from_date:hr.data.from_date,to_date:hr.data.to_date,itc_id:itc.id,total_qty:totals.qty,material_value:totals.mv,handling_value:totals.hv,gst:totals.gst,invoice_total:totals.total,status:'Draft',billing_method:'ITC GR Letter',created_by:state.session.user.id};const ir=await sb.from('material_invoices').insert(inv).select().single();if(ir.error)return alert(`Draft invoice was not created: ${ir.error.message}`);
+  const saved=lineRows.map(x=>({...x,invoice_id:ir.data.id}));const wr=await sb.from('invoice_items').insert(saved);if(wr.error){await sb.from('material_invoices').delete().eq('id',ir.data.id);return alert(`Draft invoice lines were not saved: ${wr.error.message}`)}
+  await sb.from('itc_receipts').update({reconciliation_status:'Verified'}).eq('id',receiptId);clearForm('billingInvoice');closeModal();alert(`Material Draft Invoice ${ino} saved from ITC GR for ${fmt(totals.qty)} MT. It uses the shared Material + AMC invoice sequence.`);await refreshLoads();await render();
 }
 function billingLineFromLoad(l,w,ri){const po=l?.po_master,qty=num(w?.approved_weight),woodRate=num(po?.wood_rate),handlingRate=num(po?.handling_other_rate),wood=qty*woodRate,handling=qty*handlingRate,gst=(wood+handling)*0.18,total=wood+handling+gst;return {ri,l,w,po,qty,woodRate,handlingRate,wood,handling,gst,total};}
 async function markBillingWaiting(loadId,cutoff,mode){const l=state.loads.find(x=>x.id===loadId);if(!l)return;const ok=confirm(`Mark ${l.dc_number||l.load_number} as Waiting for Next Bill Cycle? It will be automatically carried into the next invoice draft.`);if(!ok)return;const r=await sb.from('loads').update({billing_waiting_next_cycle:true,billing_waiting_since:isoToday(),billing_waiting_reason:`Waiting for next bill cycle (${mode||'billing'})`,status:'Billing Hold'}).eq('id',loadId);if(r.error)return alert(`Could not mark waiting: ${r.error.message}`);await refreshLoads();alert(`${l.dc_number||l.load_number} is marked Waiting for Next Bill Cycle.`);await render();}
 async function buildMaterialInvoiceDraft(modeOverride){
   const mode=modeOverride||'manual';
   if(mode!=='manual')return alert('For now, Material Billing is being built using Manual Date Selection. GR upload/reconciliation remains available above for the next stage.');
-
-  const poId=$('biManualPo')?.value||'';
-  const fd=$('biManualFrom')?.value||'';
-  const td=$('biManualTo')?.value||'';
-  const idate=$('biManualDate')?.value||'';
-
-  if(!poId||!fd||!td||!idate)return alert('Purchase Order, From Date, To Date and Invoice Date are required.');
+  const fd=$('biManualFrom')?.value||'',td=$('biManualTo')?.value||'',idate=$('biManualDate')?.value||'';
+  if(!fd||!td||!idate)return alert('From Date, To Date and Invoice Date are required.');
   if(fd>td)return alert('From Date cannot be after To Date.');
-
-  const selectedPO=(state.pos||[]).find(p=>String(p.id)===String(poId));
-  if(!selectedPO)return alert('Selected Purchase Order was not found. Refresh Masters and try again.');
-
   saveBillingInvoiceDraft();
-
-  /*
-   * IMPORTANT 360-DEGREE FIX:
-   * Query the database directly by the selected PO ID.
-   * Do not depend on state.loads + nested po_master matching.
-   * This prevents one contractor having another PO's Final Weighments
-   * incorrectly included/excluded when several POs exist.
-   */
-  const loadRes=await sb.from('loads').select(`
-    *,
-    vehicle_master(vehicle_number,owner_name,driver_name,current_tare),
-    po_master(po_number,contractor_id,area_name,species_name,wood_rate,handling_other_rate,amc_rate,hsn_code,customer_id,customer_master(customer_name,gstin))
-  `).eq('po_id',poId).order('load_date',{ascending:true}).order('load_number',{ascending:true});
-
-  if(loadRes.error)return alert(`Could not read loads for the selected Purchase Order.\n\n${loadRes.error.message}`);
-
-  const poLoads=loadRes.data||[];
-  if(!poLoads.length){
-    return alert(`No loads are linked to PO ${selectedPO.po_number||'—'}.\n\nThe Purchase Order exists, but no load row has this PO ID. Please check the PO selected while creating the load.`);
-  }
-
-  const loadIds=poLoads.map(x=>x.id).filter(Boolean);
-
-  // Final Weighments are restricted to loads belonging to THIS selected PO.
-  const wr=await sb.from('itc_weighments').select('*').in('load_id',loadIds);
-  if(wr.error)return alert(`Could not read Final Weighments.\n\n${wr.error.message}`);
+  const ids=state.loads.map(x=>x.id).filter(Boolean);if(!ids.length)return alert('No loads available.');
+  const wr=await sb.from('itc_weighments').select('*').in('load_id',ids);if(wr.error)return alert(wr.error.message);
   const allW=wr.data||[];
-
-  // Give a precise diagnostic when loads exist but Final Weighments have not
-  // yet been entered. Billing must never silently bill from Load Net Weight.
-  if(!allW.length){
-    const loadList=poLoads.map((l,i)=>`${i+1}. ${l.dc_number||l.load_number||'—'} | ${fmtDate(l.load_date)} | ${String(l.vehicle_master?.vehicle_number||l.vehicle_number||'').toUpperCase()} | Net ${fmt(l.net_weight)} MT`).join('\n');
-    return alert(`PO ${selectedPO.po_number||'—'} has ${poLoads.length} load(s), but no Final Weighment is saved for any of them.\n\nBilling requires a Final Weighment with Approved Weight. Open Final Weighments and save the ITC WC details first.\n\nLoads linked to this PO:\n${loadList}`);
-  }
-
-  // A load is unavailable only when it is reserved by a LIVE Material Invoice.
-  // Cancelled invoice rows are retained for audit history, but they must NOT block
-  // the load from being billed again. This is important for the Khammam case where
-  // loads can still have invoice_items belonging to an older cancelled invoice.
-  let invoiceState;
-  try{invoiceState=await getMaterialInvoiceStates(loadIds)}catch(e){return alert(`Could not check existing Material Invoice reservations.\n\n${e.message||e}`)}
-  const activeReservationRows=invoiceState.liveItems;
-  const billedOrDraftIds=new Set(activeReservationRows.map(x=>x.load_id));
-
-  const loadMap=new Map(poLoads.map(x=>[x.id,x]));
-  const source=allW.map(w=>({w,l:loadMap.get(w.load_id)})).filter(x=>x.l&&num(x.w.approved_weight)>0);
-
+  const invR=await sb.from('invoice_items').select('load_id,invoice_id').in('load_id',ids);if(invR.error)return alert(invR.error.message);
+  const billedOrDraftIds=new Set((invR.data||[]).map(x=>x.load_id));
+  const source=allW.map(w=>({w,l:state.loads.find(x=>x.id===w.load_id)})).filter(x=>x.l&&num(x.w.approved_weight)>0);
   const valid=[];
   for(const x of source){
     const {w,l}=x;
-    if(billedOrDraftIds.has(l.id))continue;
-
+    if(billedOrDraftIds.has(l.id)||l.status==='Billed')continue;
     const d=String(w.wc_date||l.load_date||'');
     const carry=Boolean(l.billing_waiting_next_cycle);
     const inPeriod=d>=fd&&d<=td;
     if(carry||inPeriod)valid.push(billingLineFromLoad(l,w,null));
   }
+  const seen=new Set();const unique=valid.filter(x=>{if(seen.has(x.l.id))return false;seen.add(x.l.id);return true;});
 
-  // Prevent duplicate Final Weighment rows for the same load.
-  const seen=new Set();
-  const unique=valid.filter(x=>{
-    if(seen.has(x.l.id))return false;
-    seen.add(x.l.id);
-    return true;
-  });
-
-  // 360-degree completeness check for THIS PO only:
-  // every earlier unbilled load must be billed/reserved, or explicitly carried forward.
+  // 360-degree completeness check for Manual Date Selection:
+  // every earlier unbilled load must either already be in a billing draft/invoice,
+  // be billed, or be explicitly carried forward as Waiting for Next Bill Cycle.
+  // This prevents a load before the selected From Date from being silently missed.
   const pendingBeforeFrom=[];
-  for(const l of poLoads){
+  for(const l of state.loads){
     if(!l?.id)continue;
-    if(billedOrDraftIds.has(l.id)||l.billing_waiting_next_cycle===true)continue;
-
+    if(billedOrDraftIds.has(l.id)||l.status==='Billed'||l.billing_waiting_next_cycle===true)continue;
     const w=allW.find(x=>x.load_id===l.id);
     const businessDate=String(w?.wc_date||l.load_date||'');
     if(!businessDate||businessDate>=fd)continue;
-
     if(w&&num(w.approved_weight)>0){
       pendingBeforeFrom.push({l,w,kind:'ready'});
     }else{
       pendingBeforeFrom.push({l,w:null,kind:'no_final'});
     }
   }
-
-  if(!unique.length&&!pendingBeforeFrom.length){
-    const finalCount=allW.length;
-    const approvedCount=allW.filter(w=>num(w.approved_weight)>0).length;
-    const inPeriodCount=allW.filter(w=>{const d=String(w.wc_date||'');return d>=fd&&d<=td&&num(w.approved_weight)>0;}).length;
-    const reservedCount=allW.filter(w=>billedOrDraftIds.has(w.load_id)).length;
-    const cancelledReservationCount=invoiceState.items.filter(x=>String(x.material_invoices?.status||'').trim().toLowerCase()==='cancelled').length;
-    return alert(
-      `No billable Final Weighments found for PO ${selectedPO.po_number||'—'} between ${fmtDate(fd)} and ${fmtDate(td)}.\n\n`+
-      `Diagnostic: ${poLoads.length} load(s) linked to this PO; ${finalCount} Final Weighment(s) found; ${approvedCount} with Approved Weight > 0; ${inPeriodCount} with WC Date inside the selected period; ${reservedCount} already reserved by a live invoice; ${cancelledReservationCount} item(s) belong to Cancelled invoice(s) and are not blocking.\n\n`+
-      `Billing uses WC Date (not Load Date) and Approved Weight. If the Final Weighment exists but its WC Date is outside ${fmtDate(fd)}–${fmtDate(td)}, change the billing period to the actual WC Date.`
-    );
-  }
+  if(!unique.length && !pendingBeforeFrom.length)return alert(`No billable Final Weighments found between ${fmtDate(fd)} and ${fmtDate(td)}.`);
 
   const preview=await sb.rpc('peek_shared_invoice_number',{p_invoice_date:idate});
   const invoiceNo=preview.error?'—':(preview.data||'—');
   const totalQty=unique.reduce((a,x)=>a+x.qty,0);
-  const rows=unique.map((x,i)=>`<tr><td>${i+1}</td><td>${fmtDate(x.w.wc_date)}</td><td>${esc(x.w.wc_number)}</td><td>${esc(String(x.w.vehicle_number||x.l.vehicle_master?.vehicle_number||'').toUpperCase())}</td><td>${fmt(x.qty)}</td><td>MT</td></tr>`).join('');
+  const rows=unique.map((x,i)=>`<tr><td>${i+1}</td><td>${fmtDate(x.w.wc_date)}</td><td>${esc(x.w.wc_number)}</td><td>${esc(String(x.w.vehicle_number||x.l.vehicle_number||'').toUpperCase())}</td><td>${fmt(x.qty)}</td><td>MT</td></tr>`).join('');
 
   let pendingHtml='';
   if(pendingBeforeFrom.length){
@@ -792,13 +595,11 @@ async function buildMaterialInvoiceDraft(modeOverride){
       const date=w?.wc_date||l.load_date;
       return `<tr><td>${i+1}</td><td>${fmtDate(date)}</td><td>${esc(w?.wc_number||'—')}</td><td>${esc(String(w?.vehicle_number||l.vehicle_master?.vehicle_number||'').toUpperCase())}</td><td>${w?fmt(w.approved_weight):'—'}</td><td>${esc(l.dc_number||l.load_number||'—')}</td><td>${status}</td><td><button class="btn secondary" type="button" onclick="markBillingWaitingAndRefresh('${l.id}')">Waiting for Next Bill Cycle</button></td></tr>`;
     }).join('');
-    pendingHtml=`<div class="notice error" style="margin-top:12px"><b>⚠ Billing completeness warning</b><br>There are ${pendingBeforeFrom.length} earlier unbilled load(s) for this PO before the selected From Date (${fmtDate(fd)}). To avoid silently leaving a load out of billing, each must be accounted for before the draft can be prepared. You can mark a load as <b>Waiting for Next Bill Cycle</b>; it will automatically be included in the next billing cycle.</div><div class="tablewrap" style="margin-top:10px"><table><thead><tr><th>S.No</th><th>Date</th><th>WC Number</th><th>Truck Number</th><th>Approved Qty</th><th>DC Number</th><th>Reason</th><th>Action</th></tr></thead><tbody>${pRows}</tbody></table></div>`;
+    pendingHtml=`<div class="notice error" style="margin-top:12px"><b>⚠ Billing completeness warning</b><br>There are ${pendingBeforeFrom.length} earlier unbilled load(s) before the selected From Date (${fmtDate(fd)}). To avoid silently leaving a load out of billing, each must be accounted for before the draft can be prepared. You can mark a load as <b>Waiting for Next Bill Cycle</b>; it will automatically be included in the next billing cycle.</div><div class="tablewrap" style="margin-top:10px"><table><thead><tr><th>S.No</th><th>Date</th><th>WC Number</th><th>Truck Number</th><th>Approved Qty</th><th>DC Number</th><th>Reason</th><th>Action</th></tr></thead><tbody>${pRows}</tbody></table></div>`;
   }
-
-  const blockNote=pendingBeforeFrom.length?`<div class="notice error" style="margin-top:12px"><b>Prepare Draft Bill is blocked</b> until the earlier pending loads for this PO are either billed/reserved in an invoice or explicitly marked Waiting for Next Bill Cycle.</div>`:'';
-  const body=`<div class="notice"><b>Purchase Order:</b> ${esc(selectedPO.po_number||'')} &nbsp; | &nbsp; <b>Billing Period:</b> ${fmtDate(fd)} to ${fmtDate(td)} &nbsp; | &nbsp; <b>Invoice Date:</b> ${fmtDate(idate)} &nbsp; | &nbsp; <b>Auto Invoice No:</b> ${esc(invoiceNo)}</div>${pendingHtml}<div class="sectionhead" style="margin-top:14px">Final Billable Loads — Verify Before Preparing Draft</div><div class="tablewrap"><table><thead><tr><th>S.No</th><th>Date</th><th>WC Number</th><th>Truck Number</th><th>Approved Quantity</th><th>UOM</th></tr></thead><tbody>${rows||`<tr><td colspan="6" class="empty">No loads selected for this period.</td></tr>`}</tbody><tfoot><tr><th colspan="4" style="text-align:right">Total Quantity</th><th>${fmt(totalQty)}</th><th>MT</th></tr></tfoot></table></div><div class="notice" style="margin-top:12px">Please verify that these are the final loads for this billing cycle. <b>Prepare Draft Bill</b> will create the Material Invoice as a Draft only; loads will not be marked Billed until the invoice is finalized.</div>${blockNote}`;
-
-  saveForm('billingInvoice',{mode:'manual',poId,manualFromDate:fd,manualToDate:td,invoiceDate:idate,confirmationLines:unique.map(x=>({load_id:x.l.id,wc_number:x.w.wc_number,approved_qty:x.qty,wood_rate:x.woodRate,wood_value:x.wood,handling_rate:x.handlingRate,handling_value:x.handling,gst:x.gst,total:x.total})),confirmationInvoiceNo:invoiceNo,pendingBeforeFrom:pendingBeforeFrom.map(x=>x.l.id)});
+  const blockNote=pendingBeforeFrom.length?`<div class="notice error" style="margin-top:12px"><b>Prepare Draft Bill is blocked</b> until the earlier pending loads are either billed/reserved in an invoice or explicitly marked Waiting for Next Bill Cycle.</div>`:'';
+  const body=`<div class="notice"><b>Billing Period:</b> ${fmtDate(fd)} to ${fmtDate(td)} &nbsp; | &nbsp; <b>Invoice Date:</b> ${fmtDate(idate)} &nbsp; | &nbsp; <b>Auto Invoice No:</b> ${esc(invoiceNo)}</div>${pendingHtml}<div class="sectionhead" style="margin-top:14px">Final Billable Loads — Verify Before Preparing Draft</div><div class="tablewrap"><table><thead><tr><th>S.No</th><th>Date</th><th>WC Number</th><th>Truck Number</th><th>Approved Quantity</th><th>UOM</th></tr></thead><tbody>${rows||`<tr><td colspan="6" class="empty">No loads selected for this period.</td></tr>`}</tbody><tfoot><tr><th colspan="4" style="text-align:right">Total Quantity</th><th>${fmt(totalQty)}</th><th>MT</th></tr></tfoot></table></div><div class="notice" style="margin-top:12px">Please verify that these are the final loads for this billing cycle. <b>Prepare Draft Bill</b> will create the Material Invoice as a Draft only; loads will not be marked Billed until the invoice is finalized.</div>${blockNote}`;
+  saveForm('billingInvoice',{mode:'manual',manualFromDate:fd,manualToDate:td,invoiceDate:idate,confirmationLines:unique.map(x=>({load_id:x.l.id,wc_number:x.w.wc_number,approved_qty:x.qty,wood_rate:x.woodRate,wood_value:x.wood,handling_rate:x.handlingRate,handling_value:x.handling,gst:x.gst,total:x.total})),confirmationInvoiceNo:invoiceNo,pendingBeforeFrom:pendingBeforeFrom.map(x=>x.l.id)});
   showModal('Material Billing — Final Confirmation',body,pendingBeforeFrom.length?'blockManualMaterialDraft()':'prepareManualMaterialDraft()','Prepare Draft Bill');
 }
 function blockManualMaterialDraft(){alert('Draft Bill cannot be prepared yet. Please account for every earlier unbilled load shown in the Billing completeness warning. Mark it Waiting for Next Bill Cycle if it should be carried forward.');}
@@ -819,14 +620,7 @@ async function prepareManualMaterialDraft(){
 
   const fd=d.manualFromDate,td=d.manualToDate,idate=d.invoiceDate;
   if(!fd||!td||!idate)return alert('Billing period and invoice date are required.');
-  const ids=[...new Set(lines.map(x=>x.load_id).filter(Boolean))];
-  let stateCheck;
-  try{stateCheck=await getMaterialInvoiceStates(ids)}catch(e){return alert(e.message||String(e))}
-  const liveDup=stateCheck.liveItems.filter(x=>x.invoice_id!==d.invoiceId);
-  if(liveDup.length){
-    const nums=[...new Set(liveDup.map(x=>x.material_invoices?.invoice_number).filter(Boolean))].join(', ');
-    return alert(`One or more selected loads are already reserved by a live Material Invoice${nums?` (${nums})`:''}.\n\nCancelled invoice history does not block billing. Refresh the billing screen and choose only unreserved loads.`);
-  }
+  const ids=lines.map(x=>x.load_id);const dup=await sb.from('invoice_items').select('load_id').in('load_id',ids);if(dup.error)return alert(dup.error.message);if(dup.data?.length)return alert('One or more loads are already reserved in a billing draft/invoice. Please refresh the billing screen.');
   const itc=state.itcs.find(x=>x.is_default)||state.itcs[0];if(!itc)return alert('No default ITC Master record is configured.');
   const numberRes=await sb.rpc('allocate_shared_invoice_number',{p_invoice_date:idate});if(numberRes.error)return alert(`Could not allocate the shared invoice number. ${numberRes.error.message}`);const ino=numberRes.data;
   const totals=lines.reduce((a,x)=>({qty:a.qty+x.approved_qty,mv:a.mv+x.wood_value,hv:a.hv+x.handling_value,gst:a.gst+x.gst,total:a.total+x.total}),{qty:0,mv:0,hv:0,gst:0,total:0});
@@ -901,9 +695,9 @@ async function finalizeMaterialInvoice(id){
     if(!invoiceActionAllowed('finalize',invoice.status))return alert('You do not have permission to finalize this invoice.');
     if(invoice.status!=='Draft')return alert('Only Draft invoices can be finalized.');
     if(!items.length)return alert('Cannot finalize an invoice with no lines.');
-    let stateCheck;
-    try{stateCheck=await getMaterialInvoiceStates(items.map(x=>x.load_id))}catch(e){return alert(e.message||String(e))}
-    const conflicts=stateCheck.liveItems.filter(x=>x.invoice_id!==id);
+    const dup=await sb.from('invoice_items').select('load_id,invoice_id').in('load_id',items.map(x=>x.load_id));
+    if(dup.error)return alert(dup.error.message);
+    const conflicts=(dup.data||[]).filter(x=>x.invoice_id!==id);
     if(conflicts.length)return alert('One or more loads are already reserved by another invoice. Refresh and resolve the conflict before finalizing.');
     const ok=confirm(`Finalize invoice ${invoice.invoice_number}? ${items.length} load(s) will be marked Billed. This should only be done after the draft is fully checked.`);if(!ok)return;
     const priorStatuses=[];
@@ -926,280 +720,32 @@ async function printMaterialInvoice(id){
   try{
     const {invoice,items}=await getMaterialInvoiceBundle(id);
     if(!invoice)return;
-
     const contractor=active()||{};
-    const loadIds=[...new Set((items||[]).map(x=>x.load_id).filter(Boolean))];
-    let loads=[];
-    if(loadIds.length){
-      const lr=await sb.from('loads').select(`
-        id,po_id,species_name,load_date,
-        vehicle_master(vehicle_number,owner_name,driver_name),
-        po_master(po_number,area_name,species_name,wood_rate,handling_other_rate,hsn_code,customer_id,customer_master(*))
-      `).in('id',loadIds);
-      if(lr.error)throw lr.error;
-      loads=lr.data||[];
+    const itc=state.itcs.find(x=>x.id===invoice.itc_id)||state.itcs.find(x=>x.is_default)||state.itcs[0]||{};
+    let customer={};
+    const poIds=items.map(x=>x.po_id).filter(Boolean);
+    if(poIds.length){
+      const pr=await sb.from('po_master').select('customer_id,customer_master(*)').in('id',poIds).limit(1);
+      if(!pr.error&&pr.data?.[0]?.customer_master)customer=pr.data[0].customer_master;
     }
-    const loadMap=new Map(loads.map(x=>[x.id,x]));
-    const enriched=(items||[]).map(x=>{
-      const load=loadMap.get(x.load_id)||null;
-      return {...x,load,vehicle_number:x.vehicle_number||load?.vehicle_master?.vehicle_number||''};
-    });
-    const firstLoad=enriched.find(x=>x.load)||{};
-    const po=firstLoad.load?.po_master||{};
-
-    let customer=po.customer_master||{};
-    if(!customer?.customer_name && po.customer_id){
-      const cr=await sb.from('customer_master').select('*').eq('id',po.customer_id).maybeSingle();
-      if(!cr.error&&cr.data)customer=cr.data;
-    }
-    if(!customer?.customer_name){
-      const itc=state.itcs.find(x=>x.id===invoice.itc_id)||state.itcs.find(x=>x.is_default)||state.itcs[0]||{};
-      customer={customer_name:itc.company_name||'ITC LTD - PSPD',gstin:itc.gstin||'',pan:itc.pan||'',address:itc.address||''};
-    }
-
-    const {jsPDF}=window.jspdf;
-    const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'a4',compress:true});
-    const PW=595.28,PH=841.89,left=72,right=PW-72,width=right-left;
-    const black=[0,0,0];
-    const safe=v=>String(v??'').replace(/₹/g,'Rs. ').replace(/\u00a0/g,' ').replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/•/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'?');
-    const num=v=>Number(v||0);
-    const moneyPlain=v=>num(v).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
-    const qty3=v=>num(v).toLocaleString('en-IN',{minimumFractionDigits:3,maximumFractionDigits:3});
-    // Normal document font is 11 pt throughout, with bold used only where the reference design calls for emphasis.
-    const set=(size=11,bold=false)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(...black);};
-    const text=(t,x,y,size=11,bold=false,align='left')=>{
-      const xx=Number.isFinite(Number(x))?Number(x):0, yy=Number.isFinite(Number(y))?Number(y):0;
-      const a=['left','center','right','justify'].includes(String(align))?String(align):'left';
-      set(size,bold);doc.text(safe(t),xx,yy,{align:a});
-    };
-    const line=(x1,y1,x2,y2,w=0.75)=>{doc.setLineWidth(w);doc.setDrawColor(...black);doc.line(x1,y1,x2,y2);};
-    const rect=(x,y,w,h,lw=0.75)=>{doc.setLineWidth(lw);doc.setDrawColor(...black);doc.rect(x,y,w,h);};
-    const center=(t,x1,x2,y,size=11,bold=false)=>text(t,(x1+x2)/2,y,size,bold,'center');
-    const wrap=(t,max,size=11,bold=false)=>{set(size,bold);return doc.splitTextToSize(safe(t),max);};
-    const linesFrom=(v)=>String(v||'').split(/\r?\n|,/).map(s=>s.trim()).filter(Boolean);
-    const fitSize=(str,maxWidth,start=11,min=8,bold=false)=>{let size=start;set(size,bold);while(size>min&&doc.getTextWidth(safe(str))>maxWidth){size-=0.25;set(size,bold)}return size;};
-
-    const poNo=po.po_number||'';
-    const material=po.species_name||firstLoad.load?.species_name||'Eucalyptus Debarked Wood';
-    const hsn=po.hsn_code||'44039800';
-    const customerName=customer.customer_name||'ITC LTD - PSPD';
-    const supplierName=contractor.contractor_name||'SRI VENKATESHWARA TRADERS';
-    const customerPan=customer.pan||'AAACI5950L';
-    const customerGstin=customer.gstin||'36AAACI5950L1ZB';
-    const supplierPan=contractor.pan||'TOHPS0526H';
-    const supplierGstin=contractor.gstin||'36TOHPS0526H1ZE';
-    const phone='9493218336';
-    const supplierCode='1025420';
-
-    // TAX INVOICE heading and top metadata.
-    text('TAX INVOICE',PW/2,34,14,true,'center');
-    text('Tax Invoice NO:',left,58,11,true);
-    text(invoice.invoice_number||'',left+108,58,11,true);
-    text('Date:',right-116,58,11,true,'left');
-    text(fmtDate(invoice.invoice_date),right,58,11,true,'right');
-
-    // To / From blocks. Supplier address is intentionally four lines, including the house number.
-    text('To',left,84,11);
-    text('From',316,84,11);
-    let cy=104;
-    text(customerName,left,cy,11,true);cy+=16;
-    const customerLines=[
-      'Unit: Bhadrachalam',
-      'Sarapaka',
-      'Burgampahad Mandal',
-      'Bhadradri Kothagudem District',
-      'Telangana - 507128'
-    ];
-    customerLines.forEach(v=>{text(v,left,cy,11);cy+=15;});
-    text(`PAN No: ${customerPan}`,left,cy,11);cy+=15;
-    text(`GST NO: ${customerGstin}`,left,cy,11);
-
-    let sy=104;
-    text(supplierName,316,sy,11,true);sy+=16;
-    const supplierLines=[
-      '15-8-539, Rama Devi Nilayam',
-      'Rotary Nagar, Srinagar Colony',
-      'Khammam District - 507002',
-      'Telangana State (Code 36)'
-    ];
-    supplierLines.forEach(v=>{text(v,316,sy,11);sy+=15;});
-    text(`Cell : ${phone}`,316,sy,11);sy+=15;
-    text(`Vendor Code: ${supplierCode}`,316,sy,11);sy+=15;
-    text(`PAN NO: ${supplierPan}`,316,sy,11);sy+=15;
-    text(`GST NO: ${supplierGstin}`,316,sy,11);
-
-    // Particulars with colon after every label, as requested.
-    const metaY=sy+18;
-    const labelX=left+17, colonX=left+102, valX=left+112;
-    const meta=[
-      ['1','Period From',`${fmtDate(invoice.from_date)} To ${fmtDate(invoice.to_date)}`],
-      ['2','HSN Code',hsn],
-      ['3','Material',material],
-      ['4','Place of Supply','ITC Ltd - PSPD, Sarapaka (Telangana State)'],
-      ['5','Payment','E-Payment']
-    ];
-    meta.forEach((m,i)=>{
-      const yy=metaY+i*18;
-      text(m[0],left,yy,11);
-      text(m[1],labelX,yy,11);
-      text(':',colonX,yy,11);
-      text(m[2],valX,yy,11);
-    });
-
-    // Keep the reference on one line and the direct-supply line immediately below it.
-    const refY=metaY+5*18+2;
-    const refText=`Ref: Agreement No: PO No: ${poNo}`;
-    text(refText,PW/2,refY,fitSize(refText,width-40,11,9,false),true,'center');
-    text('Direct supply to ITC Ltd PSPD Sarapaka (Telangana State)',PW/2,refY+20,11,true,'center');
-
-    // First table. Total Qty / quantity / UOM are centered.
-    const tableTop=refY+34, headerH=21, rowH=18;
-    // Column proportions match the 34/2026-27 reference invoice.
-    // Balanced widths prevent WC numbers and truck numbers from touching adjacent cells.
-    const cols=[
-      left,
-      left+width*0.09,   // S.No
-      left+width*0.25,   // Date
-      left+width*0.46,   // WC Number
-      left+width*0.68,   // Truck Number
-      left+width*0.86,   // Qty
-      right              // UOM
-    ];
-    rect(left,tableTop,width,headerH,0.8);
-    for(let i=1;i<cols.length-1;i++)line(cols[i],tableTop,cols[i],tableTop+headerH,0.8);
-    ['S.No','Date','WC Number','Truck Number','Qty','UOM'].forEach((v,i)=>center(v,cols[i],cols[i+1],tableTop+14,11,true));
-    let rowY=tableTop+headerH;
-    enriched.forEach((x,i)=>{
-      rect(left,rowY,width,rowH,0.8);
-      for(let c=1;c<cols.length-1;c++)line(cols[c],rowY,cols[c],rowY+rowH,0.8);
-      center(String(i+1),cols[0],cols[1],rowY+rowH/2+4,11);
-      center(fmtDate(x.wc_date||x.load?.load_date||invoice.from_date),cols[1],cols[2],rowY+rowH/2+4,11);
-      center(x.wc_number||x.weighment_card_number||'',cols[2],cols[3],rowY+rowH/2+4,11);
-      center(String(x.vehicle_number||x.load?.vehicle_master?.vehicle_number||'').toUpperCase(),cols[3],cols[4],rowY+rowH/2+4,11);
-      center(qty3(x.approved_qty),cols[4],cols[5],rowY+rowH/2+4,11);
-      center('MT',cols[5],cols[6],rowY+rowH/2+4,11);
-      rowY+=rowH;
-    });
-    rect(left,rowY,width,rowH,0.8);
-    line(cols[4],rowY,cols[4],rowY+rowH,0.8);
-    line(cols[5],rowY,cols[5],rowY+rowH,0.8);
-    center('Total Qty',cols[0],cols[4],rowY+rowH/2+4,11,true);
-    center(qty3(invoice.total_qty),cols[4],cols[5],rowY+rowH/2+4,11,true);
-    center('MT',cols[5],cols[6],rowY+rowH/2+4,11,true);
-    rowY+=rowH+9;
-
-    // Second table: reproduce the 34 reference structure, including merged Quantity cells.
-    // Table 2 column proportions match the 34/2026-27 reference:
-    // Particulars 44.15% | Quantity 18.62% | Rate 18.50% | Amount 18.73%.
-    const sc=[
-      left,
-      left+width*0.4415,
-      left+width*0.6277,
-      left+width*0.8126,
-      right
-    ];
-    const h=21, rh=18;
-    // The first Particulars entry is wrapped inside its own cell; give that row extra height.
-    const rowHeights=[28,18,18,18,18,18,18,18,18,18];
-    // Build the invoice rows before calculating the table height.
-    // (The previous version referenced rows before initialization.)
-    const materialRate=num(enriched[0]?.wood_rate||po.wood_rate||0);
-    const handlingRate=num(enriched[0]?.handling_rate||po.handling_other_rate||0);
-    const materialValue=num(invoice.material_value), handlingValue=num(invoice.handling_value);
-    const tax=num(invoice.gst), gross=materialValue+handlingValue;
-    const rows=[
-      ['Material Cost (Price as determined by AMC)','',moneyPlain(materialRate),moneyPlain(materialValue)],
-      ['Handling and Other Charges Cost','',moneyPlain(handlingRate),moneyPlain(handlingValue)],
-      ['FSC Premium','','-','-'],
-      ['Total',qty3(invoice.total_qty),moneyPlain(materialRate+handlingRate),moneyPlain(gross)],
-      ['Deduction','','','-'],
-      ['Gross Amount','','',moneyPlain(gross)],
-      ['SGST','','9%',moneyPlain(tax/2)],
-      ['CGST','','9%',moneyPlain(tax/2)],
-      ['Total Tax Amount','','',moneyPlain(tax)],
-      ['Total Invoice Value','','',moneyPlain(invoice.invoice_total)]
-    ];
-    const totalBlockH=h+rowHeights.reduce((sum,v)=>sum+v,0);
-    rect(left,rowY,width,totalBlockH,0.8);
-    // vertical boundaries
-    line(sc[1],rowY,sc[1],rowY+totalBlockH,0.8);
-    line(sc[2],rowY,sc[2],rowY+totalBlockH,0.8);
-    // Header
-    line(left,rowY+h,right,rowY+h,0.8);
-    center('Particulars',sc[0],sc[1],rowY+17,11,true);
-    center('Quantity',sc[1],sc[2],rowY+17,11,true);
-    center('Rate',sc[2],sc[3],rowY+17,11,true);
-    center('Amount',sc[3],sc[4],rowY+17,11,true);
-    // Vertical boundaries, including the required Rate/Amount separator.
-    line(sc[3],rowY,sc[3],rowY+totalBlockH,0.8);
-
-    // First 3 rows: Quantity is one vertically merged cell, exactly as in the base design.
-    let y=rowY+h;
-    for(let i=0;i<rows.length;i++){
-      const rhh=rowHeights[i];
-      // Do NOT draw the horizontal divider through the merged Quantity cell
-      // for the first three charge rows.
-      if(i===0){
-        line(left,y,sc[1],y,0.8);
-        line(sc[2],y,right,y,0.8);
-      }else if(i===1){
-        line(left,y,sc[1],y,0.8);
-        line(sc[2],y,right,y,0.8);
-      }else if(i===2){
-        // FSC Premium is part of the same vertically merged Quantity cell.
-        // Keep the horizontal divider out of the Quantity column.
-        line(left,y,sc[1],y,0.8);
-        line(sc[2],y,right,y,0.8);
-      }else{
-        line(left,y,right,y,0.8);
-      }
-      const bold=[3,5,8,9].includes(i);
-      if(i===0){
-        // Keep the full particulars label within the first cell and wrap at 11 pt.
-        const labelLines=wrap(rows[i][0],sc[1]-sc[0]-10,11,bold);
-        const lineStep=12;
-        const startY=y+(rhh-(labelLines.length-1)*lineStep)/2+3;
-        labelLines.forEach((ln,j)=>center(ln,sc[0]+3,sc[1]-3,startY+j*lineStep,11,bold));
-      }else{
-        center(rows[i][0],sc[0],sc[1],y+rhh/2+4,11,bold);
-      }
-      if(i>=3)center(rows[i][1],sc[1],sc[2],y+rhh/2+4,11,bold);
-      center(rows[i][2],sc[2],sc[3],y+rhh/2+4,11,bold);
-      center(rows[i][3],sc[3],sc[4],y+rhh/2+4,11,bold);
-      y+=rhh;
-    }
-    // One merged Quantity value centered vertically over Material + Handling + FSC rows.
-    center(qty3(invoice.total_qty),sc[1],sc[2],rowY+h+(rowHeights[0]+rowHeights[1]+rowHeights[2])/2+4,11,false);
-
-    // Words and signature, left aligned.
-    const qtyWords=n=>{
-      const s=num(n).toFixed(3),[a,b]=s.split('.');
-      const base=numberWordsIndian(Number(a)).replace(/ Rupees Only$/i,'');
-      const names=['ZERO','ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE'];
-      return `${base.toUpperCase()} POINT ${b.split('').map(d=>names[Number(d)]).join(' ')} (MT)`;
-    };
-    const amountWords=n=>{
-      const v=Math.round(num(n)*100)/100, rupees=Math.floor(v), paise=Math.round((v-rupees)*100);
-      let s=numberWordsIndian(rupees).replace(/ Rupees Only$/i,'').toUpperCase();
-      if(paise>0)s+=` RUPEES AND ${numberWordsIndian(paise).replace(/ Rupees Only$/i,'').toUpperCase()} PAISA ONLY`;
-      else s+=' RUPEES ONLY';
-      return s;
-    };
-    rowY=y+28;
-    text('Qty :',left,rowY,11,false,'left');
-    text(qtyWords(invoice.total_qty),left+44,rowY,11,false,'left');
-    rowY+=20;
-    text('Amount :',left,rowY,11,false,'left');
-    const aw=wrap(amountWords(invoice.invoice_total),right-(left+62),11,false);
-    aw.forEach((ln,i)=>text(ln,left+62,rowY+i*13,11,false,'left'));
-    rowY+=aw.length*13+22;
-    text('Yours faithfully',left,rowY,11,false,'left');
-    rowY+=34;
-    text(`For ${supplierName}`,left,rowY,11,true,'left');
-
-    const filename=(invoice.status==='Draft'?'Draft_Material_Invoice_':'Material_Invoice_')+String(invoice.invoice_number||id).replace(/[^a-zA-Z0-9_-]/g,'_')+'.pdf';
-    doc.save(filename);
-  }catch(e){console.error(e);alert(`Could not download invoice PDF: ${e.message||e}`)}
+    if(!customer.gstin)customer={customer_name:itc.company_name||'ITC LTD - PSPD',gstin:itc.gstin||'',pan:itc.pan||'',address:itc.address||''};
+    const totalQty=num(invoice.total_qty), mv=num(invoice.material_value), hv=num(invoice.handling_value), gst=num(invoice.gst), total=num(invoice.invoice_total);
+    const rows=items.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(fmtDate(x.wc_date))}</td><td>${esc(x.wc_number||'')}</td><td>${esc(String(x.vehicle_number||'').toUpperCase())}</td><td class="num">${fmt(x.approved_qty)}</td><td>MT</td></tr>`).join('');
+    const rate=items.length?num(items[0].wood_rate):0, handlingRate=items.length?num(items[0].handling_rate):0;
+    const html=`<!doctype html><html><head><meta charset="utf-8"><title>Tax Invoice ${esc(invoice.invoice_number)}</title><style>
+      @page{size:A4;margin:12mm}body{font-family:Arial,Helvetica,sans-serif;color:#111;font-size:11px;margin:0}.sheet{width:100%}h1{text-align:center;font-size:18px;margin:0 0 4px}.subtitle{text-align:center;font-weight:bold;font-size:13px;margin-bottom:10px}.top{display:grid;grid-template-columns:1fr 1fr;border:1px solid #111}.box{padding:7px;border-right:1px solid #111;min-height:85px}.box:last-child{border-right:0}.label{font-weight:bold}.meta{margin:8px 0}.meta table,.lines,.summary{width:100%;border-collapse:collapse}.meta td{padding:3px 5px}.lines th,.lines td,.summary th,.summary td{border:1px solid #111;padding:5px}.lines th{background:#f2f2f2}.num{text-align:right}.summary{margin-top:8px}.summary td:first-child{font-weight:bold}.footer{margin-top:18px;display:flex;justify-content:space-between}.draft{position:fixed;top:45%;left:20%;font-size:60px;color:#bbb;transform:rotate(-25deg);opacity:.25;z-index:-1}
+      @media print{button{display:none}}
+    </style></head><body><div class="sheet">${invoice.status==='Draft'?'<div class="draft">DRAFT</div>':''}<h1>TAX INVOICE</h1><div class="subtitle">Invoice No: ${esc(invoice.invoice_number)} &nbsp;&nbsp; Date: ${esc(fmtDate(invoice.invoice_date))}</div>
+      <div class="top"><div class="box"><div class="label">To</div><b>${esc(customer.customer_name||'ITC LTD - PSPD')}</b><br>${esc(customer.address||'')}<br>PAN: ${esc(customer.pan||'')}<br>GSTIN: ${esc(customer.gstin||'')}</div><div class="box"><div class="label">From</div><b>${esc(contractor.contractor_name||'')}</b><br>${esc(contractor.address||'')}<br>PAN: ${esc(contractor.pan||'')}<br>GSTIN: ${esc(contractor.gstin||'')}<br>Vendor Code: ${esc(contractor.contractor_code||'')}</div></div>
+      <div class="meta"><table><tr><td><b>1. Period From</b> ${esc(fmtDate(invoice.from_date))} To ${esc(fmtDate(invoice.to_date))}</td><td><b>2. HSN Code</b> ${esc(items[0]?.hsn_code||'44039800')}</td></tr><tr><td><b>3. Material</b> Eucalyptus Debarked Wood</td><td><b>4. Place of Supply</b> ITC Ltd - PSPD, Sarapaka (Telangana State)</td></tr><tr><td colspan="2"><b>5. Payment</b> E-Payment</td></tr></table></div>
+      <table class="lines"><thead><tr><th>S.No</th><th>Date</th><th>WC Number</th><th>Truck Number</th><th>Qty</th><th>UOM</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><th colspan="4" class="num">Total Quantity</th><th>${fmt(totalQty)}</th><th>MT</th></tr></tfoot></table>
+      <table class="summary"><tr><th>Particulars</th><th>Quantity</th><th>Rate</th><th>Amount</th></tr><tr><td>Material Cost</td><td class="num">${fmt(totalQty)}</td><td class="num">${money(rate)}</td><td class="num">${money(mv)}</td></tr><tr><td>Handling and Other Charges Cost</td><td class="num">${fmt(totalQty)}</td><td class="num">${money(handlingRate)}</td><td class="num">${money(hv)}</td></tr><tr><th>Total</th><th class="num">${fmt(totalQty)}</th><th class="num">${money(rate+handlingRate)}</th><th class="num">${money(mv+hv)}</th></tr><tr><td colspan="3">CGST 9%</td><td class="num">${money(gst/2)}</td></tr><tr><td colspan="3">SGST 9%</td><td class="num">${money(gst/2)}</td></tr><tr><th colspan="3">Total Invoice Value</th><th class="num">${money(total)}</th></tr></table>
+      <div class="meta"><b>Ref: Agreement / PO No:</b> ${esc(items[0]?.po_number||'')}</div><div class="meta"><b>Total Qty:</b> ${fmt(totalQty)} MT</div><div class="footer"><div>Yours faithfully<br><br>For ${esc(contractor.contractor_name||'')}</div><div><b>${invoice.status==='Draft'?'DRAFT INVOICE':'TAX INVOICE'}</b></div></div>
+      </div></body></html>`;
+    const w=window.open('','_blank','width=900,height=1100');
+    if(!w)return alert('Please allow pop-ups for WoodMaster to print the invoice.');
+    w.document.open();w.document.write(html);w.document.close();w.onload=()=>setTimeout(()=>w.print(),250);
+  }catch(e){alert(`Could not prepare invoice for printing: ${e.message||e}`)}
 }
 async function deleteMaterialInvoice(id){
   try{
@@ -1224,7 +770,7 @@ async function deleteMaterialInvoice(id){
 
 async function amcPage(){
   const date=isoToday();let preview='—';const r=await sb.rpc('peek_shared_invoice_number',{p_invoice_date:date});if(!r.error)preview=r.data||'—';
-  return `<div class="context">AMC is separate from Material Billing and accumulates monthly from actual eligible AMC payments. Material Billing and AMC Billing use the same invoice-number series.</div><div class="topbar"><div><h1>AMC</h1><div class="sub">Monthly AMC reimbursement workflow.</div></div></div><div class="card"><div class="formgrid"><div class="field"><label>From Date</label><input id="amcFrom" type="date"></div><div class="field"><label>To Date</label><input id="amcTo" type="date"></div><div class="field"><label>Invoice Number</label><input id="amcBillNo" class="readonly" readonly value="${esc(preview)}"><div class="small">Automatically assigned from the same shared Material + AMC invoice series used by Method 1.</div></div></div><div class="actions"><button class="btn primary" onclick="createAmcDraft()">Create AMC Draft</button></div></div>`;
+  return `<div class="context">AMC is separate from Material Billing and accumulates monthly from actual eligible AMC payments. Material Billing and AMC Billing use the same invoice-number series.</div><div class="topbar"><div><h1>AMC</h1><div class="sub">Monthly AMC reimbursement workflow.</div></div></div><div class="card"><div class="formgrid"><div class="field"><label>From Date</label><input id="amcFrom" type="date"></div><div class="field"><label>To Date</label><input id="amcTo" type="date"></div><div class="field"><label>Invoice Number</label><input id="amcBillNo" class="readonly" readonly value="${esc(preview)}"><div class="small">Automatically assigned from the common Material + AMC invoice series.</div></div></div><div class="actions"><button class="btn primary" onclick="createAmcDraft()">Create AMC Draft</button></div></div>`;
 }
 async function createAmcDraft(){alert('AMC draft workflow prepared. Actual entries will be linked to ITC WCs and reimbursed only after month-end verification.')}
 function masters(){const c=active();const custOpts=state.customers.map(v=>`<option value="${v.id}" ${c?.default_customer_id===v.id?'selected':''}>${esc(v.customer_name)}${v.gstin?' — '+esc(v.gstin):''}</option>`).join('');return `<div class="context">Contractor is fixed to <b>${esc(c?.contractor_name)}</b>. Customer is the party who issued the PO. Species/Material is entered directly in each PO — there is no Species Master in the UI.</div><h1>Masters</h1><div class="sectionhead">Default Customer</div><div class="card"><div class="formgrid"><div class="field"><label>Regular / Default Customer</label><select id="defaultCustomer">${custOpts}</select></div></div><div class="actions"><button class="btn primary" onclick="setDefaultCustomer()">Save Default Customer</button></div></div><div class="sectionhead">Customer Master</div><div class="card"><div class="formgrid"><div class="field"><label>Customer Name *</label><input id="cuName"></div><div class="field"><label>Customer Code</label><input id="cuCode"></div><div class="field"><label>GSTIN</label><input id="cuGstin"></div><div class="field"><label>PAN</label><input id="cuPan"></div><div class="field full"><label>Address</label><input id="cuAddress"></div></div><div class="actions"><button class="btn primary" onclick="addCustomer()">Add Customer</button></div></div><div class="section"><div class="tablewrap"><table><thead><tr><th>Customer</th><th>Code</th><th>GSTIN</th><th>Actions</th></tr></thead><tbody>${state.customers.map(v=>`<tr><td>${esc(v.customer_name)}</td><td>${esc(v.customer_code||'')}</td><td>${esc(v.gstin||'')}</td><td><div class="rowactions"><button class="btn secondary mini" onclick="editCustomer('${v.id}')">Edit</button><button class="btn danger mini" onclick="deactivateCustomer('${v.id}')">Deactivate</button></div></td></tr>`).join('')}</tbody></table></div></div><div class="sectionhead">PO Master</div><div class="card"><div class="notice">One PO = one material/species. Enter Area here. Operational PO display is <b>PO Number_Area_First 3 letters of Material_First 3 letters of PO Issued Customer</b>.</div><div class="formgrid"><div class="field"><label>Customer *</label><select id="mCustomer">${custOpts}</select></div><div class="field"><label>PO Number *</label><input id="mPoNumber"></div><div class="field"><label>PO Date *</label><input id="mPoDate" type="date" value="${isoToday()}"></div><div class="field"><label>Area *</label><input id="mArea" placeholder="e.g. WARANGAL"></div><div class="field"><label>Valid From</label><input id="mValidFrom" type="date"></div><div class="field"><label>Valid To</label><input id="mValidTo" type="date"></div><div class="field"><label>PO Quantity (MT)</label><input id="mPoQty" type="number" step="0.001"></div><div class="field"><label>Material / Species *</label><input id="mSpecies" placeholder="Eucalyptus Debarked Wood"></div><div class="field"><label>Wood Rate / MT *</label><input id="mWoodRate" type="number" step="0.01"></div><div class="field"><label>Handling & Other / MT</label><input id="mHandling" type="number" step="0.01"></div><div class="field"><label>AMC / MT</label><input id="mAmc" type="number" step="0.01"></div><div class="field"><label>HSN Code</label><input id="mHsn"></div></div><div class="actions"><button class="btn primary" onclick="addPO()">Add PO</button></div></div><div class="section"><div class="tablewrap"><table><thead><tr><th>PO</th><th>Customer</th><th>Area</th><th>Material</th><th>Qty MT</th><th>Wood Rate</th><th>Handling</th><th>AMC</th><th>Actions</th></tr></thead><tbody>${state.pos.map(v=>`<tr><td>${esc(poLabel(v))}</td><td>${esc(v.customer_master?.customer_name||'')}</td><td>${esc(v.area_name||'')}</td><td>${esc(v.species_name||'')}</td><td>${fmt(v.po_qty)}</td><td>${money(v.wood_rate)}</td><td>${money(v.handling_other_rate)}</td><td>${money(v.amc_rate)}</td><td><div class="rowactions"><button class="btn secondary mini" onclick="editPO('${v.id}')">Edit</button><button class="btn danger mini" onclick="deactivatePO('${v.id}')">Deactivate</button></div></td></tr>`).join('')}</tbody></table></div></div>`}
