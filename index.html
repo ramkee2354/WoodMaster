@@ -184,35 +184,42 @@ async function generatePackage(id){
   function addInitialFL(){
    doc.addPage();drawFrame('FREIGHT LETTER');
    const metaY=94;
-   text('FROM',left+10,metaY,11,true);text(shortContractor,left+10,metaY+22,16,true);
+   text('FROM',left+10,metaY,11,true);text('S V TRADERS',left+10,metaY+22,16,true);
    wrapByWidth(addr,360,11,false).slice(0,2).forEach((ln,i)=>text(ln,left+10,metaY+43+i*15,11));
    text('Challan No.',405,metaY-2,11,true);text(':',469,metaY-2,11);text(challan,483,metaY-2,11,true);
    text('Challan Date',405,metaY+23,11,true);text(':',469,metaY+23,11);text(challanDate,483,metaY+23,11,true);
    line(left,175,right,175,1.1);
-   rect(left,190,width,84,null,1.1);text('TO',left+10,211,11,true);text('Vehicle Number',left+10,232,11);text(vehicle,left+10,255,16,true);
 
-   // Initial FL includes only data available at load creation. No guessed or blank financial rows.
+   // Match the Final Freight Letter's TO / REFERENCE block. At initial-load stage,
+   // no weighment card is available yet, so leave its value blank rather than guessing.
+   rect(left,190,width,84,null,1.1);const mid=(left+right)/2;line(mid,190,mid,274,1.1);
+   text('TO',left+10,211,11,true);text('Vehicle Number',left+10,232,11);text(vehicle,left+10,255,16,true);
+   text('REFERENCE',mid+10,211,11,true);text('Weighment Card (WC) Number',mid+10,232,11);
+
+   // Use the same four-column table design as the Final Freight Letter,
+   // showing only the values available before final weighment.
+   const xs=[left,left+42,left+237,left+412,right];
+   const top=294,headerH=24,rowH=31,tableBottom=top+headerH+rowH*3;
+   rect(left,top,width,headerH,LIGHT,1.15);
+   for(let i=1;i<4;i++)line(xs[i],top,xs[i],top+headerH,1.15);
+   ['S.No.','PARTICULARS','QUANTITY / RATE','AMOUNT (Rs.)'].forEach((h,i)=>hcenter(h,xs[i],xs[i+1],top+17,9.2,true));
    const rows=[
-    ['1','Freight Rate',money2(freightRate)+' / MT'],
-    ['2','Advance',money(advance)],
-    ['3','Clerk Commission',money(300)]
+    ['1','Freight Rate',money2(freightRate)+' / MT',''],
+    ['2','Advance','','Rs. '+money2(advance)],
+    ['3','Clerk Commission','','Rs. '+money2(300)]
    ];
-   const top=294, headerH=30, rowH=38;
-   const xs=[left,left+48,left+310,right];
-   const tableBottom=top+headerH+rows.length*rowH;
-   rect(left,top,width,headerH+rows.length*rowH,null,1.15);
-   for(let i=1;i<xs.length-1;i++)line(xs[i],top,xs[i],tableBottom,1.05);
-   line(left,top+headerH,right,top+headerH,1.05);
-   ['S.No.','PARTICULARS','RATE / AMOUNT'].forEach((h,i)=>hcenter(h,xs[i],xs[i+1],top+20,11,true));
    rows.forEach((r,i)=>{
-    const y=top+headerH+i*rowH, cy=y+rowH/2+4;
-    if(i>0)line(left,y,right,y,1.0);
+    const y=top+headerH+i*rowH,cy=y+rowH/2+4;
+    rect(left,y,width,rowH,null,1.05);
+    for(let j=1;j<4;j++)line(xs[j],y,xs[j],y+rowH,1.05);
     hcenter(r[0],xs[0],xs[1],cy,11,false);
     text(r[1],xs[1]+10,cy,11,false);
-    hcenter(r[2],xs[2],xs[3],cy,11,false);
+    if(r[2])hcenter(r[2],xs[2],xs[3],cy,11,false);
+    if(r[3])hcenter(r[3],xs[3],xs[4],cy,11,false);
    });
-   // Signature stays at the bottom-right; keep the normal text size at 11 pt.
-   text('For Sri Venkateshwara Traders',right-8,785,11,true,'right');
+   // Signature lines mirror the Final Freight Letter layout.
+   const sigY=790;line(left+10,sigY,right/2-10,sigY,.9);line(PW/2+10,sigY,right-10,sigY,.9);
+   text('For S V Traders',(left+right/2)/2,801,11,true,'center');text('Driver Signature',(right/2+right)/2,801,11,true,'center');
   }
 
   addLR();
