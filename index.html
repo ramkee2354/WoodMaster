@@ -805,7 +805,7 @@ async function printMaterialInvoice(id){
     const supplierCode='1025420';
 
     // TAX INVOICE heading and top metadata.
-    text('TAX INVOICE',PW/2,34,11,true,'center');
+    text('TAX INVOICE',PW/2,34,14,true,'center');
     text('Tax Invoice NO:',left,58,11,true);
     text(invoice.invoice_number||'',left+108,58,11,true);
     text('Date:',right-116,58,11,true,'left');
@@ -848,7 +848,7 @@ async function printMaterialInvoice(id){
       ['1','Period From',`${fmtDate(invoice.from_date)} To ${fmtDate(invoice.to_date)}`],
       ['2','HSN Code',hsn],
       ['3','Material',material],
-      ['4','Place of Supply','ITC LTD PSPD'],
+      ['4','Place of Supply','ITC Ltd - PSPD, Sarapaka (Telangana State)'],
       ['5','Payment','E-Payment']
     ];
     meta.forEach((m,i)=>{
