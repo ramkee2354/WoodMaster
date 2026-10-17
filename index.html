@@ -63,25 +63,33 @@ function wmImpEway(v){
   return s;
 }
 function wmImpDate(v){
-  // Excel dates are calendar dates, not timestamps. Use SheetJS serial-date
-  // decoding (with cellDates:false) so timezone conversion cannot subtract a day.
+  // Store calendar dates as YYYY-MM-DD. Excel numeric dates are serial days;
+  // do not convert them through JavaScript Date/timezone arithmetic.
   if(typeof v==='number' && Number.isFinite(v) && window.XLSX?.SSF){
-    try{const d=XLSX.SSF.parse_date_code(v);if(d&&d.y&&d.m&&d.d)return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`}catch(e){}
+    try{
+      const d=XLSX.SSF.parse_date_code(v);
+      if(d&&d.y&&d.m&&d.d){
+        const y=String(d.y),m=String(d.m).padStart(2,'0'),day=String(d.d).padStart(2,'0');
+        return `${y}-${m}-${day}`;
+      }
+    }catch(e){}
   }
   if(v instanceof Date && !isNaN(v)){
-    // Read UTC components because SheetJS Date values represent the Excel date at UTC.
+    // SheetJS Date objects represent the source calendar date at UTC.
     return `${v.getUTCFullYear()}-${String(v.getUTCMonth()+1).padStart(2,'0')}-${String(v.getUTCDate()).padStart(2,'0')}`;
   }
   const s=wmImpText(v);
   if(!s)return null;
-  // ISO dates must be handled before locale-style dates.
   let m=s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})(?:$|T|\s)/);
-  if(m)return `${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
-  // Source workbook uses MM-DD-YYYY (e.g. 10-16-2026 = 16 October 2026).
+  if(m){const y=Number(m[1]),mo=Number(m[2]),d=Number(m[3]);return validISODate(y,mo,d)?`${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`:null;}
+  // For text dates, prefer DD-MM-YYYY when the first number is >12;
+  // otherwise preserve the existing workbook convention MM-DD-YYYY.
   m=s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
-  if(m){const month=Number(m[1]),day=Number(m[2]),year=Number(m[3]);if(month>=1&&month<=12&&day>=1&&day<=31)return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;return null;}
+  if(m){let a=Number(m[1]),b=Number(m[2]),y=Number(m[3]),mo,day;if(a>12){day=a;mo=b}else{mo=a;day=b}return validISODate(y,mo,day)?`${y}-${String(mo).padStart(2,'0')}-${String(day).padStart(2,'0')}`:null;}
   return null;
 }
+function validISODate(y,m,d){if(!Number.isInteger(y)||!Number.isInteger(m)||!Number.isInteger(d)||y<1900||y>2200||m<1||m>12||d<1||d>31)return false;const x=new Date(Date.UTC(y,m-1,d));return x.getUTCFullYear()===y&&x.getUTCMonth()+1===m&&x.getUTCDate()===d;}
+
 function wmImpVehicle(v){return wmImpText(v).toUpperCase().replace(/\s+/g,'')}
 function wmImpPoNo(v){const s=wmImpText(v);if(!s)return '';return s.replace(/\.0+$/,'')}
 function wmImpRows(sheet){
@@ -108,7 +116,9 @@ async function wmPreviewImport(input){
     const lr=wmImpRows('LR');
     const valid=lr.filter(r=>wmImpText(r.LR_Number)&&wmImpVehicle(r.Truck_Number));
     const noLR=lr.length-valid.length;
-    wmImpMsg(`Workbook read successfully. Load rows: ${lr.length} · Valid rows with LR + vehicle: ${valid.length} · Rows needing review: ${noLR}. Only the LR sheet will be imported. Missing vehicle master rows will be created automatically; existing PO masters are reused.`);
+    const parsedDates=valid.map(r=>wmImpDate(r.LR_Date)).filter(Boolean).sort();
+    const dateRange=parsedDates.length?` · LR date range ${parsedDates[0]} to ${parsedDates[parsedDates.length-1]}`:' · No valid LR dates found';
+    wmImpMsg(`Workbook read successfully. LR rows: ${lr.length} · Valid rows: ${valid.length} · Rows needing review: ${noLR}${dateRange}. Load dates come from LR sheet; final weighment dates/approved weights come from Final_Weighments_Update.`);
     const el=$('wmImportPreview');
     if(el)el.innerHTML=`<div class="section" style="margin-top:14px"><h2>Load Import Preview</h2>
       <div class="grid">
@@ -153,8 +163,12 @@ async function wmRunImport(){
   const out={loadsCreated:0,loadsUpdated:0,vehiclesCreated:0,poLinked:0,poMissing:0,weighmentsCreated:0,weighmentsUpdated:0,weighmentsSkipped:0,errors:[]};
   try{
     const lrRows=wmImpRows('LR');
+    // Use the dedicated Final_Weighments_Update sheet as the authoritative source for WC Date/number and approved weights.
+    const fwRows=wmImpRows('Final_Weighments_Update');
+    const fwByLR=new Map(fwRows.map(x=>[wmImpText(x.LR_Number_Match_Key),x]).filter(x=>x[0]));
     for(let i=0;i<lrRows.length;i++){
       const r=lrRows[i];
+      const fw=fwByLR.get(wmImpText(r.LR_Number))||null;
       try{
         const lrNo=wmImpText(r.LR_Number);
         const vn=wmImpVehicle(r.Truck_Number);
@@ -204,12 +218,19 @@ async function wmRunImport(){
         }
         out.poLinked++;
 
-        const wc=wmImpText(r.WC_Number ?? r.WC_Number_ ?? r['WC Number']).toUpperCase();
-        const itcGross=wmImpNum(r.ITC_Gross_Weight ?? r.ITC_Gross ?? r['ITC Gross Weight']),itcTare=wmImpNum(r.ITC_Tare_Weight ?? r.ITC_Tare ?? r['ITC Tare Weight']),itcNet=wmImpNum(r.ITC_Weight ?? r.ITC_Net_Weight ?? r['ITC Net Weight']);
-        const amcAmount=wmImpNum(r.AMC_Chess ?? r.AMC_Charges ?? r.AMC_Amount ?? r.AMC); 
-        const hasItc=!!wc||itcGross>0||itcTare>0||itcNet>0;
+        const wc=wmImpText(fw?.WC_Number ?? r.WC_Number ?? r.WC_Number_ ?? r['WC Number']).toUpperCase();
+        const itcGross=wmImpNum(fw?.ITC_Gross_Weight ?? r.ITC_Gross_Weight ?? r.ITC_Gross ?? r['ITC Gross Weight']);
+        const itcTare=wmImpNum(fw?.ITC_Tare_Weight ?? r.ITC_Tare_Weight ?? r.ITC_Tare ?? r['ITC Tare Weight']);
+        const itcNetRaw=fw?.ITC_Net_Weight ?? r.ITC_Weight ?? r.ITC_Net_Weight ?? r['ITC Net Weight'];
+        const itcNet=wmImpNum(itcNetRaw);
+        const approvedRaw=fw?.Approved_Weight_Default_ITC_Net;
+        const approved=approvedRaw!==null&&approvedRaw!==undefined&&approvedRaw!==''?wmImpNum(approvedRaw):(itcNetRaw!==null&&itcNetRaw!==undefined&&itcNetRaw!==''?itcNet:((itcGross>0&&itcTare>=0)?Math.round((itcGross-itcTare)*1000)/1000:null));
+        const amcAmount=wmImpNum(fw?.AMC_Amount_From_AMC_Chess_Verify ?? r.AMC_Chess ?? r.AMC_Charges ?? r.AMC_Amount ?? r.AMC);
+        const wcDate=wmImpDate(fw?.WC_Date_Default_LR_Date_Edit_Later ?? r.WC_Date)||date;
+        const hasItc=!!wc||itcGross>0||itcTare>0||itcNet>0||num(approved)>0;
         if(hasItc){
-          const wrow={load_id:loadRec.id,wc_number:wc||null,wc_date:wmImpDate(r.WC_Date)||date,vehicle_number:vn,dc_number:loadRec.dc_number||null,dc_date:date,material_description:po.species_name||null,gross_weight:itcGross||null,tare_weight:itcTare||null,net_weight:(r.ITC_Weight!==null&&r.ITC_Weight!==undefined&&r.ITC_Weight!=='')?itcNet:((itcGross>0&&itcTare>=0)?Math.round((itcGross-itcTare)*1000)/1000:null),approved_weight:(r.ITC_Weight!==null&&r.ITC_Weight!==undefined&&r.ITC_Weight!=='')?itcNet:((itcGross>0&&itcTare>=0)?Math.round((itcGross-itcTare)*1000)/1000:null),amc_amount:amcAmount,ocr_verified:false,created_by:state.session?.user?.id||null};
+          const calculatedNet=(itcGross>0&&itcTare>=0)?Math.round((itcGross-itcTare)*1000)/1000:null;
+          const wrow={load_id:loadRec.id,wc_number:wc||null,wc_date:wcDate,vehicle_number:vn,dc_number:loadRec.dc_number||null,dc_date:date,material_description:po.species_name||null,gross_weight:itcGross||null,tare_weight:itcTare||null,net_weight:(itcNetRaw!==null&&itcNetRaw!==undefined&&itcNetRaw!==''&&itcNet>0)?itcNet:calculatedNet,approved_weight:approved,amc_amount:amcAmount,ocr_verified:false,created_by:state.session?.user?.id||null};
           const oldW=await sb.from('itc_weighments').select('id').eq('load_id',loadRec.id).maybeSingle();if(oldW.error)throw oldW.error;
           if(oldW.data){const u=await sb.from('itc_weighments').update(wrow).eq('id',oldW.data.id);if(u.error)throw u.error;out.weighmentsUpdated++;}
           else {const ins=await sb.from('itc_weighments').insert(wrow);if(ins.error)throw ins.error;out.weighmentsCreated++;}
