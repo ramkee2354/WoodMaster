@@ -63,19 +63,24 @@ function wmImpEway(v){
   return s;
 }
 function wmImpDate(v){
-  if(v instanceof Date && !isNaN(v)) { /* SheetJS Excel date cells are UTC-based; local getters can shift LR dates by one day. */ const y=v.getUTCFullYear(),m=v.getUTCMonth()+1,d=v.getUTCDate(); return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
-  if(typeof v==='number' && window.XLSX?.SSF){
-    try{const d=XLSX.SSF.parse_date_code(v);if(d)return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`}catch(e){}
+  // Excel dates are calendar dates, not timestamps. Use SheetJS serial-date
+  // decoding (with cellDates:false) so timezone conversion cannot subtract a day.
+  if(typeof v==='number' && Number.isFinite(v) && window.XLSX?.SSF){
+    try{const d=XLSX.SSF.parse_date_code(v);if(d&&d.y&&d.m&&d.d)return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`}catch(e){}
+  }
+  if(v instanceof Date && !isNaN(v)){
+    // Read UTC components because SheetJS Date values represent the Excel date at UTC.
+    return `${v.getUTCFullYear()}-${String(v.getUTCMonth()+1).padStart(2,'0')}-${String(v.getUTCDate()).padStart(2,'0')}`;
   }
   const s=wmImpText(v);
   if(!s)return null;
-  // ISO date text is already unambiguous and must be handled before locale formats.
-  let m=s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})(?:$|[ T])/);
+  // ISO dates must be handled before locale-style dates.
+  let m=s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})(?:$|T|\s)/);
   if(m)return `${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
-  // The source workbook's text dates are MM-DD-YYYY (month first), not DD-MM-YYYY.
+  // Source workbook uses MM-DD-YYYY (e.g. 10-16-2026 = 16 October 2026).
   m=s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
   if(m){const month=Number(m[1]),day=Number(m[2]),year=Number(m[3]);if(month>=1&&month<=12&&day>=1&&day<=31)return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;return null;}
-  const d=new Date(s);return isNaN(d)?null:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  return null;
 }
 function wmImpVehicle(v){return wmImpText(v).toUpperCase().replace(/\s+/g,'')}
 function wmImpPoNo(v){const s=wmImpText(v);if(!s)return '';return s.replace(/\.0+$/,'')}
@@ -88,7 +93,7 @@ function wmImpMsg(msg,cls='notice'){
 }
 function wmImportPage(){
   return `<div class="context">Import historical Load Details and matching ITC Final Weighments from the AppSheet workbook into the active WoodMaster contractor. Existing PO masters are reused; invoice, payment and dashboard sheets are excluded.</div>
-  <div class="topbar"><div><h1>AppSheet Load Import</h1><div class="sub">Imports LR/load records plus ITC WC/weight fields into Final Weighments. Existing WoodMaster POs are matched by PO_Number only; missing POs are not created. LR_Date is imported directly from the workbook, and E-way Bill spaces are removed before validation and saving.</div></div></div>
+  <div class="topbar"><div><h1>AppSheet Load Import</h1><div class="sub">Imports LR/load records plus ITC WC/weight fields into Final Weighments. Existing WoodMaster POs are matched by PO_Number only; missing POs are not created.</div></div></div>
   <div class="card">
     <div class="field"><label>Select AppSheet Excel file</label><input id="wmImportFile" type="file" accept=".xlsx,.xls" onchange="wmPreviewImport(this)"></div>
     <div id="wmImportMsg" style="margin-top:12px"></div>
@@ -99,13 +104,11 @@ async function wmPreviewImport(input){
   const file=input?.files?.[0];if(!file)return;
   try{
     const buf=await file.arrayBuffer();
-    wmImportBook=XLSX.read(buf,{type:'array',cellDates:true});
+    wmImportBook=XLSX.read(buf,{type:'array',cellDates:false});
     const lr=wmImpRows('LR');
     const valid=lr.filter(r=>wmImpText(r.LR_Number)&&wmImpVehicle(r.Truck_Number));
     const noLR=lr.length-valid.length;
-    const sourceDates=valid.map(r=>wmImpDate(r.LR_Date)).filter(Boolean).sort();
-    const dateRange=sourceDates.length?` · LR_Date range: ${sourceDates[0]} to ${sourceDates[sourceDates.length-1]}`:' · No valid LR_Date values found';
-    wmImpMsg(`Workbook read successfully. Load rows: ${lr.length} · Valid rows with LR + vehicle: ${valid.length} · Rows needing review: ${noLR}${dateRange}. Only the LR sheet will be imported. Missing vehicle master rows will be created automatically; existing PO masters are reused.`);
+    wmImpMsg(`Workbook read successfully. Load rows: ${lr.length} · Valid rows with LR + vehicle: ${valid.length} · Rows needing review: ${noLR}. Only the LR sheet will be imported. Missing vehicle master rows will be created automatically; existing PO masters are reused.`);
     const el=$('wmImportPreview');
     if(el)el.innerHTML=`<div class="section" style="margin-top:14px"><h2>Load Import Preview</h2>
       <div class="grid">
@@ -157,7 +160,6 @@ async function wmRunImport(){
         const vn=wmImpVehicle(r.Truck_Number);
         if(!lrNo)throw new Error('Excel LR_Number is blank; cannot safely identify this source row.');
         if(!vn)throw new Error('Vehicle number is missing.');
-        // LR date source of truth: AppSheet workbook LR_Date. Never derive it from sequence, LR number, WC date, or today's date.
         const date=wmImpDate(r.LR_Date);
         if(!date)throw new Error('Load date is missing or invalid.');
         const gross=wmImpNum(r.Gross_Weight), tare=wmImpNum(r.Tare_Weight);
