@@ -336,7 +336,8 @@ async function generatePackage(id){
    text('To',mid+10,165,11);text(customer,mid+10,185,13,true);
    wrapByWidth(itcAddress,right-mid-28,11,false).slice(0,4).forEach((ln,i)=>text(ln,mid+10,207+i*15,11));
 
-   const tableTop=325,rowH=30,cols=[118,157,135,145],tableH=rowH*4; // Sum exactly matches document width (555) to prevent right-column overlap.rect(left,tableTop,width,tableH,null,1.1);
+   const tableTop=325,rowH=30,cols=[118,157,135,145],tableH=rowH*4; // Column widths sum to the document width.
+   rect(left,tableTop,width,tableH,null,1.1);
    let xx=left;cols.slice(0,-1).forEach(cw=>{xx+=cw;line(xx,tableTop,xx,tableTop+tableH,1.1)});
    const rows=[['PO Number',poNo,'Gross Weight (MTS)',gross.toFixed(3)],['Species',material,'Tare Weight (MTS)',tare.toFixed(3)],['Truck No',vehicle,'Net Weight (MTS)',networkNet.toFixed(3)],['Way Bill No',eway,'','']];
    rows.forEach((r,i)=>{
@@ -382,7 +383,8 @@ async function generatePackage(id){
    text('Vehicle No',left+295,contentTop+75,11,true);text(': '+vehicle,left+430,contentTop+75,11);
 
    y=placeBottom+gap;const titleTop=drawSection('DESCRIPTION OF GOODS',y);
-   const tTop=titleTop,hh=38,rh=42,totalH=30;const cols=[30,105,58,45,40,66,54,54,103]; // Sum exactly 555; keeps Total Value inside its column.const x=[left];for(const c of cols)x.push(x[x.length-1]+c);const bottom=tTop+hh+3*rh+totalH;
+   const tTop=titleTop,hh=38,rh=42,totalH=30;const cols=[30,105,58,45,40,66,54,54,103]; // Column widths sum exactly to 555.
+   const x=[left];for(const c of cols)x.push(x[x.length-1]+c);const bottom=tTop+hh+3*rh+totalH;
    rect(left,tTop,width,bottom-tTop,null,1.2);for(let i=1;i<x.length-1;i++)line(x[i],tTop,x[i],bottom,1.0);line(left,tTop+hh,right,tTop+hh,1.0);
    const heads=['S.No','Material\nDescription','HSN\nCode','Qty','UOM','Taxable\nValue (Rs.)','CGST(9%)\n(Rs.)','SGST(9%)\n(Rs.)','Total Value\n(Rs.)'];
    heads.forEach((h,i)=>h.split('\n').forEach((s,j)=>hcenter(s,x[i],x[i+1],tTop+15+j*10,8.2,true)));
