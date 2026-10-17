@@ -556,7 +556,7 @@ async function downloadFreightLetter(id){
   address=String(address).replace(/^\s*\d+(?:[-\/]\d+)*\s*,?\s*/,'').replace(/\s*-\s*539\b/g,'').replace(/\s{2,}/g,' ').trim();
   const vehicle=String(x.vehicle_master?.vehicle_number||'').toUpperCase();
   const challan=x.dc_number||x.load_number||'';const challanDate=fmtDate(x.load_date);const wc=w.wc_number||'';
-  frame('FINAL FREIGHT LETTER');
+  frame('FREIGHT LETTER');
   const metaY=94;
   text('FROM',left+10,metaY,11,true);text('S V TRADERS',left+10,metaY+22,16,true);
   wrap(address,360,11,false).slice(0,2).forEach((ln,i)=>text(ln,left+10,metaY+43+i*15,11));
