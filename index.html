@@ -336,7 +336,7 @@ async function generatePackage(id){
    text('To',mid+10,165,11);text(customer,mid+10,185,13,true);
    wrapByWidth(itcAddress,right-mid-28,11,false).slice(0,4).forEach((ln,i)=>text(ln,mid+10,207+i*15,11));
 
-   const tableTop=325,rowH=30,cols=[118,157,135,117],tableH=rowH*4;rect(left,tableTop,width,tableH,null,1.1);
+   const tableTop=325,rowH=30,cols=[118,157,135,145],tableH=rowH*4; // Sum exactly matches document width (555) to prevent right-column overlap.rect(left,tableTop,width,tableH,null,1.1);
    let xx=left;cols.slice(0,-1).forEach(cw=>{xx+=cw;line(xx,tableTop,xx,tableTop+tableH,1.1)});
    const rows=[['PO Number',poNo,'Gross Weight (MTS)',gross.toFixed(3)],['Species',material,'Tare Weight (MTS)',tare.toFixed(3)],['Truck No',vehicle,'Net Weight (MTS)',networkNet.toFixed(3)],['Way Bill No',eway,'','']];
    rows.forEach((r,i)=>{
@@ -382,7 +382,7 @@ async function generatePackage(id){
    text('Vehicle No',left+295,contentTop+75,11,true);text(': '+vehicle,left+430,contentTop+75,11);
 
    y=placeBottom+gap;const titleTop=drawSection('DESCRIPTION OF GOODS',y);
-   const tTop=titleTop,hh=38,rh=42,totalH=30;const cols=[30,105,58,45,40,66,54,54,75];const x=[left];for(const c of cols)x.push(x[x.length-1]+c);const bottom=tTop+hh+3*rh+totalH;
+   const tTop=titleTop,hh=38,rh=42,totalH=30;const cols=[30,105,58,45,40,66,54,54,103]; // Sum exactly 555; keeps Total Value inside its column.const x=[left];for(const c of cols)x.push(x[x.length-1]+c);const bottom=tTop+hh+3*rh+totalH;
    rect(left,tTop,width,bottom-tTop,null,1.2);for(let i=1;i<x.length-1;i++)line(x[i],tTop,x[i],bottom,1.0);line(left,tTop+hh,right,tTop+hh,1.0);
    const heads=['S.No','Material\nDescription','HSN\nCode','Qty','UOM','Taxable\nValue (Rs.)','CGST(9%)\n(Rs.)','SGST(9%)\n(Rs.)','Total Value\n(Rs.)'];
    heads.forEach((h,i)=>h.split('\n').forEach((s,j)=>hcenter(s,x[i],x[i+1],tTop+15+j*10,8.2,true)));
@@ -643,7 +643,7 @@ async function downloadFreightLetter(id){
   address=String(address).replace(/^\s*\d+(?:[-\/]\d+)*\s*,?\s*/,'').replace(/\s*-\s*539\b/g,'').replace(/\s{2,}/g,' ').trim();
   const vehicle=String(x.vehicle_master?.vehicle_number||'').toUpperCase();
   const challan=x.dc_number||x.load_number||'';const challanDate=fmtDate(x.load_date);const wc=w.wc_number||'';
-  frame('FINAL FREIGHT LETTER');
+  frame('FREIGHT LETTER');
   const metaY=94;
   text('FROM',left+10,metaY,11,true);text('S V TRADERS',left+10,metaY+22,16,true);
   wrap(address,360,11,false).slice(0,2).forEach((ln,i)=>text(ln,left+10,metaY+43+i*15,11));
@@ -657,7 +657,7 @@ async function downloadFreightLetter(id){
 
   const xs=[left,left+42,left+237,left+412,right];const drawHeader=(top)=>{rect(left,top,width,24,LIGHT,1.15);for(let i=1;i<4;i++)line(xs[i],top,xs[i],top+26,1.15);['S.No.','PARTICULARS','QUANTITY / RATE','AMOUNT (Rs.)'].forEach((h,i)=>hcenter(h,xs[i],xs[i+1],top+17,9.2,true));};
   const row=(top,h,no,part,qty,amt,bold=false)=>{rect(left,top,width,h,null,1.05);for(let i=1;i<4;i++)line(xs[i],top,xs[i],top+h,1.05);const cy=top+h/2+4;if(no!==''&&no!=null)hcenter(no,xs[0],xs[1],cy,11,bold);text(part,xs[1]+10,cy,11,bold);if(qty)hcenter(qty,xs[2],xs[3],cy,fit(qty,xs[3]-xs[2]-14,11,8.5,false),false);if(amt)hcenter(amt,xs[3],xs[4],cy,fit(amt,xs[4]-xs[3]-14,11,8.5,false),bold);return top+h;};
-  const words=(top,h,label,value)=>{rect(left,top,width,h,null,1.05);line(xs[1],top,xs[1],top+h,1.05);line(xs[2],top,xs[2],top+h,1.05);const cy=top+h/2+4;text(label,xs[1]+10,cy,11);if(value)hcenter(value,xs[2],right,cy,9.5,true);return top+h;};
+  const words=(top,h,label,value)=>{const maxW=right-xs[2]-18;const lines=wrap(value,maxW,9.5,true);const actualH=Math.max(h,lines.length*11+8);rect(left,top,width,actualH,null,1.05);line(xs[1],top,xs[1],top+actualH,1.05);line(xs[2],top,xs[2],top+actualH,1.05);const cy=top+actualH/2-((lines.length-1)*5)+4;text(label,xs[1]+10,cy,10.5);lines.forEach((ln,i)=>hcenter(ln,xs[2]+5,right-5,cy+i*11,9.2,true));return top+actualH;};
   const totalRow=(top,h,no,label,amount)=>{rect(left,top,width,h,LIGHT,1.25);line(xs[1],top,xs[1],top+h,1.1);const cy=top+h/2+4;hcenter(no,xs[0],xs[1],cy,11,true);text(label,xs[1]+10,cy,11,true);hcenter(amount,xs[3],xs[4],cy,11,true);return top+h;};
 
   // Section 1: through Gross Amount in Words
@@ -1213,6 +1213,15 @@ async function printMaterialInvoice(id){
     center(qty3(invoice.total_qty),cols[4],cols[5],rowY+rowH/2+4,10,true);
     center('MT',cols[5],cols[6],rowY+rowH/2+4,10,true);
     rowY+=rowH+9;
+
+    // If the load table is long, continue the financial summary on page 2 instead of clipping the invoice footer.
+    // The complete load list and Total Qty remain together on page 1; the pricing/tax summary and words move to page 2.
+    if(rowY > 500){
+      doc.addPage();
+      rect(left,20,width,801,0.8);
+      text('TAX INVOICE (CONTINUED)',PW/2,34,14,true,'center');
+      rowY=58;
+    }
 
     // Second table: reproduce the 34 reference structure, including merged Quantity cells.
     // Table 2 column proportions match the 34/2026-27 reference:
