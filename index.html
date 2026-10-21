@@ -1559,7 +1559,57 @@ async function printAmcInvoice(id){
   downloadAmcBillTemplate();
  }catch(e){alert('Could not generate AMC CESS BILL: '+(e.message||e));}
 }
-async function downloadAmcBillTemplate(){const rows=window.wmAmcBillRows||[];if(!rows.length)return alert('Click Review AMC Bill first and confirm that eligible records appear.');const meta=window.wmAmcBillMeta||{};const po=(state.pos||[]).find(x=>String(x.po_number||'')===String(meta.po||''))||(state.pos||[])[0]||{};const totalQty=rows.reduce((a,x)=>a+Number(x.approved_weight||x.net_weight||0),0),total=rows.reduce((a,x)=>a+Number(x.amc_amount||0),0);const words=n=>{const value=Math.round((Number(n)||0)*100)/100;const rupees=Math.floor(value);const paise=Math.round((value-rupees)*100);const rupeeWords=numberWordsIndian(rupees).replace(/ Rupees Only$/i,'');return paise>0?`${rupeeWords} Rupees and ${numberWordsIndian(paise).replace(/ Rupees Only$/i,'')} Paise Only`:`${rupeeWords} Rupees Only`;};const table=rows.map((x,i)=>`<tr><td>${i+1}</td><td>${fmtDate(x.amc_date||x.wc_date)}</td><td>${esc(x.wc_number||'')}</td><td>${esc(x.load?.vehicle_master?.vehicle_number||x.vehicle_number||'')}</td><td>${fmt(x.approved_weight||x.net_weight||0)}</td><td>${esc(x.amc_bill_number||'')}</td><td>${money(x.amc_amount).replace('₹','')}</td><td>${esc(x.amc_paid_area||'')}</td></tr>`).join('');const html=`<!doctype html><html><head><meta charset="utf-8"><title>${esc(`SVT_${wmFileSafe(meta.invoiceNo||'AMC')}_${wmFileSafe(wmFinancialYear(meta.billDate))}_${wmBillPeriodLabel(meta.fd,meta.td)}.pdf`)}</title><style>@page{size:A4;margin:16mm}body{font:11px Arial,sans-serif;color:#111}h1{text-align:center;font-size:16px;margin:0 0 24px}table{width:100%;border-collapse:collapse}td,th{border:1px solid #555;padding:5px 4px;vertical-align:top}th{font-weight:bold;text-align:center}.parties{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:22px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:7px 20px;margin-bottom:20px}.label{display:inline-block;min-width:105px;font-weight:bold}.totals td{font-weight:bold}.note{margin-top:22px}.words{text-align:center;margin:20px 0}.sign{margin-top:32px}</style></head><body><h1>AMC CESS BILL</h1><div class="parties"><div><b>To</b><br>ITC LTD - PSPD<br>Unit: Bhadrachalam<br>Sarapaka - 507128<br>Bhadradri Kothagudem District<br>Telangana State (Code 36)<br>PAN No: AAACI5950L<br>GST NO: 36AAACI5950L1ZB</div><div><b>From</b><br><b>SRI VENKATESHWARA TRADERS,</b><br>15-8-539, Rama Devi Nilayam,<br>Rotary Nagar, Srinagar colony,<br>Khammam – 507002<br>Telangana State (Code 36)<br>Cell: 9493218336<br>Vendor Code: 1025420<br>PAN NO: TOHPS0526H<br>GST NO: 36TOHPS0526H1ZE</div></div><div class="meta"><div><span class="label">Period From:</span> ${fmtDate(meta.fd)} TO ${fmtDate(meta.td)}</div><div><span class="label">Invoice No:</span> ${esc(meta.invoiceNo||'')}</div><div><span class="label">PO Number:</span> ${esc(meta.po||po.po_number||'')}</div><div><span class="label">Bill Date:</span> ${fmtDate(meta.billDate)}</div><div><span class="label">Supplier Name:</span> SRI VENKATESHWARA TRADERS</div><div><span class="label">Transporter Name:</span> SRI VENKATESHWARA TRADERS</div><div style="grid-column:1/-1"><span class="label">Material:</span> ${esc(po.species_name||'Eucalyptus Debarked Wood')}</div></div><table><thead><tr><th>S. No</th><th>AMC Bill Date</th><th>WC Number</th><th>Truck Number</th><th>Unloading Qty</th><th>AMC Bill No.</th><th>Amount</th><th>AMC Paid Area</th></tr></thead><tbody>${table}<tr class="totals"><td colspan="4" style="text-align:right">Total</td><td>${fmt(totalQty)}</td><td></td><td>${total.toLocaleString('en-IN',{maximumFractionDigits:2})}</td><td></td></tr></tbody></table><div class="note">• As it is a Reimbursement of Expenses, GST is not applicable on this Bill</div><div class="words"><b>Qty:</b> ${totalQty.toFixed(2)} MT<br><b>Quantity in Words:</b> ${esc(numberWordsIndian(Math.floor(totalQty)).replace(/ Rupees Only$/i,''))} Point ${totalQty.toFixed(2).split('.')[1].split('').map(d=>['Zero','One','Two','Three','Four','Five','Six','Seven','Eight','Nine'][Number(d)]).join(' ')} MT<br><br><b>Amount in Words:</b> ${esc(words(total))}</div><div class="sign">Yours faithfully<br><br><br>For Sri Venkateshwara Traders</div></body></html>`;const parser=new DOMParser();const parsed=parser.parseFromString(html,'text/html');const css=parsed.querySelector('style')?.textContent||'';const wrap=document.createElement('div');wrap.innerHTML=`<style>${css}</style>${parsed.body.innerHTML}`;wrap.style.cssText='position:fixed;left:-10000px;top:0;width:277mm;background:#fff;color:#111;z-index:-1';document.body.appendChild(wrap);const filename=document.title;try{if(typeof html2pdf!=='undefined'){await html2pdf().set({margin:10,filename:filename,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'landscape'}}).from(wrap).save();}else{alert('PDF download library is unavailable. Refresh the page and try again.');}}catch(e){console.error(e);alert('Could not create the PDF download: '+(e.message||e));}finally{wrap.remove();}}
+async function downloadAmcBillTemplate(){
+ const rows=window.wmAmcBillRows||[];
+ if(!rows.length){alert('Click Review AMC Bill first and confirm that eligible records appear.');return;}
+ if(!window.jspdf||!window.jspdf.jsPDF){alert('PDF generator is not ready. Refresh the page and try again.');return;}
+ try{
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4',compress:true});
+  const meta=window.wmAmcBillMeta||{};
+  const po=(state.pos||[]).find(x=>String(x.po_number||'')===String(meta.po||''))||(state.pos||[])[0]||{};
+  const totalQty=rows.reduce((a,x)=>a+Number(x.approved_weight||x.net_weight||0),0);
+  const total=Math.round((rows.reduce((a,x)=>a+Number(x.amc_amount||0),0)+Number.EPSILON)*100)/100;
+  const rupeeWords=n=>numberWordsIndian(Math.floor(Number(n)||0)).replace(/ Rupees Only$/i,'');
+  const amountWords=n=>{const v=Math.round((Number(n)||0)*100)/100,rs=Math.floor(v),ps=Math.round((v-rs)*100);return ps?`${rupeeWords(rs)} Rupees and ${rupeeWords(ps)} Paise Only`:`${rupeeWords(rs)} Rupees Only`;};
+  const qtyWords=n=>{const v=(Number(n)||0).toFixed(2),parts=v.split('.'),digits=['Zero','One','Two','Three','Four','Five','Six','Seven','Eight','Nine'];return `${rupeeWords(Number(parts[0]))} Point ${parts[1].split('').map(d=>digits[+d]).join(' ')} MT`;};
+  const fmtAmt=n=>(Number(n)||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const pageW=297, left=14, right=283; let y=14;
+  doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text('AMC CESS BILL',pageW/2,y,{align:'center'});y+=10;
+  doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.text('To',left,y);doc.text('From',155,y);y+=4;
+  doc.setFont('helvetica','normal');
+  const toLines=['ITC LTD - PSPD','Unit: Bhadrachalam','Sarapaka - 507128','Bhadradri Kothagudem District','Telangana State (Code 36)','PAN No: AAACI5950L','GST NO: 36AAACI5950L1ZB'];
+  const fromLines=['SRI VENKATESHWARA TRADERS,','15-8-539, Rama Devi Nilayam,','Rotary Nagar, Srinagar colony,','Khammam - 507002','Telangana State (Code 36)','Cell: 9493218336','Vendor Code: 1025420','PAN NO: TOHPS0526H','GST NO: 36TOHPS0526H1ZE'];
+  let yy=y;toLines.forEach(t=>{doc.text(t,left,yy);yy+=3.5;});yy=y;fromLines.forEach(t=>{doc.text(t,155,yy);yy+=3.5;});
+  y=Math.max(y+toLines.length*3.5,y+fromLines.length*3.5)+5;
+  doc.setFontSize(8.5);
+  const metaLines=[
+   [`Period From: ${fmtDate(meta.fd)} TO ${fmtDate(meta.td)}`,`Invoice No: ${meta.invoiceNo||''}`],
+   [`PO Number: ${meta.po||po.po_number||''}`,`Bill Date: ${fmtDate(meta.billDate)}`],
+   ['Supplier Name: SRI VENKATESHWARA TRADERS','Transporter Name: SRI VENKATESHWARA TRADERS'],
+   [`Material: ${po.species_name||'Eucalyptus Debarked Wood'}`,'']
+  ];
+  metaLines.forEach(a=>{doc.text(a[0],left,y);if(a[1])doc.text(a[1],155,y);y+=5;});y+=3;
+  const headers=['S. No','AMC Bill Date','WC Number','Truck Number','Unloading Qty','AMC Bill No.','Amount','AMC Paid Area'];
+  const widths=[12,27,38,30,25,45,25,40];const rowH=7;let x=left;
+  doc.setFont('helvetica','bold');doc.setFontSize(7.5);
+  headers.forEach((h,i)=>{doc.rect(x,y,widths[i],rowH);doc.text(h,x+widths[i]/2,y+4.5,{align:'center',maxWidth:widths[i]-1});x+=widths[i];});y+=rowH;
+  doc.setFont('helvetica','normal');
+  rows.forEach((r,i)=>{
+   if(y>165){doc.addPage('a4','landscape');y=15;}
+   const vals=[String(i+1),fmtDate(r.amc_date||r.wc_date),String(r.wc_number||''),String(r.load?.vehicle_master?.vehicle_number||r.vehicle_number||''),Number(r.approved_weight||r.net_weight||0).toFixed(3),String(r.amc_bill_number||''),fmtAmt(r.amc_amount),String(r.amc_paid_area||'')];x=left;
+   vals.forEach((v,j)=>{doc.rect(x,y,widths[j],rowH);doc.setFontSize(7);doc.text(v,x+1,y+4.5,{maxWidth:widths[j]-2});x+=widths[j];});y+=rowH;
+  });
+  x=left;const totalVals=['','','','Total',totalQty.toFixed(3),'',fmtAmt(total),''];totalVals.forEach((v,j)=>{doc.rect(x,y,widths[j],rowH);if(v)doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.text(v,x+(j===3?widths[j]-1:widths[j]/2),y+4.5,{align:j===3?'right':'center',maxWidth:widths[j]-2});x+=widths[j];});y+=rowH+7;
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text('• As it is a Reimbursement of Expenses, GST is not applicable on this Bill',left,y);y+=7;
+  doc.setFont('helvetica','bold');doc.text(`Qty: ${totalQty.toFixed(2)} MT`,pageW/2,y,{align:'center'});y+=5;
+  doc.text(`Quantity in Words: ${qtyWords(totalQty)}`,pageW/2,y,{align:'center'});y+=5;
+  doc.text(`Amount in Words: ${amountWords(total)}`,pageW/2,y,{align:'center',maxWidth:260});y+=12;
+  doc.setFont('helvetica','normal');doc.text('Yours faithfully',left,y);y+=14;doc.text('For Sri Venkateshwara Traders',left,y);
+  const filename=`SVT_${wmFileSafe(meta.invoiceNo||'AMC')}_${wmFileSafe(wmFinancialYear(meta.billDate))}_${wmBillPeriodLabel(meta.fd,meta.td)}.pdf`;
+  doc.save(filename);
+ }catch(e){console.error('AMC PDF generation failed:',e);alert('Could not generate AMC PDF: '+(e?.message||e));}
+}
 async function grReconciliationPage(){
  const receiptId=state.activeReceiptId||localStorage.getItem('wm360:activeReceipt')||'';
  if(!receiptId)return `<div class="notice error">No GR receipt selected.</div><button class="btn secondary" onclick="go('billing')">← Back to Billing</button>`;
