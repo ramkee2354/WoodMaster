@@ -1621,12 +1621,12 @@ async function downloadAmcBillTemplate(){
   rows.forEach((r,i)=>{
    if(y>172){doc.addPage('a4','landscape');y=15;}
    const vals=[String(i+1),fmtDate(r.amc_date||r.wc_date),String(r.wc_number||''),String(r.load?.vehicle_master?.vehicle_number||r.vehicle_number||''),Number(r.approved_weight||r.net_weight||0).toFixed(3),String(r.amc_bill_number||''),fmtAmt(r.amc_amount),String(r.amc_paid_area||'')];x=left;
-   vals.forEach((v,j)=>{doc.rect(x,y,widths[j],rowH);doc.setFontSize(8.2);doc.text(v,x+1,y+5,{maxWidth:widths[j]-2});x+=widths[j];});y+=rowH;
+   vals.forEach((v,j)=>{doc.rect(x,y,widths[j],rowH);doc.setFont('helvetica','normal');doc.setFontSize(8.2);doc.text(v,x+widths[j]/2,y+5,{align:'center',maxWidth:widths[j]-2});x+=widths[j];});y+=rowH;
   });
   x=left;const totalVals=['','','','Total',totalQty.toFixed(3),'',fmtAmt(total),''];totalVals.forEach((v,j)=>{doc.rect(x,y,widths[j],rowH);if(v)doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.text(v,x+(j===3?widths[j]-1:widths[j]/2),y+5,{align:j===3?'right':'center',maxWidth:widths[j]-2});x+=widths[j];});y+=rowH+7;
   doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text('• As it is a Reimbursement of Expenses, GST is not applicable on this Bill',left,y);y+=8;
-  doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.text(`Quantity in Words: ${qtyWords(totalQty)}`,pageW/2,y,{align:'center',maxWidth:265});y+=6;
-  doc.text(`Amount in Words: ${amountWords(total)}`,pageW/2,y,{align:'center',maxWidth:265});y+=12;
+  doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.text(`Quantity in Words: ${qtyWords(totalQty)}`,pageW/2,y,{align:'center',maxWidth:265});y+=6;
+  doc.setFont('helvetica','normal');doc.text(`Amount in Words: ${amountWords(total)}`,pageW/2,y,{align:'center',maxWidth:265});y+=12;
   doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.text('Yours faithfully',left,y);y+=12;doc.text('For Sri Venkateshwara Traders',left,y);
   const filename=`SVT_${wmFileSafe(meta.invoiceNo||'AMC')}_${wmFileSafe(wmFinancialYear(meta.billDate))}_${wmBillPeriodLabel(meta.fd,meta.td)}.pdf`;
   doc.save(filename);
