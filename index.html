@@ -367,7 +367,42 @@ function validateLoad(){if(!$('vehicle')?.value.trim())return 'Vehicle Number is
 async function ensureVehicle(vn,driver,tare){let v=state.vehicles.find(x=>x.vehicle_number.toUpperCase()===vn.toUpperCase());if(v){if(driver&&driver!==v.driver_name){await sb.from('vehicle_master').update({driver_name:driver,owner_name:v.owner_name}).eq('id',v.id)}return v}const r=await sb.from('vehicle_master').insert({vehicle_number:vn,driver_name:driver||null,current_tare:num(tare)||null,is_active:true}).select().single();if(r.error)throw r.error;state.vehicles.push(r.data);return r.data}
 async function createLoad(){const err=validateLoad();if(err)return alert(err);const c=active(),p=state.pos.find(v=>v.id===$('po').value),vn=$('vehicle').value.trim().toUpperCase(),driver=$('driver').value.trim();$('vehicle').value=vn;const v=await ensureVehicle(vn,driver,$('tare').value);const n=num($('gross').value)-num($('tare').value);const ag=$('advanceBy').value==='Others'?$('advanceOther').value.trim():$('advanceBy').value;const nw={weighment_date:$('date').value,vehicle_id:v.id,gross_weight:num($('gross').value),tare_weight:num($('tare').value),po_id:p.id,eway_bill_no:$('eway').value.trim(),freight_rate:num($('freight').value),advance:num($('advance').value),advance_given_by:ag||null,receipt_received:true,verified:true,created_by:state.session.user.id};let r=await sb.from('network_weighments').insert(nw).select().single();if(r.error)throw r.error;const lr={network_weighment_id:r.data.id,po_id:p.id,vehicle_id:v.id,load_date:$('date').value,species_id:null,species_name:p.species_name,network_gross:num($('gross').value),network_tare:num($('tare').value),network_net:n,eway_bill_no:$('eway').value.trim(),freight_rate:num($('freight').value),advance:num($('advance').value),advance_given_by:ag||null,dc_number:$('dcNumber').value,status:'Load Created',created_by:state.session.user.id};r=await sb.from('loads').insert(lr).select().single();if(r.error)throw r.error;if(state.ewayFiles.__new){state.ewayFiles[r.data.id]=state.ewayFiles.__new;delete state.ewayFiles.__new}clearForm('newload');alert('Load created successfully.');state.page='loads';await refreshLoads();await render()}
 async function updateLoad(id){const err=validateLoad();if(err)return alert(err);const x=state.loads.find(v=>v.id===id);const p=state.pos.find(v=>v.id===$('po').value);const vn=$('vehicle').value.trim().toUpperCase();$('vehicle').value=vn;const v=await ensureVehicle(vn,$('driver').value.trim(),$('tare').value);const ag=$('advanceBy').value==='Others'?$('advanceOther').value.trim():$('advanceBy').value;const row={load_date:$('date').value,vehicle_id:v.id,po_id:p.id,species_name:p.species_name,network_gross:num($('gross').value),network_tare:num($('tare').value),network_net:num($('gross').value)-num($('tare').value),eway_bill_no:$('eway').value.trim(),freight_rate:num($('freight').value),advance:num($('advance').value),advance_given_by:ag||null,status:x.status||'Load Created'};let r=await sb.from('loads').update(row).eq('id',id);if(r.error)throw r.error;await sb.from('network_weighments').update({weighment_date:$('date').value,vehicle_id:v.id,gross_weight:num($('gross').value),tare_weight:num($('tare').value),po_id:p.id,eway_bill_no:$('eway').value.trim(),freight_rate:num($('freight').value),advance:num($('advance').value),advance_given_by:ag||null}).eq('id',x.network_weighment_id);clearForm('newload');alert('Load updated successfully.');state.selectedLoad=null;await refreshLoads();state.page='loads';await render()}
-async function deleteLoad(id){if(!confirm('Delete this load? Historical document references may become unavailable. Continue?'))return;const x=state.loads.find(v=>v.id===id);const r=await sb.from('loads').delete().eq('id',id);if(r.error)return alert(r.error.message);if(x?.network_weighment_id)await sb.from('network_weighments').delete().eq('id',x.network_weighment_id);alert('Load deleted.');state.selectedLoad=null;state.page='loads';await refreshLoads();await render()}
+async function deleteLoad(id){
+  const x=state.loads.find(v=>String(v.id)===String(id));
+  if(!x)return alert('Load not found. Refresh the Loads list and try again.');
+  const label=x.dc_number||x.load_number||id;
+  if(!confirm(`Delete load ${label}? Its saved document-history rows will also be removed. This action cannot be undone.`))return;
+  // The documents.load_id foreign key prevents deleting a parent load first.
+  // Preserve the rows temporarily so they can be restored if load deletion fails.
+  let savedDocs=[];
+  const docRead=await sb.from('documents').select('*').eq('load_id',id);
+  if(docRead.error)return alert('Could not check linked document history. Nothing was deleted.\n\n'+docRead.error.message);
+  savedDocs=docRead.data||[];
+  if(savedDocs.length){
+    const docDel=await sb.from('documents').delete().eq('load_id',id);
+    if(docDel.error)return alert('Could not remove linked document-history rows. The load was not deleted.\n\n'+docDel.error.message);
+  }
+  const loadDel=await sb.from('loads').delete().eq('id',id);
+  if(loadDel.error){
+    let restoreMsg='';
+    if(savedDocs.length){
+      const restore=await sb.from('documents').insert(savedDocs);
+      if(restore.error)restoreMsg='\n\nWarning: document-history restoration also failed: '+restore.error.message;
+    }
+    return alert('Load was not deleted.\n\n'+loadDel.error.message+restoreMsg);
+  }
+  if(x.network_weighment_id){
+    const nwDel=await sb.from('network_weighments').delete().eq('id',x.network_weighment_id);
+    if(nwDel.error){
+      alert(`Load ${label} was deleted, but its linked network-weighment record could not be deleted.\n\n${nwDel.error.message}`);
+    }else{
+      alert(`Load ${label} and its document-history rows were deleted successfully.`);
+    }
+  }else{
+    alert(`Load ${label} and its document-history rows were deleted successfully.`);
+  }
+  state.selectedLoad=null;state.page='loads';await refreshLoads();await render();
+}
 function editLoad(id){state.page='editload';state.editLoad=id;render()}
 function documentsPage(){const loads=state.loads;return `<div class="context">Documents are generated locally in the browser. If an E-way Bill PDF was uploaded during the current browser session, it can be appended to the package.</div><div class="topbar"><div><h1>Documents</h1><div class="sub">Generate LR, DC and optional FL packages for a load.</div></div></div><div class="tablewrap"><table><thead><tr><th>DC Number</th><th>Vehicle</th><th>Net MT</th><th>E-way</th><th>Documents</th></tr></thead><tbody>${loads.map(x=>`<tr><td>${esc(x.dc_number||'—')}</td><td>${esc(x.vehicle_master?.vehicle_number||'')}</td><td>${fmt(x.network_net)}</td><td>${esc(x.eway_bill_no||'')}</td><td><button class="btn primary mini" onclick="openDocsModal('${x.id}')">Generate</button></td></tr>`).join('')}</tbody></table></div>`}
 function openDocs(id){state.documents=id;state.page='documents';render()}
