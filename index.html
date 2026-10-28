@@ -1615,15 +1615,19 @@ async function downloadAmcBillTemplate(){
   metaLines.forEach(a=>{doc.text(a[0],left,y);if(a[1])doc.text(a[1],155,y);y+=5;});y+=3;
   const headers=['S. No','AMC Bill Date','WC Number','Truck Number','Unloading Qty','AMC Bill No.','Amount','AMC Paid Area'];
   const widths=[13,29,39,29,25,49,25,60];const rowH=8;let x=left;
-  doc.setFont('helvetica','bold');doc.setFontSize(8.5);
-  headers.forEach((h,i)=>{doc.rect(x,y,widths[i],rowH);doc.text(h,x+widths[i]/2,y+5,{align:'center',maxWidth:widths[i]-2});x+=widths[i];});y+=rowH;
-  doc.setFont('helvetica','normal');
+  const drawTableHeader=()=>{x=left;doc.setFont('helvetica','bold');doc.setFontSize(8.5);headers.forEach((h,i)=>{doc.rect(x,y,widths[i],rowH);doc.text(h,x+widths[i]/2,y+5,{align:'center',maxWidth:widths[i]-2});x+=widths[i];});y+=rowH;doc.setFont('helvetica','normal');};
+  drawTableHeader();
   rows.forEach((r,i)=>{
-   if(y>172){doc.addPage('a4','landscape');y=15;}
+   // Reserve enough vertical space for the total row, tax note, amount-in-words,
+   // quantity-in-words and signature block. Repeat the column headings on each page.
+   if(y+rowH>145){doc.addPage('a4','landscape');y=15;drawTableHeader();}
    const vals=[String(i+1),fmtDate(r.amc_date||r.wc_date),String(r.wc_number||''),String(r.load?.vehicle_master?.vehicle_number||r.vehicle_number||''),Number(r.approved_weight||r.net_weight||0).toFixed(3),String(r.amc_bill_number||''),fmtAmt(r.amc_amount),String(r.amc_paid_area||'')];x=left;
    vals.forEach((v,j)=>{doc.rect(x,y,widths[j],rowH);doc.setFont('helvetica','normal');doc.setFontSize(8.2);doc.text(v,x+widths[j]/2,y+5,{align:'center',maxWidth:widths[j]-2});x+=widths[j];});y+=rowH;
   });
-  x=left;const totalVals=['','','','Total',totalQty.toFixed(3),'',fmtAmt(total),''];totalVals.forEach((v,j)=>{doc.rect(x,y,widths[j],rowH);if(v)doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.text(v,x+(j===3?widths[j]-1:widths[j]/2),y+5,{align:j===3?'right':'center',maxWidth:widths[j]-2});x+=widths[j];});y+=rowH+7;
+  // If the last table page has too little room for the summary and signature,
+  // place the complete summary block on a fresh page rather than clipping it.
+  if(y+55>200){doc.addPage('a4','landscape');y=18;}
+  x=left;const totalVals=['','','','Total',totalQty.toFixed(3),'',fmtAmt(total),''];totalVals.forEach((v,j)=>{doc.rect(x,y,widths[j],rowH);doc.setFont('helvetica',v?'bold':'normal');doc.setFontSize(8.5);doc.text(v,x+(j===3?widths[j]-1:widths[j]/2),y+5,{align:j===3?'right':'center',maxWidth:widths[j]-2});x+=widths[j];});y+=rowH+7;
   doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text('• As it is a Reimbursement of Expenses, GST is not applicable on this Bill',left,y);y+=8;
   doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.text(`Quantity in Words: ${qtyWords(totalQty)}`,pageW/2,y,{align:'center',maxWidth:265});y+=6;
   doc.setFont('helvetica','normal');doc.text(`Amount in Words: ${amountWords(total)}`,pageW/2,y,{align:'center',maxWidth:265});y+=12;
