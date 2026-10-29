@@ -459,6 +459,8 @@ async function generatePackage(id){
    text('For '+fullContractorName,right-8,tableTop+tableH+32,11,true,'right');
   }
 
+  const useMergedChargeRowsForSVE=/SRI\s+VENKATESHWARA\s+ENTERPRISES/i.test(fullContractorName);
+
   function addDC(){
    doc.addPage();drawFrame('DELIVERY CHALLAN (DC)');
    text('Challan No',right-170,112,11,true);text(':',right-102,112,11);text(challan,right-87,112,11,true);
@@ -505,7 +507,10 @@ async function generatePackage(id){
    const totalOther=other+taxOther*taxMultiplier;
    const totalTaxable=taxableMaterial+other, totalTax=(taxMaterial+taxOther)*taxMultiplier, totalValue=totalTaxable+totalTax;
    const dataTop=tTop+hh;
-   line(left,dataTop+rh,x[2],dataTop+rh,1.0);line(x[5],dataTop+rh,right,dataTop+rh,1.0);line(left,dataTop+2*rh,x[2],dataTop+2*rh,1.0);line(left,dataTop+3*rh,right,dataTop+3*rh,1.1);
+   // For SVE, merge only the numeric cells for Transportation + Other charges; retain all vertical column dividers.
+   line(left,dataTop+rh,x[2],dataTop+rh,1.0);
+   if(!useMergedChargeRowsForSVE)line(x[5],dataTop+rh,right,dataTop+rh,1.0);
+   line(left,dataTop+2*rh,x[2],dataTop+2*rh,1.0);line(left,dataTop+3*rh,right,dataTop+3*rh,1.1);
    hcenter(hsn,x[2],x[3],dataTop+1.5*rh+4,10.5,false);hcenter(networkNet.toFixed(3),x[3],x[4],dataTop+1.5*rh+4,10.5,false);hcenter('MTS',x[4],x[5],dataTop+1.5*rh+4,10.5,false);
    hcenter('1',x[0],x[1],dataTop+24,10.5,false);wrapByWidth(material,x[2]-x[1]-12,11,true).slice(0,2).forEach((v,i)=>text(v,x[1]+6,dataTop+18+i*13,11,true));
    hcenter(money2(taxableMaterial),x[5],x[6],dataTop+24,9.8,false);
@@ -514,10 +519,13 @@ async function generatePackage(id){
    hcenter(money2(totalWood),x[x.length-2],x[x.length-1],dataTop+24,9.8,false);
    hcenter('2',x[0],x[1],dataTop+rh+24,10.5,false);wrapByWidth('Transportation charges',x[2]-x[1]-12,9.8,false).forEach((v,i)=>text(v,x[1]+6,dataTop+rh+18+i*13,10.5));
    hcenter('3',x[0],x[1],dataTop+2*rh+24,10.5,false);wrapByWidth('Other charges',x[2]-x[1]-12,9.8,false).forEach((v,i)=>text(v,x[1]+6,dataTop+2*rh+18+i*13,10.5));
-   // Row 2 has no separately configured rate in the PO, so leave it blank. Row 3 carries the full Handling & Other charge.
-   hcenter(money2(other),x[5],x[6],dataTop+2*rh+24,9.8,false);
-   if(interStateSupply){hcenter(money2(taxOther),x[6],x[7],dataTop+2*rh+24,9.8,false);hcenter(money2(totalOther),x[7],x[8],dataTop+2*rh+24,9.8,false);}
-   else{hcenter(money2(taxOther),x[6],x[7],dataTop+2*rh+24,9.3,false);hcenter(money2(taxOther),x[7],x[8],dataTop+2*rh+24,9.3,false);hcenter(money2(totalOther),x[8],x[9],dataTop+2*rh+24,9.8,false);}
+   // SVE layout: amounts span the combined Transportation + Other charges cell, centered in each column.
+   // Vertical column dividers remain visible; only the horizontal divider through numeric columns is omitted.
+   // Other contractors retain the existing row-3 amount placement.
+   const chargeAmountY=useMergedChargeRowsForSVE?dataTop+2*rh+4:dataTop+2*rh+24;
+   hcenter(money2(other),x[5],x[6],chargeAmountY,9.8,false);
+   if(interStateSupply){hcenter(money2(taxOther),x[6],x[7],chargeAmountY,9.8,false);hcenter(money2(totalOther),x[7],x[8],chargeAmountY,9.8,false);}
+   else{hcenter(money2(taxOther),x[6],x[7],chargeAmountY,9.3,false);hcenter(money2(taxOther),x[7],x[8],chargeAmountY,9.3,false);hcenter(money2(totalOther),x[8],x[9],chargeAmountY,9.8,false);}
    const totalTop=dataTop+3*rh;hcenter('TOTAL',x[4],x[5],totalTop+20,10.5,true);hcenter(money2(totalTaxable),x[5],x[6],totalTop+20,9.6,true);
    if(interStateSupply){hcenter(money2(totalTax),x[6],x[7],totalTop+20,9.6,true);hcenter(money2(totalValue),x[7],x[8],totalTop+20,9.6,true);}
    else{hcenter(money2(totalTax/2),x[6],x[7],totalTop+20,9.2,true);hcenter(money2(totalTax/2),x[7],x[8],totalTop+20,9.2,true);hcenter(money2(totalValue),x[8],x[9],totalTop+20,9.6,true);}
