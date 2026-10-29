@@ -315,7 +315,8 @@ function wmBillPeriodLabel(fromDate,toDate){
   return `${wmFileSafe(f)}_to_${wmFileSafe(t)}`;
 }
 
-async function nextDc(){const now=new Date();const fy=(now.getMonth()+1)>=4?`${now.getFullYear()}-${String(now.getFullYear()+1).slice(-2)}`:`${now.getFullYear()-1}-${String(now.getFullYear()).slice(-2)}`;let max=0;const r=await sb.from('loads').select('dc_number').not('dc_number','is',null).limit(5000);if(!r.error)(r.data||[]).forEach(x=>{const parts=String(x.dc_number||'').split('/');if(parts.length===2&&parts[1]===fy)max=Math.max(max,Number(parts[0])||0)});return `${String(max+1).padStart(2,'0')}/${fy}`}
+function wmContractorPrefix(contractor=active()){const name=String(contractor?.contractor_name||'').trim();const words=name.toUpperCase().match(/[A-Z0-9]+/g)||[];const prefix=words.map(w=>w[0]).join('');return prefix||'WM'}
+async function nextDc(){const now=new Date();const fy=(now.getMonth()+1)>=4?`${now.getFullYear()}-${String(now.getFullYear()+1).slice(-2)}`:`${now.getFullYear()-1}-${String(now.getFullYear()).slice(-2)}`;let max=0;const contractorId=active()?.id;if(!contractorId)throw new Error('Select a contractor before generating a DC number.');const pr=await sb.from('po_master').select('id').eq('contractor_id',contractorId);if(pr.error)throw new Error('Could not load this contractor’s POs to generate a separate DC sequence: '+pr.error.message);const poIds=(pr.data||[]).map(x=>x.id).filter(Boolean);if(poIds.length){const r=await sb.from('loads').select('dc_number').in('po_id',poIds).not('dc_number','is',null).limit(5000);if(r.error)throw new Error('Could not check existing DC numbers for this contractor: '+r.error.message);(r.data||[]).forEach(x=>{const parts=String(x.dc_number||'').split('/');if(parts.length===2&&parts[1]===fy)max=Math.max(max,Number(parts[0])||0)});}return `${String(max+1).padStart(2,'0')}/${fy}`}
 function poLabel(p){const area=String(p.area_name||'').trim().replace(/\s+/g,'_');const mat=String(p.species_name||'').trim().replace(/[^A-Za-z0-9]+/g,'');const cust=String(p.customer_master?.customer_name||'').trim().replace(/[^A-Za-z0-9]+/g,'');return `${p.po_number}_${area}_${mat.slice(0,3).toUpperCase()}_${cust.slice(0,3).toUpperCase()}`}
 async function dashboard(){
  const loads=[...(state.loads||[])].sort((a,b)=>dcSortKey(b.dc_number)-dcSortKey(a.dc_number)||String(b.dc_number||'').localeCompare(String(a.dc_number||'')));
@@ -455,7 +456,7 @@ async function generatePackage(id){
     text(r[2],left+cols[0]+cols[1]+9,cy,11,true);
     const rfs=fitSize(r[3],cols[3]-18,11,9,false);text(r[3],right-cols[3]+9,cy,rfs,false);
    });
-   text('For Sri Venkateshwara Traders',right-8,tableTop+tableH+32,11,true,'right');
+   text('For '+fullContractorName,right-8,tableTop+tableH+32,11,true,'right');
   }
 
   function addDC(){
@@ -484,7 +485,7 @@ async function generatePackage(id){
    text('Destination',left+10,contentTop+21,11,true);
    const destX=left+105;const dest1='ITC Limited-PSPD, UNIT: Bhadrachalam, Sarapaka';const dest2='Bhadradri Kothagudem District, Telangana State - 507128';
    text(dest1,destX,contentTop+21,fitSize(dest1,260,10.5,9.5,false));text(dest2,destX,contentTop+37,fitSize(dest2,260,10.5,9.5,false));
-   text('Transporter Name',left+10,contentTop+59,11,true);text(': S V Traders',left+130,contentTop+59,11);
+   text('Transporter Name',left+10,contentTop+59,11,true);text(': '+fullContractorName,left+130,contentTop+59,fitSize(fullContractorName,150,11,8.5,false));
    text('Mode of Transport',left+295,contentTop+59,11,true);text(': By Road',left+430,contentTop+59,11);
    text('LR Number',left+10,contentTop+75,11,true);text(': '+lrNo,left+130,contentTop+75,11);
    text('Vehicle No',left+295,contentTop+75,11,true);text(': '+vehicle,left+430,contentTop+75,11);
@@ -494,27 +495,34 @@ async function generatePackage(id){
    rect(left,tTop,width,bottom-tTop,null,1.2);for(let i=1;i<x.length-1;i++)line(x[i],tTop,x[i],bottom,1.0);line(left,tTop+hh,right,tTop+hh,1.0);
    const heads=interStateSupply?['S.No','Material\nDescription','HSN\nCode','Qty','UOM','Taxable\nValue (Rs.)','IGST(18%)\n(Rs.)','Total Value\n(Rs.)']:['S.No','Material\nDescription','HSN\nCode','Qty','UOM','Taxable\nValue (Rs.)','CGST(9%)\n(Rs.)','SGST(9%)\n(Rs.)','Total Value\n(Rs.)'];
    heads.forEach((h,i)=>h.split('\n').forEach((v,j)=>hcenter(v,x[i],x[i+1],tTop+15+j*10,8.2,true)));
-   const taxableMaterial=networkNet*woodRate, other=networkNet*handling, taxRate=interStateSupply?.18:.09;
-   const taxMaterialA=taxableMaterial*taxRate,taxOtherA=other*taxRate;
-   const totalWood=taxableMaterial+taxMaterialA*(interStateSupply?1:2),totalOther=other+taxOtherA*(interStateSupply?1:2),totalTaxable=taxableMaterial+other,totalTax=taxMaterialA+taxOtherA,totalValue=totalTaxable+totalTax*(interStateSupply?1:2);
+   // DC values are calculated from the selected PO and network net weight.
+   // Material = Net MT × Wood Rate; Other Charges = Net MT × Handling & Other Rate.
+   // Freight rate is not added to the ITC material/handling taxable value.
+   const taxableMaterial=networkNet*woodRate, other=networkNet*handling, taxRate=interStateSupply?0.18:0.09;
+   const taxMaterial=taxableMaterial*taxRate, taxOther=other*taxRate;
+   const taxMultiplier=interStateSupply?1:2;
+   const totalWood=taxableMaterial+taxMaterial*taxMultiplier;
+   const totalOther=other+taxOther*taxMultiplier;
+   const totalTaxable=taxableMaterial+other, totalTax=(taxMaterial+taxOther)*taxMultiplier, totalValue=totalTaxable+totalTax;
    const dataTop=tTop+hh;
    line(left,dataTop+rh,x[2],dataTop+rh,1.0);line(x[5],dataTop+rh,right,dataTop+rh,1.0);line(left,dataTop+2*rh,x[2],dataTop+2*rh,1.0);line(left,dataTop+3*rh,right,dataTop+3*rh,1.1);
    hcenter(hsn,x[2],x[3],dataTop+1.5*rh+4,10.5,false);hcenter(networkNet.toFixed(3),x[3],x[4],dataTop+1.5*rh+4,10.5,false);hcenter('MTS',x[4],x[5],dataTop+1.5*rh+4,10.5,false);
    hcenter('1',x[0],x[1],dataTop+24,10.5,false);wrapByWidth(material,x[2]-x[1]-12,11,true).slice(0,2).forEach((v,i)=>text(v,x[1]+6,dataTop+18+i*13,11,true));
-   text(money2(taxableMaterial),x[6]-5,dataTop+24,10.5,false,'right');
-   if(interStateSupply){text(money2(taxMaterialA),x[7]-5,dataTop+24,10.5,false,'right');}
-   else{text(money2(taxMaterialA),x[7]-5,dataTop+24,10.5,false,'right');text(money2(taxMaterialA),x[8]-5,dataTop+24,10.5,false,'right');}
-   text(money2(totalWood),x[x.length-1]-5,dataTop+24,10.5,false,'right');
-   hcenter('2',x[0],x[1],dataTop+rh+24,10.5,false);wrapByWidth('Transportation charges',x[2]-x[1]-12,9.8,false).forEach((v,i)=>text(v,x[1]+6,dataTop+rh+18+i*13,11));
-   hcenter('3',x[0],x[1],dataTop+2*rh+24,10.5,false);wrapByWidth('Other charges',x[2]-x[1]-12,9.8,false).forEach((v,i)=>text(v,x[1]+6,dataTop+2*rh+18+i*13,11));
-   const mergeTop=dataTop+rh,mergeH=2*rh;doc.setFillColor(255,255,255);doc.rect(finite(x[5]+1),finite(mergeTop+1),finite(x[x.length-1]-x[5]-2),finite(mergeH-2),'F');
-   if(interStateSupply){line(x[6],mergeTop,x[6],mergeTop+mergeH,1.0);text(money2(taxOtherA),x[7]-5,mergeTop+mergeH/2+4,10.5,false,'right');text(money2(totalOther),x[8]-5,mergeTop+mergeH/2+4,10.5,false,'right');}
-   else{for(let i=6;i<=8;i++)line(x[i],mergeTop,x[i],mergeTop+mergeH,1.0);text(money2(taxOtherA),x[7]-5,mergeTop+mergeH/2+4,10.5,false,'right');text(money2(taxOtherA),x[8]-5,mergeTop+mergeH/2+4,10.5,false,'right');text(money2(totalOther),x[9]-5,mergeTop+mergeH/2+4,10.5,false,'right');}
-   const totalTop=dataTop+3*rh;hcenter('TOTAL',x[4],x[5],totalTop+20,10.5,true);text(money2(totalTaxable),x[6]-5,totalTop+20,10,true,'right');
-   if(interStateSupply){text(money2(totalTax),x[7]-5,totalTop+20,10,true,'right');text(money2(totalValue),x[8]-5,totalTop+20,10,true,'right');}
-   else{text(money2(totalTax/2),x[7]-5,totalTop+20,10,true,'right');text(money2(totalTax/2),x[8]-5,totalTop+20,10,true,'right');text(money2(totalValue),x[9]-5,totalTop+20,10,true,'right');}
+   hcenter(money2(taxableMaterial),x[5],x[6],dataTop+24,9.8,false);
+   if(interStateSupply){hcenter(money2(taxMaterial),x[6],x[7],dataTop+24,9.8,false);}
+   else{hcenter(money2(taxMaterial),x[6],x[7],dataTop+24,9.3,false);hcenter(money2(taxMaterial),x[7],x[8],dataTop+24,9.3,false);}
+   hcenter(money2(totalWood),x[x.length-2],x[x.length-1],dataTop+24,9.8,false);
+   hcenter('2',x[0],x[1],dataTop+rh+24,10.5,false);wrapByWidth('Transportation charges',x[2]-x[1]-12,9.8,false).forEach((v,i)=>text(v,x[1]+6,dataTop+rh+18+i*13,10.5));
+   hcenter('3',x[0],x[1],dataTop+2*rh+24,10.5,false);wrapByWidth('Other charges',x[2]-x[1]-12,9.8,false).forEach((v,i)=>text(v,x[1]+6,dataTop+2*rh+18+i*13,10.5));
+   // Row 2 has no separately configured rate in the PO, so leave it blank. Row 3 carries the full Handling & Other charge.
+   hcenter(money2(other),x[5],x[6],dataTop+2*rh+24,9.8,false);
+   if(interStateSupply){hcenter(money2(taxOther),x[6],x[7],dataTop+2*rh+24,9.8,false);hcenter(money2(totalOther),x[7],x[8],dataTop+2*rh+24,9.8,false);}
+   else{hcenter(money2(taxOther),x[6],x[7],dataTop+2*rh+24,9.3,false);hcenter(money2(taxOther),x[7],x[8],dataTop+2*rh+24,9.3,false);hcenter(money2(totalOther),x[8],x[9],dataTop+2*rh+24,9.8,false);}
+   const totalTop=dataTop+3*rh;hcenter('TOTAL',x[4],x[5],totalTop+20,10.5,true);hcenter(money2(totalTaxable),x[5],x[6],totalTop+20,9.6,true);
+   if(interStateSupply){hcenter(money2(totalTax),x[6],x[7],totalTop+20,9.6,true);hcenter(money2(totalValue),x[7],x[8],totalTop+20,9.6,true);}
+   else{hcenter(money2(totalTax/2),x[6],x[7],totalTop+20,9.2,true);hcenter(money2(totalTax/2),x[7],x[8],totalTop+20,9.2,true);hcenter(money2(totalValue),x[8],x[9],totalTop+20,9.6,true);}
    // Dedicated signature area: large deliberate gap after the table.
-   text('For Sri Venkateshwara Traders',right-8,785,11,true,'right');
+   text('For '+fullContractorName,right-8,785,11,true,'right');
   }
 
   function addInitialFL(){
@@ -544,13 +552,13 @@ async function generatePackage(id){
     if(r[3])hcenter(r[3],xs[3],xs[4],cy,11,false);
     yy=bottom;
    });
-   text('For S V Traders',right-8,785,11,true,'right');
+   text('For '+fullContractorName,right-8,785,11,true,'right');
   }
 
   addLR();
   if(['LRDC','LRDCFL','LRDCEWAY','LRDCFLEWAY'].includes(pkg))addDC();
   if(['LRDCFL','LRDCFLEWAY'].includes(pkg))addInitialFL();
-  const filename=`SVT_${wmFileSafe(challan||x.load_number||id)}_${wmFileSafe(wmFinancialYear(x.load_date))}_${wmFileSafe(String(x.vehicle_master?.vehicle_number||'').toUpperCase())}.pdf`;let outputBytes=doc.output('arraybuffer');if(pkg==='LRDCFLEWAY'){const ewayFile=state.ewayFiles[id];if(!ewayFile)throw new Error('E-way Bill file is not available in this browser session. Open Edit Load, upload the E-way Bill file again, save the load, then generate documents.');outputBytes=await appendEwayBillToPdf(outputBytes,ewayFile);}const outBlob=new Blob([outputBytes],{type:'application/pdf'});const outUrl=URL.createObjectURL(outBlob);const link=document.createElement('a');link.href=outUrl;link.download=filename;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(outUrl),30000);
+  const filename=`${wmContractorPrefix()}_${wmFileSafe(challan||x.load_number||id)}_${wmFileSafe(wmFinancialYear(x.load_date))}_${wmFileSafe(String(x.vehicle_master?.vehicle_number||'').toUpperCase())}.pdf`;let outputBytes=doc.output('arraybuffer');if(pkg==='LRDCFLEWAY'){const ewayFile=state.ewayFiles[id];if(!ewayFile)throw new Error('E-way Bill file is not available in this browser session. Open Edit Load, upload the E-way Bill file again, save the load, then generate documents.');outputBytes=await appendEwayBillToPdf(outputBytes,ewayFile);}const outBlob=new Blob([outputBytes],{type:'application/pdf'});const outUrl=URL.createObjectURL(outBlob);const link=document.createElement('a');link.href=outUrl;link.download=filename;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(outUrl),30000);
   const statusMap={LRDC:'LR / DC Generated',LRDCFL:'LR / DC / FL Generated',LRDCEWAY:'LR / DC / E-way Bill Generated',LRDCFLEWAY:'LR / DC / FL / E-way Bill Generated'};
   const newStatus=statusMap[pkg]||'Documents Generated';
   const dr=await sb.from('documents').insert({load_id:id,document_type:'PACKAGE',document_package:pkg,generated_at:new Date().toISOString(),generated_file_reference:filename});if(dr.error)console.warn('Document history save failed:',dr.error.message);
@@ -785,9 +793,9 @@ async function downloadFreightLetter(id){
   // Signature area at the bottom with a real reserved gap.
   const sigY=790;line(left+10,sigY,right/2-10, sigY,.9);line(PW/2+10,sigY,right-10,sigY,.9);
   try{if(FREIGHT_SIGNATURE_DATA)doc.addImage(FREIGHT_SIGNATURE_DATA,'PNG',left+30,766,105,22);}catch(e){}
-  text('For S V Traders',(left+right/2)/2,801,11,true,'center');text('Driver Signature',(right/2+right)/2,801,11,true,'center');
+  text('For '+fullContractorName,(left+right/2)/2,801,11,true,'center');text('Driver Signature',(right/2+right)/2,801,11,true,'center');
 
-  const filename=`SVT_FFL_${wmFileSafe(challan||id)}_${wmFileSafe(wmFinancialYear(x.load_date))}_${wmFileSafe(vehicle)}.pdf`;doc.save(filename);
+  const filename=`${wmContractorPrefix()}_FFL_${wmFileSafe(challan||id)}_${wmFileSafe(wmFinancialYear(x.load_date))}_${wmFileSafe(vehicle)}.pdf`;doc.save(filename);
  }catch(e){alert('Could not generate Freight Letter PDF.\n\n'+(e?.message||e));console.error(e);}
 }
 async function getMaterialInvoiceStates(loadIds){
@@ -1414,7 +1422,7 @@ async function printMaterialInvoice(id){
     rowY+=34;
     text(`For ${supplierName}`,left,rowY,11,true,'left');
 
-    const filename=`SVT_${wmFileSafe(invoice.invoice_number||id)}_${wmFileSafe(wmFinancialYear(invoice.invoice_date))}_${wmBillPeriodLabel(invoice.from_date,invoice.to_date)}.pdf`;
+    const filename=`${wmContractorPrefix()}_${wmFileSafe(invoice.invoice_number||id)}_${wmFileSafe(wmFinancialYear(invoice.invoice_date))}_${wmBillPeriodLabel(invoice.from_date,invoice.to_date)}.pdf`;
     doc.save(filename);
   }catch(e){console.error(e);alert(`Could not download invoice PDF: ${e.message||e}`)}
 }
@@ -1728,8 +1736,8 @@ async function downloadAmcBillTemplate(){
   doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text('• As it is a Reimbursement of Expenses, GST is not applicable on this Bill',left,y);y+=8;
   doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.text(`Quantity in Words: ${qtyWords(totalQty)}`,pageW/2,y,{align:'center',maxWidth:265});y+=6;
   doc.setFont('helvetica','normal');doc.text(`Amount in Words: ${amountWords(total)}`,pageW/2,y,{align:'center',maxWidth:265});y+=12;
-  doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.text('Yours faithfully',left,y);y+=12;doc.text('For Sri Venkateshwara Traders',left,y);
-  const filename=`SVT_${wmFileSafe(meta.invoiceNo||'AMC')}_${wmFileSafe(wmFinancialYear(meta.billDate))}_${wmBillPeriodLabel(meta.fd,meta.td)}.pdf`;
+  doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.text('Yours faithfully',left,y);y+=12;doc.text('For '+(active()?.contractor_name||'Supplier'),left,y);
+  const filename=`${wmContractorPrefix()}_${wmFileSafe(meta.invoiceNo||'AMC')}_${wmFileSafe(wmFinancialYear(meta.billDate))}_${wmBillPeriodLabel(meta.fd,meta.td)}.pdf`;
   doc.save(filename);
  }catch(e){console.error('AMC PDF generation failed:',e);alert('Could not generate AMC PDF: '+(e?.message||e));}
 }
