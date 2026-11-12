@@ -805,7 +805,21 @@ async function downloadFreightLetter(id){
 
   const xs=[left,left+42,left+237,left+412,right];const drawHeader=(top)=>{rect(left,top,width,24,LIGHT,1.15);for(let i=1;i<4;i++)line(xs[i],top,xs[i],top+26,1.15);['S.No.','PARTICULARS','QUANTITY / RATE','AMOUNT (Rs.)'].forEach((h,i)=>hcenter(h,xs[i],xs[i+1],top+17,9.2,true));};
   const row=(top,h,no,part,qty,amt,bold=false)=>{rect(left,top,width,h,null,1.05);for(let i=1;i<4;i++)line(xs[i],top,xs[i],top+h,1.05);const cy=top+h/2+4;if(no!==''&&no!=null)hcenter(no,xs[0],xs[1],cy,11,bold);text(part,xs[1]+10,cy,11,bold);if(qty)hcenter(qty,xs[2],xs[3],cy,fit(qty,xs[3]-xs[2]-14,11,8.5,false),false);if(amt)hcenter(amt,xs[3],xs[4],cy,fit(amt,xs[4]-xs[3]-14,11,8.5,false),bold);return top+h;};
-  const words=(top,h,label,value)=>{rect(left,top,width,h,null,1.05);line(xs[1],top,xs[1],top+h,1.05);line(xs[2],top,xs[2],top+h,1.05);const cy=top+h/2+4;text(label,xs[1]+10,cy,11);if(value)hcenter(value,xs[2],right,cy,9.5,true);return top+h;};
+  const words=(top,label,value)=>{
+   const cellW=right-xs[2]-18;
+   set(9.2,true);
+   const valueLines=doc.splitTextToSize(safe(value||''),cellW);
+   const lineH=11;
+   const h=Math.max(34,valueLines.length*lineH+12);
+   rect(left,top,width,h,null,1.05);
+   line(xs[1],top,xs[1],top+h,1.05);
+   line(xs[2],top,xs[2],top+h,1.05);
+   const labelY=top+h/2+4;
+   text(label,xs[1]+10,labelY,10.5,false);
+   const firstY=top+(h-(valueLines.length-1)*lineH)/2+3;
+   valueLines.forEach((ln,i)=>hcenter(ln,xs[2]+7,right-7,firstY+i*lineH,9.2,true));
+   return top+h;
+  };
   const totalRow=(top,h,no,label,amount)=>{rect(left,top,width,h,LIGHT,1.25);line(xs[1],top,xs[1],top+h,1.1);const cy=top+h/2+4;hcenter(no,xs[0],xs[1],cy,11,true);text(label,xs[1]+10,cy,11,true);hcenter(amount,xs[3],xs[4],cy,11,true);return top+h;};
 
   // Section 1: through Gross Amount in Words
@@ -815,7 +829,7 @@ async function downloadFreightLetter(id){
   top=row(top,25,'3','Freight Charges','',money(f.freight_charges));
   top=row(top,25,'4','AMC Charges','',money(f.amc_charges));
   top=totalRow(top,26,'5','Gross Amount',money(f.gross_amount));
-  top=words(top,30,'Gross Amount in Words',numberWordsIndian(f.gross_amount));
+  top=words(top,'Gross Amount in Words',numberWordsIndian(f.gross_amount));
 
   // Section 2: settlement
   top+=14;drawHeader(top);top+=24;
@@ -823,14 +837,14 @@ async function downloadFreightLetter(id){
   top=row(top,25,'7','Clerk Commission','',money(f.clerk_commission));
   top=row(top,25,'8','Shortage','',money(f.shortage));
   top=totalRow(top,26,'9','NET AMOUNT',money(f.net_amount));
-  top=words(top,30,'Net Amount in Words',numberWordsIndian(f.net_amount));
+  top=words(top,'Net Amount in Words',numberWordsIndian(f.net_amount));
 
   // Payment details
   top+=14;const payTop=top,payHeader=22,payRow=20,payH=payHeader+payRow*3,payBottom=payTop+payH;
   rect(left,payTop,width,payH,null,1.15);rect(left,payTop,width,payHeader,LIGHT,1.15);line(left,payTop+payHeader,right,payTop+payHeader,1.1);
   const payMid=left+235;line(payMid,payTop+payHeader,payMid,payBottom,1.05);for(let i=1;i<3;i++)line(left,payTop+payHeader+payRow*i,right,payTop+payHeader+payRow*i,1);
   text('PAYMENT DETAILS',left+10,payTop+16,10.5,true);text('(FOR FINAL PAYMENT)',left+117,payTop+16,8.5);
-  const payVals=[['Account Number / UPI Number',f.account_number||f.upi_number||''],['Account Holder Name',f.account_holder_name||''],['Paid Date',fmtDate(f.paid_date)||'']];
+  const payVals=[['Account Number / UPI Number',f.account_number||f.upi_number||''],['Account Holder Name',f.account_holder||f.account_holder_name||''],['Paid Date',fmtDate(f.paid_date)||'']];
   payVals.forEach((r,i)=>{const cy=payTop+payHeader+payRow*i+15;text(r[0],left+10,cy,10.5,true);text(':',payMid+10,cy,10.5);if(r[1])text(r[1],payMid+25,cy,10.5);});
 
   // Signature area at the bottom with a real reserved gap.
