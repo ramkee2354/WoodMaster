@@ -320,19 +320,11 @@ async function nextDc(dateValue=isoToday()){
   const fy=wmFinancialYear(dateValue||isoToday());
   const contractorId=active()?.id;
   if(!contractorId) throw new Error('Select a contractor before generating a DC number.');
-  // Preview only: do not consume/reserve the number merely by opening New Load.
-  const [seqResult,loadsResult]=await Promise.all([
-    sb.from('wm360_dc_sequences').select('last_number').eq('contractor_id',contractorId).eq('financial_year',fy).maybeSingle(),
-    sb.from('loads').select('dc_number').eq('contractor_id',contractorId).like('dc_number',`%/${fy}`)
-  ]);
-  if(seqResult.error) throw new Error('Could not read the contractor DC sequence: '+seqResult.error.message);
-  if(loadsResult.error) throw new Error('Could not read existing DC numbers for this contractor: '+loadsResult.error.message);
-  const savedMax=(loadsResult.data||[]).reduce((m,row)=>{
-    const match=String(row.dc_number||'').match(/^(\d+)\/(\d{4}-\d{2})$/);
-    return match&&match[2]===fy?Math.max(m,Number(match[1])):m;
-  },0);
-  const last=Math.max(savedMax,Number(seqResult.data?.last_number||0));
-  return String(last+1).padStart(2,'0')+'/'+fy;
+  const r=await sb.rpc('wm360_preview_dc_number',{p_contractor_id:contractorId,p_financial_year:fy});
+  if(r.error) throw new Error('Could not preview the next DC number: '+r.error.message);
+  const dc=typeof r.data==='string'?r.data:(Array.isArray(r.data)?r.data[0]?.wm360_preview_dc_number:r.data?.dc_number);
+  if(!dc||!/^[0-9]+\/\d{4}-\d{2}$/.test(String(dc))) throw new Error('The database returned an invalid DC preview.');
+  return String(dc);
 }
 async function reserveDcNumber(dateValue=isoToday()){
   const fy=wmFinancialYear(dateValue||isoToday());
@@ -399,7 +391,51 @@ async function pdfjsFromFile(f){if(!window.pdfjsLib){const mod=await import('htt
 function validateEwayField(){const e=$('eway'),s=$('ewayStatus');if(!e)return true;const v=e.value.trim();if(!v){if(s)s.textContent='Enter exactly 12 digits for the E-way Bill Number.';e.setCustomValidity('E-way Bill Number must be exactly 12 digits.');return false}if(!/^\d{12}$/.test(v)){if(s)s.textContent='⚠ E-way Bill Number must be exactly 12 digits.';e.setCustomValidity('E-way Bill Number must be exactly 12 digits.');return false}if(s)s.textContent='✓ E-way Bill Number format is valid (12 digits).';e.setCustomValidity('');return true}
 function validateLoad(){if(!$('vehicle')?.value.trim())return 'Vehicle Number is required.';if(!$('gross')?.value||!$('tare')?.value)return 'Gross and Tare Weight are required.';if(num($('gross').value)<num($('tare').value))return 'Gross weight cannot be less than tare weight.';if(!$('po')?.value)return 'PO is required.';const eway=$('eway')?.value.trim();if(!eway)return 'E-way Bill Number is required. Enter the 12-digit number or upload the E-way bill.';if(!/^\d{12}$/.test(eway)){validateEwayField();return 'Invalid E-way Bill Number. It must be exactly 12 digits.';}return null}
 async function ensureVehicle(vn,driver,tare){let v=state.vehicles.find(x=>x.vehicle_number.toUpperCase()===vn.toUpperCase());if(v){if(driver&&driver!==v.driver_name){await sb.from('vehicle_master').update({driver_name:driver,owner_name:v.owner_name}).eq('id',v.id)}return v}const r=await sb.from('vehicle_master').insert({vehicle_number:vn,driver_name:driver||null,current_tare:num(tare)||null,is_active:true}).select().single();if(r.error)throw r.error;state.vehicles.push(r.data);return r.data}
-async function createLoad(){const btn=document.querySelector('.sticky-actions .btn.primary');let networkId=null;try{const err=validateLoad();if(err)return alert(err);const contractor=active();if(!contractor)throw new Error('No active contractor selected. Open Contractors and select the contractor first.');const p=state.pos.find(v=>String(v.id)===String($('po').value));if(!p)throw new Error('The selected PO could not be found in the active contractor’s records. Refresh Masters and select the PO again.');if(String(p.contractor_id||'')!==String(contractor.id))throw new Error('Contractor isolation check failed: the selected PO does not belong to the active contractor. No weighment or load was saved.');let dcValue=String($('dcNumber')?.value||'').trim();if(!/^\d{2,}\/\d{4}-\d{2}$/.test(dcValue))throw new Error('DC number is missing or invalid. Cancel and reopen New Load to reserve a fresh DC number.');if(!state.session?.user?.id)throw new Error('Your login session is missing. Sign out and sign in again.');if(btn){btn.disabled=true;btn.dataset.oldText=btn.textContent;btn.textContent='Creating Load…'}const vn=$('vehicle').value.trim().toUpperCase(),driver=$('driver').value.trim();$('vehicle').value=vn;const v=await ensureVehicle(vn,driver,$('tare').value);const n=Number((num($('gross').value)-num($('tare').value)).toFixed(3));if(n<=0)throw new Error('Calculated Net Weight must be greater than zero.');const ag=$('advanceBy').value==='Others'?$('advanceOther').value.trim():$('advanceBy').value;dcValue=await reserveDcNumber($('date').value);$('dcNumber').value=dcValue;const nw={weighment_date:$('date').value,vehicle_id:v.id,gross_weight:num($('gross').value),tare_weight:num($('tare').value),po_id:p.id,eway_bill_no:$('eway').value.trim(),freight_rate:num($('freight').value),advance:num($('advance').value),advance_given_by:ag||null,receipt_received:true,verified:true,created_by:state.session.user.id};let r=await sb.from('network_weighments').insert(nw).select().single();if(r.error)throw new Error('Could not save Network Weighment: '+r.error.message);networkId=r.data.id;const lr={contractor_id:contractor.id,network_weighment_id:networkId,po_id:p.id,vehicle_id:v.id,load_date:$('date').value,species_id:null,species_name:p.species_name,network_gross:num($('gross').value),network_tare:num($('tare').value),network_net:n,eway_bill_no:$('eway').value.trim(),freight_rate:num($('freight').value),advance:num($('advance').value),advance_given_by:ag||null,dc_number:dcValue,status:'Load Created',created_by:state.session.user.id};r=await sb.from('loads').insert(lr).select().single();if(r.error){const cleanup=await sb.from('network_weighments').delete().eq('id',networkId);networkId=null;throw new Error('Network Weighment was saved, but the Load could not be created: '+r.error.message+(cleanup.error?' Also, cleanup of the unused Network Weighment failed: '+cleanup.error.message:''));}if(state.ewayFiles.__new){state.ewayFiles[r.data.id]=state.ewayFiles.__new;delete state.ewayFiles.__new}clearForm('newload');alert('Load created successfully.');state.page='loads';await refreshLoads();await render()}catch(e){console.error('WoodMaster Create Load failed:',e);alert('Create Load failed. No success was reported.\n\n'+(e?.message||String(e))+'\n\nPlease share this exact error so the underlying database/policy issue can be corrected.')}finally{if(btn){btn.disabled=false;btn.textContent=btn.dataset.oldText||'Create Load'}}}
+async function createLoad(){
+ const btn=document.querySelector('.sticky-actions .btn.primary');
+ try{
+  const err=validateLoad();if(err)return alert(err);
+  const contractor=active();if(!contractor)throw new Error('No active contractor selected.');
+  const p=state.pos.find(v=>String(v.id)===String($('po').value));
+  if(!p)throw new Error('Selected PO was not found. Refresh Masters and select it again.');
+  if(String(p.contractor_id||'')!==String(contractor.id))throw new Error('Contractor isolation check failed: selected PO belongs to another contractor.');
+  if(!state.session?.user?.id)throw new Error('Login session missing. Sign in again.');
+  if(btn){btn.disabled=true;btn.dataset.oldText=btn.textContent;btn.textContent='Creating Load…';}
+  const vn=$('vehicle').value.trim().toUpperCase(),driver=$('driver').value.trim();$('vehicle').value=vn;
+  const v=await ensureVehicle(vn,driver,$('tare').value);
+  const gross=num($('gross').value),tare=num($('tare').value),net=Number((gross-tare).toFixed(3));
+  if(net<=0)throw new Error('Calculated Net Weight must be greater than zero.');
+  const ag=$('advanceBy').value==='Others'?$('advanceOther').value.trim():$('advanceBy').value;
+  const fy=wmFinancialYear($('date').value);
+  const networkPayload={
+   weighment_date:$('date').value,vehicle_id:v.id,gross_weight:gross,tare_weight:tare,
+   po_id:p.id,eway_bill_no:$('eway').value.trim(),freight_rate:num($('freight').value),
+   advance:num($('advance').value),advance_given_by:ag||null,receipt_received:true,
+   verified:true,created_by:state.session.user.id
+  };
+  const loadPayload={
+   contractor_id:contractor.id,po_id:p.id,vehicle_id:v.id,load_date:$('date').value,
+   species_id:null,species_name:p.species_name,network_gross:gross,network_tare:tare,
+   network_net:net,eway_bill_no:$('eway').value.trim(),freight_rate:num($('freight').value),
+   advance:num($('advance').value),advance_given_by:ag||null,status:'Load Created',
+   created_by:state.session.user.id
+  };
+  const r=await sb.rpc('wm360_create_load_with_dc',{
+   p_contractor_id:contractor.id,p_financial_year:fy,
+   p_network_weighment:networkPayload,p_load:loadPayload
+  });
+  if(r.error)throw new Error('Atomic Load creation failed: '+r.error.message);
+  const result=r.data||{},createdLoad=result.load||result;
+  const dc=result.dc_number||createdLoad.dc_number;
+  if(!createdLoad.id||!dc)throw new Error('Database did not return the created Load and DC number. Refresh the Loads page before retrying.');
+  if(state.ewayFiles.__new){state.ewayFiles[createdLoad.id]=state.ewayFiles.__new;delete state.ewayFiles.__new;}
+  clearForm('newload');alert('Load created successfully. DC Number: '+dc);
+  state.page='loads';await refreshLoads();await render();
+ }catch(e){
+  console.error('WoodMaster Create Load failed:',e);
+  alert('Create Load failed. The database transaction was rolled back; no DC number should have been consumed.\\n\\n'+(e?.message||String(e)));
+ }finally{if(btn){btn.disabled=false;btn.textContent=btn.dataset.oldText||'Create Load';}}
+}
 async function updateLoad(id){const err=validateLoad();if(err)return alert(err);const x=state.loads.find(v=>v.id===id);const p=state.pos.find(v=>v.id===$('po').value);const vn=$('vehicle').value.trim().toUpperCase();$('vehicle').value=vn;const v=await ensureVehicle(vn,$('driver').value.trim(),$('tare').value);const ag=$('advanceBy').value==='Others'?$('advanceOther').value.trim():$('advanceBy').value;const row={contractor_id:active().id,load_date:$('date').value,vehicle_id:v.id,po_id:p.id,species_name:p.species_name,network_gross:num($('gross').value),network_tare:num($('tare').value),network_net:num($('gross').value)-num($('tare').value),eway_bill_no:$('eway').value.trim(),freight_rate:num($('freight').value),advance:num($('advance').value),advance_given_by:ag||null,status:x.status||'Load Created'};let r=await sb.from('loads').update(row).eq('id',id);if(r.error)throw r.error;await sb.from('network_weighments').update({weighment_date:$('date').value,vehicle_id:v.id,gross_weight:num($('gross').value),tare_weight:num($('tare').value),po_id:p.id,eway_bill_no:$('eway').value.trim(),freight_rate:num($('freight').value),advance:num($('advance').value),advance_given_by:ag||null}).eq('id',x.network_weighment_id);clearForm('newload');alert('Load updated successfully.');state.selectedLoad=null;await refreshLoads();state.page='loads';await render()}
 async function deleteLoad(id){if(!confirm('Delete this load? Historical document references may become unavailable. Continue?'))return;const x=state.loads.find(v=>v.id===id);const r=await sb.from('loads').delete().eq('id',id);if(r.error)return alert(r.error.message);if(x?.network_weighment_id)await sb.from('network_weighments').delete().eq('id',x.network_weighment_id);alert('Load deleted.');state.selectedLoad=null;state.page='loads';await refreshLoads();await render()}
 function editLoad(id){state.page='editload';state.editLoad=id;render()}
@@ -1106,26 +1142,29 @@ async function markBillingWaitingAndRefresh(loadId){
   if($('biManualFrom')){await buildMaterialInvoiceDraft('manual');}
 }
 async function prepareManualMaterialDraft(){
-  const d=loadForm('billingInvoice')||{},lines=d.confirmationLines||[];if(!lines.length)return alert('No confirmed billing lines are available.');
-  // Manual Date Selection bills the selected period and also enforces the earlier-load completeness control before the draft is prepared.
-
-  const fd=d.manualFromDate,td=d.manualToDate,idate=d.invoiceDate;
-  if(!fd||!td||!idate)return alert('Billing period and invoice date are required.');
-  const ids=[...new Set(lines.map(x=>x.load_id).filter(Boolean))];
-  let stateCheck;
-  try{stateCheck=await getMaterialInvoiceStates(ids)}catch(e){return alert(e.message||String(e))}
-  const liveDup=stateCheck.liveItems.filter(x=>x.invoice_id!==d.invoiceId);
-  if(liveDup.length){
-    const nums=[...new Set(liveDup.map(x=>x.material_invoices?.invoice_number).filter(Boolean))].join(', ');
-    return alert(`One or more selected loads are already reserved by a live Material Invoice${nums?` (${nums})`:''}.\n\nCancelled invoice history does not block billing. Refresh the billing screen and choose only unreserved loads.`);
-  }
-  const itc=state.itcs.find(x=>x.is_default)||state.itcs[0];if(!itc)return alert('No default ITC Master record is configured.');
-  const numberRes=await sb.rpc('allocate_shared_invoice_number',{p_invoice_date:idate});if(numberRes.error)return alert(`Could not allocate the shared invoice number. ${numberRes.error.message}`);const ino=numberRes.data;
-  const totals=lines.reduce((a,x)=>({qty:a.qty+x.approved_qty,mv:a.mv+x.wood_value,hv:a.hv+x.handling_value,gst:a.gst+x.gst,total:a.total+x.total}),{qty:0,mv:0,hv:0,gst:0,total:0});
-  const inv={invoice_number:ino,invoice_date:idate,from_date:fd,to_date:td,itc_id:itc.id,total_qty:totals.qty,material_value:totals.mv,handling_value:totals.hv,gst:totals.gst,invoice_total:totals.total,status:'Draft',billing_method:'Manual Date Selection',created_by:state.session.user.id};
-  const ir=await sb.from('material_invoices').insert(inv).select().single();if(ir.error)return alert(`Draft bill was not created: ${ir.error.message}`);
-  const rows=lines.map(x=>({...x,wc_date:x.wc_date||null,invoice_id:ir.data.id}));const rr=await sb.from('invoice_items').insert(rows);if(rr.error){await sb.from('material_invoices').delete().eq('id',ir.data.id);return alert(`Draft bill lines were not saved: ${rr.error.message}`)}
-  clearForm('billingInvoice');closeModal();alert(`Material Draft Bill ${ino} prepared for ${fmt(totals.qty)} MT.`);await refreshLoads();await render();
+ const d=loadForm('billingInvoice')||{},lines=d.confirmationLines||[];
+ if(!lines.length)return alert('No confirmed billing lines are available.');
+ const fd=d.manualFromDate,td=d.manualToDate,idate=d.invoiceDate,poId=d.poId;
+ if(!fd||!td||!idate||!poId)return alert('Purchase Order, billing period and invoice date are required.');
+ const ids=[...new Set(lines.map(x=>x.load_id).filter(Boolean))];
+ let stateCheck;
+ try{stateCheck=await getMaterialInvoiceStates(ids)}catch(e){return alert(e.message||String(e))}
+ const liveDup=stateCheck.liveItems.filter(x=>x.invoice_id!==d.invoiceId);
+ if(liveDup.length){
+  const nums=[...new Set(liveDup.map(x=>x.material_invoices?.invoice_number).filter(Boolean))].join(', ');
+  return alert('Selected loads are already reserved by a live invoice'+(nums?' ('+nums+')':'')+'. Refresh billing and review again.');
+ }
+ const itc=state.itcs.find(x=>x.is_default)||state.itcs[0];
+ if(!itc)return alert('No default ITC Master record is configured.');
+ const r=await sb.rpc('wm_create_material_invoice_draft',{
+  p_po_id:poId,p_from_date:fd,p_to_date:td,p_invoice_date:idate,
+  p_itc_id:itc.id,p_load_ids:ids,p_user_id:state.session.user.id
+ });
+ if(r.error)return alert('Material Draft Bill was not created. '+r.error.message);
+ const result=r.data||{},ino=result.invoice_number||'';
+ clearForm('billingInvoice');closeModal();
+ alert('Material Draft Bill '+ino+' created atomically for '+fmt(result.total_qty||0)+' MT.');
+ await refreshLoads();await render();
 }
 function invoiceActionAllowed(action,status){
   // Central permission hook. For now all authenticated users may act; later role-based
@@ -1695,34 +1734,30 @@ async function reviewAmcBillingFromMaterialScreen(){
 }
 async function createAmcInvoiceDraft(){
  const rows=window.wmAmcBillRows||[],meta=window.wmAmcBillMeta||{};
- if(!rows.length)return alert('Click Review AMC Bill first and confirm that eligible records appear.');
+ if(!rows.length)return alert('Click Review AMC Bill first and confirm eligible records.');
  const fd=meta.fd,td=meta.td,date=meta.billDate||$('amcBillDate')?.value||isoToday();
- if(!fd||!td||fd>td)return alert('Select a valid AMC billing period first.');
- // Refresh live data and prevent the same load's AMC from being reserved twice.
- const ids=[...new Set(rows.map(x=>x.load_id).filter(Boolean))];
- if(!ids.length)return alert('No load IDs were found for the reviewed AMC records.');
- const existing=await sb.from('invoice_items').select('id,load_id,invoice_id').in('load_id',ids);
- if(existing.error)return alert('Could not check existing AMC billing: '+existing.error.message);
- const invoiceIds=[...new Set((existing.data||[]).map(x=>x.invoice_id).filter(Boolean))];let headers=[];
- if(invoiceIds.length){const hr=await sb.from('material_invoices').select('id,invoice_number,status,billing_method').in('id',invoiceIds);if(hr.error)return alert('Could not check existing invoice statuses: '+hr.error.message);headers=hr.data||[];}
- const hm=new Map(headers.map(x=>[String(x.id),x]));
- const already=new Set((existing.data||[]).filter(x=>{const h=hm.get(String(x.invoice_id));return h&&String(h.billing_method||'').toLowerCase().includes('amc')&&['draft','verified','finalized'].includes(String(h.status||'').toLowerCase());}).map(x=>String(x.load_id)));
- const dup=rows.filter(x=>already.has(String(x.load_id)));
- if(dup.length)return alert('AMC Draft not created. These records already belong to an active AMC Draft/Verified/Finalized invoice: '+dup.map(x=>x.wc_number||x.load_id).join(', ')+'. Remove them from this period or review the existing invoice.');
- const totalQty=rows.reduce((a,x)=>a+Number(x.approved_weight||x.net_weight||0),0),total=rows.reduce((a,x)=>a+Number(x.amc_amount||0),0);
+ const contractor=active();
+ if(!contractor?.id)return alert('Select an active contractor first.');
+ if(!fd||!td||fd>td)return alert('Select a valid AMC billing period.');
+ const totalQty=rows.reduce((a,x)=>a+Number(x.approved_weight||x.net_weight||0),0);
+ const total=rows.reduce((a,x)=>a+Number(x.amc_amount||0),0);
  if(!(total>0))return alert('Total AMC amount must be greater than zero.');
- const allocated=await sb.rpc('allocate_shared_invoice_number',{p_invoice_date:date});
- if(allocated.error)return alert('Could not allocate the shared invoice number: '+allocated.error.message);
- const invoiceNo=String(allocated.data||'');if(!invoiceNo)return alert('Shared invoice-number allocation returned no number.');
  const itc=state.itcs.find(x=>x.is_default)||state.itcs[0];
- const inv={invoice_number:invoiceNo,invoice_date:date,from_date:fd,to_date:td,itc_id:itc?.id||null,total_qty:totalQty,material_value:0,handling_value:total,gst:0,invoice_total:total,status:'Draft',billing_method:'AMC CESS BILL',created_by:state.session.user.id};
- const saved=await sb.from('material_invoices').insert(inv).select().single();
- if(saved.error)return alert('AMC Draft header was not saved: '+saved.error.message+'\nThe allocated invoice number may remain consumed by the shared sequence.');
- const lines=rows.map(x=>({invoice_id:saved.data.id,load_id:x.load_id,wc_number:x.wc_number||null,wc_date:x.wc_date||null,approved_qty:Number(x.approved_weight||x.net_weight||0),wood_rate:0,wood_value:0,handling_rate:0,handling_value:Number(x.amc_amount||0),gst:0,total:Number(x.amc_amount||0)}));
- const lineSave=await sb.from('invoice_items').insert(lines);
- if(lineSave.error){await sb.from('material_invoices').delete().eq('id',saved.data.id);return alert('AMC Draft lines could not be saved; the empty header was rolled back. '+lineSave.error.message);}
- window.wmAmcBillMeta={...meta,invoiceNo,billDate:date,draftId:saved.data.id};
- alert(`AMC Draft ${invoiceNo} created successfully. It is listed with the shared Draft Invoices. Finalize it only after checking the AMC CESS BILL.`);
+ const items=rows.map(x=>({
+  load_id:x.load_id,wc_number:x.wc_number||null,wc_date:x.wc_date||null,
+  approved_qty:Number(x.approved_weight||x.net_weight||0),
+  wood_rate:0,wood_value:0,handling_rate:0,
+  handling_value:Number(x.amc_amount||0),gst:0,total:Number(x.amc_amount||0)
+ }));
+ const r=await sb.rpc('wm360_create_amc_invoice_draft',{
+  p_contractor_id:contractor.id,p_invoice_date:date,p_from_date:fd,p_to_date:td,
+  p_itc_id:itc?.id||null,p_total_qty:totalQty,p_total_amount:total,
+  p_items:items,p_user_id:state.session.user.id
+ });
+ if(r.error)return alert('AMC Draft was not created. '+r.error.message);
+ const result=r.data||{},invoiceNo=result.invoice_number||'';
+ window.wmAmcBillMeta={...meta,invoiceNo,billDate:date,draftId:result.invoice_id};
+ alert('AMC Draft '+invoiceNo+' created successfully. Review the AMC CESS BILL before finalizing.');
  await render();
 }
 async function finalizeAmcInvoice(id){
