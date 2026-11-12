@@ -785,13 +785,15 @@ async function downloadFreightLetter(id){
   const wrap=(str,maxWidth,size=NORMAL,b=false)=>{set(size,b);const words=String(str||'').trim().split(/\s+/).filter(Boolean);const lines=[];let cur='';for(const word of words){const t=cur?cur+' '+word:word;if(doc.getTextWidth(safe(t))<=maxWidth)cur=t;else{if(cur)lines.push(cur);cur=word;}}if(cur)lines.push(cur);return lines.length?lines:[''];};
   const frame=title=>{rect(20,20,555,801,null,1.05);text(title,PW/2,53,18,true,'center');line(PW/2-118,70,PW/2+118,70,1.2);};
 
-  const activeContractor=active();let address=activeContractor?.address||'15-8-539, Rama Devi Nilayam, Rotary Nagar, Srinagar Colony, Khammam District, Telangana - 507002';
+  const activeContractor=active();
+  const fullContractorName=activeContractor?.contractor_name||'SRI VENKATESHWARA TRADERS';
+  let address=activeContractor?.address||'15-8-539, Rama Devi Nilayam, Rotary Nagar, Srinagar Colony, Khammam District, Telangana - 507002';
   address=String(address).replace(/^\s*\d+(?:[-\/]\d+)*\s*,?\s*/,'').replace(/\s*-\s*539\b/g,'').replace(/\s{2,}/g,' ').trim();
   const vehicle=String(x.vehicle_master?.vehicle_number||'').toUpperCase();
   const challan=x.dc_number||x.load_number||'';const challanDate=fmtDate(x.load_date);const wc=w.wc_number||'';
   frame('FREIGHT LETTER');
   const metaY=94;
-  text('FROM',left+10,metaY,11,true);text('S V TRADERS',left+10,metaY+22,16,true);
+  text('FROM',left+10,metaY,11,true);text(fullContractorName,left+10,metaY+22,fit(fullContractorName,350,16,10,true),true);
   wrap(address,360,11,false).slice(0,2).forEach((ln,i)=>text(ln,left+10,metaY+43+i*15,11));
   text('Challan No.',405,metaY-2,11,true);text(':',469,metaY-2,11);text(challan,483,metaY-2,11,true);
   text('Challan Date',405,metaY+23,11,true);text(':',469,metaY+23,11);text(challanDate,483,metaY+23,11,true);
